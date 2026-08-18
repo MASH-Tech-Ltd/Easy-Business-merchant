@@ -4,19 +4,21 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Save, X, ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
 import { MultipleImageUpload } from '@/components/ui/MultipleImageUpload';
+import { api } from '@/utils/api';
 
 export default function AddProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [categories, setCategories] = useState<any[]>([]);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   // Form State
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -46,8 +48,40 @@ export default function AddProductPage() {
   });
 
   useEffect(() => {
+    setIsClient(true);
     fetchCategories();
+    // Load from local storage
+    const saved = localStorage.getItem('draftProduct');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.formData) setFormData(parsed.formData);
+        if (parsed.specifications) setSpecifications(parsed.specifications);
+        if (parsed.features) setFeatures(parsed.features);
+        if (parsed.videos) setVideos(parsed.videos);
+      } catch (e) {
+        console.error('Failed to parse draft product', e);
+      }
+    }
+    
+    // Cleanup draft on unmount if navigating back via browser
+    return () => {
+       // We only clear if it's not a successful save, but React 18 strict mode runs this twice.
+       // So we rely on a manual clear button instead of unmount, or explicitly clear on Cancel.
+    };
   }, []);
+
+  // Save to local storage on change
+  useEffect(() => {
+    if (isClient) {
+      const draft = { formData, specifications, features, videos };
+      localStorage.setItem('draftProduct', JSON.stringify(draft));
+    }
+  }, [formData, specifications, features, videos, isClient]);
+
+  const handleDiscard = () => {
+    localStorage.removeItem('draftProduct');
+  };
 
   const fetchCategories = async () => {
     try {
@@ -156,6 +190,17 @@ export default function AddProductPage() {
     setError('');
 
     try {
+      // 1. Check Limits First
+      try {
+        await api.get('/products/check-limit');
+      } catch (limitErr: any) {
+        if (limitErr.response?.data?.message === 'PRODUCT_LIMIT_REACHED') {
+          setShowUpgradeModal(true);
+          return; // Stop here, don't upload images
+        }
+        throw limitErr;
+      }
+
       if (imageFiles.length === 0) {
         throw new Error('At least one product image is required');
       }
@@ -209,8 +254,13 @@ export default function AddProductPage() {
       });
 
       toast.success('Product created successfully!');
+      localStorage.removeItem('draftProduct');
       router.push('/dashboard/products');
     } catch (err: any) {
+      if (err.response?.data?.message === 'PRODUCT_LIMIT_REACHED') {
+        setShowUpgradeModal(true);
+        return;
+      }
       const errMsg = err.response?.data?.message || err.message || 'Failed to create product';
       setError(errMsg);
       toast.error(errMsg);
@@ -224,7 +274,7 @@ export default function AddProductPage() {
       {/* Top Action Bar */}
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard/products" className="text-gray-400 hover:text-gray-600 transition-colors">
+          <Link href="/dashboard/products" onClick={handleDiscard} className="text-gray-400 hover:text-gray-600 transition-colors">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <h1 className="text-xl font-bold text-gray-900">Add Product</h1>
@@ -232,11 +282,12 @@ export default function AddProductPage() {
         <div className="flex items-center gap-3">
           <Link 
             href="/dashboard/products"
+            onClick={handleDiscard}
             className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
           >
             <X className="w-4 h-4" /> Discard
           </Link>
-          <button 
+          <button  
             type="submit" 
             disabled={loading}
             className="px-5 py-2 text-sm font-medium text-white bg-[#5022C3] hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-70"
@@ -572,6 +623,44 @@ export default function AddProductPage() {
           </div>
         </div>
       </div>
+
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl relative animate-in zoom-in-95 duration-200">
+            <button 
+              type="button"
+              onClick={() => setShowUpgradeModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-red-600 font-bold text-xl">!</span>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Product Limit Reached</h3>
+              <p className="text-gray-500 mb-6 text-sm">
+                You have reached the maximum number of products allowed on your current plan. Please upgrade your plan to continue growing your store.
+              </p>
+              <div className="flex gap-3 w-full">
+                <button 
+                  type="button"
+                  onClick={() => setShowUpgradeModal(false)}
+                  className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <Link 
+                  href="/dashboard/subscription"
+                  className="flex-1 px-4 py-2.5 bg-[#5022C3] hover:bg-purple-700 text-white font-medium rounded-xl transition-colors text-center"
+                >
+                  Upgrade Plan
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

@@ -43,7 +43,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     try {
-      const storedUser = localStorage.getItem('merchantUser');
+      const storedUser = sessionStorage.getItem('merchantUser');
       if (storedUser) {
         const user = JSON.parse(storedUser);
         setMerchantUser(user);
@@ -167,7 +167,7 @@ export default function ProfilePage() {
       ]);
 
       if (userResponse.data?.data) {
-        localStorage.setItem('merchantUser', JSON.stringify(userResponse.data.data));
+        sessionStorage.setItem('merchantUser', JSON.stringify(userResponse.data.data));
         setMerchantUser(userResponse.data.data);
       }
 
@@ -186,8 +186,8 @@ export default function ProfilePage() {
       } catch (err) {
         console.error('Logout all failed', err);
       } finally {
-        localStorage.removeItem('merchantToken');
-        localStorage.removeItem('merchantUser');
+        sessionStorage.removeItem('merchantToken');
+        sessionStorage.removeItem('merchantUser');
         router.push('/login');
       }
     }
@@ -227,7 +227,7 @@ export default function ProfilePage() {
             <div className="text-white text-center md:text-left">
               <h1 className="text-4xl font-extrabold tracking-tight">{formData.storeName || 'Your Store'}</h1>
               <p className="text-indigo-200 mt-2 flex items-center justify-center md:justify-start gap-2 text-sm font-medium">
-                <Store className="w-4 h-4" /> Electronics Merchant Dashboard
+                <Store className="w-4 h-4" /> MashEasy Merchant Dashboard
               </p>
             </div>
           </div>
@@ -300,7 +300,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">Store Identity</h2>
-                  <p className="text-xs text-gray-500 font-medium">Public details for your electronics shop</p>
+                  <p className="text-xs text-gray-500 font-medium">Public details for your MashEasy shop</p>
                 </div>
               </div>
               <div className="p-6 space-y-5">
@@ -310,7 +310,7 @@ export default function ProfilePage() {
                     name="storeName"
                     value={formData.storeName}
                     onChange={handleChange}
-                    placeholder="E.g. TechHaven Electronics"
+                    placeholder="E.g. TechHaven MashEasy"
                   />
                   <Input 
                     label="Tax / Registration ID" 
@@ -332,7 +332,7 @@ export default function ProfilePage() {
                   name="details"
                   value={formData.details}
                   onChange={handleChange}
-                  placeholder="Tell customers about your electronics specialties..."
+                  placeholder="Tell customers about your MashEasy specialties..."
                   rows={4}
                 />
                 
@@ -407,7 +407,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">Operations & Policies</h2>
-                  <p className="text-xs text-gray-500 font-medium">Support info and electronics rules</p>
+                  <p className="text-xs text-gray-500 font-medium">Support info and MashEasy rules</p>
                 </div>
               </div>
               <div className="p-6 space-y-8">
@@ -434,7 +434,7 @@ export default function ProfilePage() {
 
                 <div className="space-y-5">
                   <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2 border-b border-gray-100 pb-2">
-                    <Shield className="w-4 h-4 text-gray-400"/> Electronics Policies
+                    <Shield className="w-4 h-4 text-gray-400"/> MashEasy Policies
                   </h3>
                   <Select
                     label="Default Warranty"

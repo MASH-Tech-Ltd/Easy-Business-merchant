@@ -20,7 +20,7 @@ export default function SupportPage() {
     
     // Add socket connection for real-time list updates
     const socket = io('http://localhost:8000');
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user');
     if (userStr) {
       try {
         const user = JSON.parse(userStr);

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Search, MoreVertical, ShoppingBag, Eye, Edit, Trash2, X, ChevronLeft, ChevronRight, FileText, Printer, ShieldCheck } from 'lucide-react';
 import { api } from '@/utils/api';
 import { toast } from 'react-hot-toast';
+import { EditOrderModal } from './EditOrderModal';
 
 interface OrderItem {
   productId: string;
@@ -23,6 +24,9 @@ interface Order {
   status: string;
   createdAt: string;
   items: OrderItem[];
+  subTotal: number;
+  shippingCharge: number;
+  paymentStatus: string;
 }
 
 export default function OrdersPage() {
@@ -49,7 +53,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     try {
-      const storedUser = localStorage.getItem('merchantUser');
+      const storedUser = sessionStorage.getItem('merchantUser');
       if (storedUser) {
         const user = JSON.parse(storedUser);
         let sName = user.name || 'Your Store';
@@ -82,20 +86,15 @@ export default function OrdersPage() {
     }
   };
 
-  const handleUpdateStatus = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editOrder) return;
-    
+  const handleUpdateOrder = async (id: string, payload: any) => {
     try {
-      const formData = new FormData(e.target as HTMLFormElement);
-      const newStatus = formData.get('status') as string;
-      
-      await api.patch(`/orders/update-order/${editOrder._id}`, { status: newStatus });
+      await api.patch(`/orders/update-order/${id}`, payload);
       setEditOrder(null);
       fetchOrders();
+      toast.success('Order updated successfully');
     } catch (error) {
-      console.error('Failed to update status', error);
-      toast.error('Failed to update status');
+      console.error('Failed to update order', error);
+      toast.error('Failed to update order');
     }
   };
 
@@ -440,7 +439,16 @@ export default function OrdersPage() {
                 </div>
               </div>
               
-              <div className="flex flex-col items-end pt-4">
+              <div className="flex justify-between items-end pt-4">
+                {viewOrder.paymentStatus === 'paid' ? (
+                  <div className="border-2 border-green-500 text-green-600 rounded px-4 py-2 transform -rotate-6 flex flex-col items-center justify-center opacity-90 print:opacity-100 print:border-gray-900 print:text-gray-900 ml-4 mb-4">
+                    <span className="text-lg font-black uppercase tracking-wider">Paid</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">Delivery Charge</span>
+                  </div>
+                ) : (
+                  <div></div>
+                )}
+                
                 <div className="w-full max-w-sm space-y-3">
                   <div className="flex justify-between items-center text-gray-600">
                     <span>Subtotal</span>
@@ -480,49 +488,11 @@ export default function OrdersPage() {
 
       {/* Edit Status Modal */}
       {editOrder && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-              <h2 className="text-lg font-bold text-gray-900">Update Status</h2>
-              <button onClick={() => setEditOrder(null)} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full transition-colors">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleUpdateStatus}>
-              <div className="p-5 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Order Status</label>
-                  <select 
-                    name="status"
-                    defaultValue={editOrder.status}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-[#5022C3] bg-white font-medium text-gray-700"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </div>
-              </div>
-              <div className="p-5 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => setEditOrder(null)}
-                  className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="px-5 py-2.5 text-sm font-bold bg-[#5022C3] text-white hover:bg-[#401a9c] rounded-xl transition-colors shadow-md"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <EditOrderModal 
+          order={editOrder} 
+          onClose={() => setEditOrder(null)} 
+          onSave={handleUpdateOrder} 
+        />
       )}
 
       {/* Delete Order Modal */}

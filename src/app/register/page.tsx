@@ -47,7 +47,7 @@ export default function RegisterPage() {
       
       <div className="glass-panel w-full max-w-[440px] p-10">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-br from-[hsl(var(--text-primary))] to-[hsl(var(--text-secondary))] bg-clip-text text-transparent">Create Your Store</h2>
+          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-br from-[hsl(var(--text-primary))] to-[hsl(var(--text-secondary))] bg-clip-text text-transparent">Create Your MashEasy Store</h2>
           <p className="text-[hsl(var(--text-secondary))] text-[0.95rem]">Join the platform and start selling today</p>
         </div>
         
@@ -64,7 +64,7 @@ export default function RegisterPage() {
               type="text" 
               id="name" 
               className="input-field" 
-              placeholder="e.g. Awesome Electronics" 
+              placeholder="e.g. Awesome MashEasy" 
               value={name}
               onChange={(e) => setName(e.target.value)}
               required 

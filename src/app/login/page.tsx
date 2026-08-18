@@ -29,8 +29,8 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed');
       }
       
-      localStorage.setItem('merchantToken', data.data.accessToken);
-      localStorage.setItem('merchantUser', JSON.stringify(data.data.user));
+      sessionStorage.setItem('merchantToken', data.data.accessToken);
+      sessionStorage.setItem('merchantUser', JSON.stringify(data.data.user));
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
@@ -47,9 +47,10 @@ export default function LoginPage() {
       </div>
       
       <div className="glass-panel w-full max-w-[440px] p-10">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-br from-[hsl(var(--text-primary))] to-[hsl(var(--text-secondary))] bg-clip-text text-transparent">Welcome Back</h2>
-          <p className="text-[hsl(var(--text-secondary))] text-[0.95rem]">Sign in to manage your merchant store</p>
+        <div className="text-center mb-8 flex flex-col items-center">
+          <img src="/MEasy.png" alt="MashEasy" className="w-20 h-20 object-contain mb-4" />
+          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-br from-[hsl(var(--text-primary))] to-[hsl(var(--text-secondary))] bg-clip-text text-transparent">Welcome to MashEasy</h2>
+          <p className="text-[hsl(var(--text-secondary))] text-[0.95rem]">Sign in to manage your MashEasy merchant store</p>
         </div>
         
         {error && (

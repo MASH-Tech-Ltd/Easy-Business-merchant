@@ -11,7 +11,7 @@ export const api = axios.create({
 
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('merchantToken');
+    const token = sessionStorage.getItem('merchantToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -24,8 +24,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('merchantToken');
-        localStorage.removeItem('merchantUser');
+        sessionStorage.removeItem('merchantToken');
+        sessionStorage.removeItem('merchantUser');
         window.location.href = '/login';
       }
     }

@@ -66,12 +66,12 @@ export default function DashboardLayout({
   }, [isAuthenticated, merchantUser?._id]);
 
   useEffect(() => {
-    const token = localStorage.getItem('merchantToken');
+    const token = sessionStorage.getItem('merchantToken');
     if (!token) {
       router.push('/login');
     } else {
       try {
-        const storedUser = localStorage.getItem('merchantUser');
+        const storedUser = sessionStorage.getItem('merchantUser');
         if (storedUser) {
           setMerchantUser(JSON.parse(storedUser));
         } else {
@@ -150,8 +150,8 @@ export default function DashboardLayout({
       <aside className="w-[260px] flex-shrink-0 border-r border-gray-200 bg-white flex flex-col h-full overflow-hidden">
         <div className="h-16 flex items-center px-6 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#5022C3] rounded-lg flex items-center justify-center flex-shrink-0">
-              <Store className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-lg overflow-hidden">
+              <img src="/MEasy.png" alt="MashEasy" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
               <h1 className="text-base font-bold text-gray-900 tracking-tight leading-tight">
@@ -257,8 +257,8 @@ export default function DashboardLayout({
             )}
             <button 
               onClick={() => {
-                localStorage.removeItem('merchantToken');
-                localStorage.removeItem('merchantUser');
+                sessionStorage.removeItem('merchantToken');
+                sessionStorage.removeItem('merchantUser');
                 router.push('/login');
               }}
               className="ml-4 p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
