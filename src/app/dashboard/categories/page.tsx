@@ -17,15 +17,19 @@ interface Category {
   productCount?: number;
 }
 
+let globalCategoriesCache: Category[] = [];
+let globalTotalPages = 1;
+let globalTotalRecords = 0;
+
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>(globalCategoriesCache);
+  const [loading, setLoading] = useState(globalCategoriesCache.length === 0);
 
   // Pagination
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(globalTotalPages);
+  const [totalRecords, setTotalRecords] = useState(globalTotalRecords);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -38,14 +42,22 @@ export default function CategoriesPage() {
   }, [page, search]);
 
   const fetchCategories = async () => {
-    setLoading(true);
+    if (categories.length === 0) setLoading(true);
     try {
       const response = await api.get('/categories/my-categories', {
         params: { page, limit, search }
       });
-      setCategories(response.data.data || []);
-      setTotalPages(response.data.meta?.totalPages || 1);
-      setTotalRecords(response.data.meta?.total || 0);
+      const newCategories = response.data.data || [];
+      const newTotalPages = response.data.meta?.totalPages || 1;
+      const newTotalRecords = response.data.meta?.total || 0;
+
+      globalCategoriesCache = newCategories;
+      globalTotalPages = newTotalPages;
+      globalTotalRecords = newTotalRecords;
+
+      setCategories(newCategories);
+      setTotalPages(newTotalPages);
+      setTotalRecords(newTotalRecords);
     } catch (error) {
       console.error('Error fetching categories:', error);
       toast.error('Failed to load categories');

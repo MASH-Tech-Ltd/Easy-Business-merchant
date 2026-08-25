@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { 
   TrendingUp, Users, ShoppingBag, DollarSign, 
-  MoreVertical, Activity, HeadphonesIcon, Copy, ArrowUpRight, ArrowDownRight, Store, ExternalLink, Crown, Calendar, Clock, CreditCard, Tag, Package, Star
+  MoreVertical, Activity, HeadphonesIcon, Copy, ArrowUpRight, ArrowDownRight, Store, ExternalLink, Crown, Calendar, Clock, CreditCard, Tag, Package, Star, Sparkles, Trash2, X, CheckCircle2, AlertTriangle
 } from 'lucide-react';
 import { api } from '../../utils/api';
 import { toast } from 'react-hot-toast';
@@ -15,88 +15,86 @@ const baseMetrics = [
   { title: "Conversion Rate", icon: Activity, color: "text-green-600", bg: "bg-green-100" },
 ];
 
+let globalCache: any = null;
+
 export default function DashboardOverview() {
-  const [storeName, setStoreName] = useState("Your Store");
-  const [storeSlug, setStoreSlug] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [metrics, setMetrics] = useState<any[]>([]);
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [subscription, setSubscription] = useState<any>(null);
-  const [productStats, setProductStats] = useState({ total: 0, active: 0, inactive: 0 });
-  const [categoryStats, setCategoryStats] = useState({ total: 0, active: 0, inactive: 0 });
-  const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [storeName, setStoreName] = useState(globalCache?.storeName || "Your Store");
+  const [storeSlug, setStoreSlug] = useState(globalCache?.storeSlug || "");
+  const [loading, setLoading] = useState(!globalCache);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [metrics, setMetrics] = useState<any[]>(globalCache?.metrics || []);
+  const [recentOrders, setRecentOrders] = useState<any[]>(globalCache?.recentOrders || []);
+  const [subscription, setSubscription] = useState<any>(globalCache?.subscription || null);
+  const [productStats, setProductStats] = useState(globalCache?.productStats || { total: 0, active: 0, inactive: 0 });
+  const [categoryStats, setCategoryStats] = useState(globalCache?.categoryStats || { total: 0, active: 0, inactive: 0 });
+  const [topProducts, setTopProducts] = useState<any[]>(globalCache?.topProducts || []);
+  const [showSeedModal, setShowSeedModal] = useState(false);
+  const [seedLoading, setSeedLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [seedResult, setSeedResult] = useState<{type: 'success' | 'error', message: string} | null>(null);
+  const [seedLanguage, setSeedLanguage] = useState<'en' | 'bn'>('en');
+  const [seedType, setSeedType] = useState<'electronics' | 'fashion' | 'lifestyle' | 'all'>('electronics');
+
+  const seedTypeData = {
+    electronics: { categories: 15, products: 60, desc: "Smartphones, Laptops, Audio, Cameras, TVs, Gaming, Smartwatches, etc." },
+    fashion: { categories: 15, products: 60, desc: "Men's & Women's Wear, Shoes, Watches, Bags, Jewelry, Beauty, etc." },
+    lifestyle: { categories: 15, products: 60, desc: "Furniture, Home Decor, Sports, Groceries, Books, Stationery, etc." },
+    all: { categories: 45, products: 180, desc: "Everything from all business types" }
+  };
+
+  const fetchData = async () => {
+    try {
+      if (!globalCache) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
+
+      const res = await api.get('/analytics/dashboard-summary', { params: { days: 7 } });
+      const summary = res.data?.data;
+
+      if (!summary) return;
+
+      const stats = summary.stats || {};
+      const newMetrics = [
+        { ...baseMetrics[0], value: `${(stats.totalRevenue || 0).toLocaleString()} BDT`, change: "+14.5%", isPositive: true },
+        { ...baseMetrics[1], value: stats.totalOrders || 0, change: "+5.2%", isPositive: true },
+        { ...baseMetrics[2], value: stats.totalCustomers || 0, change: "-1.1%", isPositive: false },
+        { ...baseMetrics[3], value: `${stats.conversionRate || 0}%`, change: "+0.8%", isPositive: true },
+      ];
+
+      globalCache = {
+        storeName: summary.store?.name || "Your Store",
+        storeSlug: summary.store?.slug || "",
+        metrics: newMetrics,
+        recentOrders: summary.recentOrders || [],
+        subscription: summary.subscription || null,
+        productStats: summary.productStats || { total: 0, active: 0, inactive: 0 },
+        categoryStats: summary.categoryStats || { total: 0, active: 0, inactive: 0 },
+        topProducts: summary.topProducts || []
+      };
+
+      setStoreName(globalCache.storeName);
+      setStoreSlug(globalCache.storeSlug);
+      setMetrics(globalCache.metrics);
+      setRecentOrders(globalCache.recentOrders);
+      setSubscription(globalCache.subscription);
+      setProductStats(globalCache.productStats);
+      setCategoryStats(globalCache.categoryStats);
+      setTopProducts(globalCache.topProducts);
+
+    } catch (error) {
+      console.error("Failed to fetch dashboard data", error);
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        // Fetch Store Info
-        const storeRes = await api.get('/tenants/my-store');
-        if (storeRes.data?.data) {
-          setStoreName(storeRes.data.data.name);
-          setStoreSlug(storeRes.data.data.slug);
-        }
-
-        // Fetch Stats
-        const statsRes = await api.get('/analytics/dashboard-stats', { params: { days: 7 } });
-        const stats = statsRes.data?.data || {};
-
-        setMetrics([
-          { ...baseMetrics[0], value: `${(stats.totalRevenue || 0).toLocaleString()} BDT`, change: "+14.5%", isPositive: true },
-          { ...baseMetrics[1], value: stats.totalOrders || 0, change: "+5.2%", isPositive: true },
-          { ...baseMetrics[2], value: stats.totalCustomers || 0, change: "-1.1%", isPositive: false },
-          { ...baseMetrics[3], value: `${stats.conversionRate || 0}%`, change: "+0.8%", isPositive: true },
-        ]);
-
-        // Fetch Orders
-        const ordersRes = await api.get('/orders/my-orders', { params: { page: 1, limit: 5 } });
-        setRecentOrders(ordersRes.data?.data || []);
-
-        // Fetch Subscription
-        try {
-          const subRes = await api.get('/subscriptions/my-subscription');
-          setSubscription(subRes.data?.data || null);
-        } catch (e) {
-          console.error("Failed to fetch subscription", e);
-        }
-
-        // Fetch Products and Categories Stats
-        try {
-          // Get Top Products & Total Products
-          const prodsRes = await api.get('/products/my-products', { params: { limit: 4, sortBy: 'salesCount', sortOrder: 'desc' } });
-          const totalProds = prodsRes.data?.meta?.total || 0;
-          setTopProducts(prodsRes.data?.data || []);
-
-          // Try to get inactive/draft products to calculate active
-          const draftProdsRes = await api.get('/products/my-products', { params: { limit: 1, status: 'DRAFT' } });
-          const draftProds = draftProdsRes.data?.meta?.total || 0;
-
-          setProductStats({
-            total: totalProds,
-            active: totalProds - draftProds,
-            inactive: draftProds
-          });
-
-          // Fetch Categories
-          const catRes = await api.get('/categories/my-categories', { params: { limit: 1000 } });
-          const allCats = catRes.data?.data || [];
-          setCategoryStats({
-             total: allCats.length,
-             active: allCats.filter((c: any) => c.status !== 'INACTIVE').length,
-             inactive: allCats.filter((c: any) => c.status === 'INACTIVE').length,
-          });
-
-        } catch (e) {
-          console.error("Failed to fetch store overview stats", e);
-        }
-
-      } catch (error) {
-        console.error("Failed to fetch dashboard data", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDashboardData();
+    fetchData();
+    window.addEventListener('dashboard:refresh', fetchData);
+    return () => window.removeEventListener('dashboard:refresh', fetchData);
   }, []);
 
   const storeUrl = storeSlug ? `http://${storeSlug}.localhost:3000` : '#';
@@ -105,6 +103,45 @@ export default function DashboardOverview() {
     if (storeSlug) {
       navigator.clipboard.writeText(`http://${storeSlug}.localhost:3000`);
       toast.success('Store URL copied to clipboard!');
+    }
+  };
+
+  const handleSeedDemo = async () => {
+    setSeedLoading(true);
+    setSeedResult(null);
+    try {
+      const res = await api.post(`/seed/demo?lang=${seedLanguage}&type=${seedType}`);
+      const data = res.data?.data;
+      setSeedResult({
+        type: 'success',
+        message: `✅ Seeded ${data?.categoriesCreated || seedTypeData[seedType].categories} categories and ${data?.productsCreated || seedTypeData[seedType].products} products! Visit your storefront to see them live.`,
+      });
+      // Refresh dashboard data
+      setTimeout(() => { fetchData(); setShowSeedModal(false); }, 1800);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Failed to seed demo data.';
+      setSeedResult({ type: 'error', message: msg });
+    } finally {
+      setSeedLoading(false);
+    }
+  };
+
+  const handleReset = async () => {
+    setResetLoading(true);
+    setSeedResult(null);
+    try {
+      const res = await api.delete('/seed/reset');
+      const data = res.data?.data;
+      setSeedResult({
+        type: 'success',
+        message: `🗑️ Cleared ${data?.productsDeleted || 0} products and ${data?.categoriesDeleted || 0} categories.`,
+      });
+      setTimeout(() => window.location.reload(), 1800);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Failed to reset store data.';
+      setSeedResult({ type: 'error', message: msg });
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -140,6 +177,16 @@ export default function DashboardOverview() {
           
           {/* Quick Actions / Store Link */}
           <div className="flex items-center gap-3">
+            {/* Seed Demo Data Button */}
+            <button
+              onClick={() => { setShowSeedModal(true); setSeedResult(null); }}
+              className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-md hover:shadow-lg hover:from-violet-700 hover:to-indigo-700 hover:-translate-y-0.5 transition-all duration-200"
+              title="Seed demo categories and products"
+            >
+              <Sparkles className="w-4 h-4" />
+              Seed Demo Data
+            </button>
+
             <div className="bg-white border border-gray-200 rounded-xl px-4 py-2 flex items-center gap-3 shadow-sm">
               <span className="text-sm font-medium text-gray-600 truncate max-w-[200px]">
                 {storeSlug ? `${storeSlug}.localhost:3000` : 'Loading...'}
@@ -294,8 +341,15 @@ export default function DashboardOverview() {
                     <Crown className="w-6 h-6 text-yellow-400" />
                   </div>
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-bold">{subscription.packageId?.name || 'Unknown Plan'}</h3>
-                    <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-white/20 rounded-full">
+                    <h3 className="text-xl font-bold">
+                      {subscription.packageId?.name || (subscription.isTrial ? 'Free Trial' : 'Unknown Plan')}
+                    </h3>
+                    <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full ${
+                      subscription.status === 'active' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
+                      subscription.status === 'pending' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                      subscription.status === 'expired' || subscription.status === 'cancelled' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+                      'bg-white/20 text-white border border-white/10'
+                    }`}>
                       {subscription.status}
                     </span>
                   </div>
@@ -400,6 +454,137 @@ export default function DashboardOverview() {
         <HeadphonesIcon className="w-6 h-6" />
         <span className="absolute top-2 right-2 w-3 h-3 bg-green-400 border-2 border-indigo-600 rounded-full"></span>
       </button>
+
+      {/* ── Seed Demo Data Modal ─────────────────────────────────────────────── */}
+      {showSeedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-[slideUp_0.25s_ease-out]" style={{ animation: 'slideUp 0.25s ease-out' }}>
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-violet-600 to-indigo-600 px-7 py-6 relative">
+              <button
+                onClick={() => setShowSeedModal(false)}
+                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-white">Seed Demo Data</h2>
+              </div>
+              <p className="text-indigo-100 text-sm">
+                Instantly populate your store with realistic electronics categories and products to explore the full experience.
+              </p>
+            </div>
+
+            {/* Modal Body */}
+            <div className="px-7 py-6">
+              {/* Business Type Selection */}
+              <div className="mb-5">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Business Type</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'electronics', label: 'Electronics' },
+                    { id: 'fashion', label: 'Fashion' },
+                    { id: 'lifestyle', label: 'Lifestyle' },
+                    { id: 'all', label: 'All Categories' }
+                  ].map((t) => (
+                    <label key={t.id} className={`flex items-center gap-2 p-2 rounded-xl border-2 cursor-pointer transition-all ${seedType === t.id ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700' : 'border-gray-200 hover:border-indigo-200 text-gray-600'}`}>
+                      <input type="radio" name="seedType" value={t.id} checked={seedType === t.id} onChange={() => setSeedType(t.id as any)} className="hidden" />
+                      <span className="font-bold text-sm w-full text-center">{t.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* What gets seeded */}
+              <div className="mb-5">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">What will be created</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100 text-center flex flex-col items-center justify-center">
+                    <div className="text-3xl font-black text-indigo-700 mb-1">{seedTypeData[seedType].categories}</div>
+                    <div className="text-xs font-semibold text-indigo-500">Categories</div>
+                  </div>
+                  <div className="bg-violet-50 rounded-2xl p-4 border border-violet-100 text-center flex flex-col items-center justify-center">
+                    <div className="text-3xl font-black text-violet-700 mb-1">{seedTypeData[seedType].products}</div>
+                    <div className="text-xs font-semibold text-violet-500">Products</div>
+                  </div>
+                </div>
+                <div className="text-[11px] text-gray-500 text-center mt-2 font-medium">
+                  Includes: {seedTypeData[seedType].desc}
+                </div>
+              </div>
+
+              {/* Language Selection */}
+              <div className="mb-5">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Language</p>
+                <div className="flex gap-3">
+                  <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${seedLanguage === 'en' ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700' : 'border-gray-200 hover:border-indigo-200 text-gray-600'}`}>
+                    <input type="radio" name="seedLang" value="en" checked={seedLanguage === 'en'} onChange={() => setSeedLanguage('en')} className="hidden" />
+                    <span className="font-bold">English (en)</span>
+                  </label>
+                  <label className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${seedLanguage === 'bn' ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700' : 'border-gray-200 hover:border-indigo-200 text-gray-600'}`}>
+                    <input type="radio" name="seedLang" value="bn" checked={seedLanguage === 'bn'} onChange={() => setSeedLanguage('bn')} className="hidden" />
+                    <span className="font-bold text-[15px]">বাংলা (bn)</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Result message */}
+              {seedResult && (
+                <div className={`flex items-start gap-3 p-4 rounded-2xl mb-5 text-sm font-medium ${
+                  seedResult.type === 'success'
+                    ? 'bg-green-50 border border-green-200 text-green-800'
+                    : 'bg-red-50 border border-red-200 text-red-800'
+                }`}>
+                  {seedResult.type === 'success'
+                    ? <CheckCircle2 className="w-5 h-5 shrink-0 text-green-600 mt-0.5" />
+                    : <AlertTriangle className="w-5 h-5 shrink-0 text-red-500 mt-0.5" />}
+                  <span>{seedResult.message}</span>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleSeedDemo}
+                  disabled={seedLoading || resetLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold py-3.5 rounded-2xl shadow-md hover:shadow-lg hover:from-violet-700 hover:to-indigo-700 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {seedLoading ? (
+                    <><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> Seeding...</>
+                  ) : (
+                    <><Sparkles className="w-4 h-4" /> Seed {seedTypeData[seedType].categories} Categories + {seedTypeData[seedType].products} Products</>
+                  )}
+                </button>
+
+                <div className="relative flex items-center gap-3">
+                  <div className="flex-1 h-px bg-gray-100"></div>
+                  <span className="text-[11px] text-gray-400 font-medium">or</span>
+                  <div className="flex-1 h-px bg-gray-100"></div>
+                </div>
+
+                <button
+                  onClick={handleReset}
+                  disabled={seedLoading || resetLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 font-bold py-3 rounded-2xl border border-red-200 hover:bg-red-100 hover:border-red-300 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+                >
+                  {resetLoading ? (
+                    <><svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg> Resetting...</>
+                  ) : (
+                    <><Trash2 className="w-4 h-4" /> Reset — Delete All Categories &amp; Products</>
+                  )}
+                </button>
+              </div>
+
+              <p className="text-[11px] text-gray-400 text-center mt-4">
+                ⚠️ Seeding is blocked if your store already has data. Use Reset first if you want to re-seed.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

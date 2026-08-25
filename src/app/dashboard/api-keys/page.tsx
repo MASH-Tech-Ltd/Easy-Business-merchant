@@ -199,7 +199,7 @@ export default function ApiKeysPage() {
                 <ShieldCheck className="w-5 h-5 text-emerald-400" /> Secure Storage
               </h3>
               <p className="text-indigo-200 text-sm leading-relaxed">
-                All API keys are encrypted at rest using AES-256 encryption. Our systems never expose your raw secret keys to anyone, including our own support team.
+                All API keys are encrypted. Our systems never expose your raw secret keys to anyone, including our own support team.
               </p>
             </div>
           </div>

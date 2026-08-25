@@ -19,7 +19,7 @@ export default function SupportPage() {
     fetchTickets();
     
     // Add socket connection for real-time list updates
-    const socket = io('http://localhost:8000');
+    const socket = io(process.env.NEXT_PUBLIC_WS_URL || "");
     const userStr = sessionStorage.getItem('user');
     if (userStr) {
       try {

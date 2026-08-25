@@ -30,7 +30,7 @@ export default function NotificationBell({ userId }: { userId?: string }) {
   useEffect(() => {
     if (!userId) return;
 
-    const newSocket = io('http://localhost:8000');
+    const newSocket = io(process.env.NEXT_PUBLIC_WS_URL || "");
     setSocket(newSocket);
 
     newSocket.on('connect', () => {

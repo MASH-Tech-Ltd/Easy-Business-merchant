@@ -21,15 +21,19 @@ interface Product {
   stock?: number;
 }
 
+let globalProductsCache: Product[] = [];
+let globalTotalPages = 1;
+let globalTotalRecords = 0;
+
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(globalProductsCache);
+  const [loading, setLoading] = useState(globalProductsCache.length === 0);
   
   // Pagination
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(globalTotalPages);
+  const [totalRecords, setTotalRecords] = useState(globalTotalRecords);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -58,14 +62,22 @@ export default function ProductsPage() {
   }, [page, search, categoryId, sortBy, sortOrder]);
 
   const fetchProducts = async () => {
-    setLoading(true);
+    if (products.length === 0) setLoading(true);
     try {
       const response = await api.get('/products/my-products', {
         params: { page, limit, search, categoryId, sortBy, sortOrder }
       });
-      setProducts(response.data.data || []);
-      setTotalPages(response.data.meta?.totalPages || 1);
-      setTotalRecords(response.data.meta?.total || 0);
+      const newProducts = response.data.data || [];
+      const newTotalPages = response.data.meta?.totalPages || 1;
+      const newTotalRecords = response.data.meta?.total || 0;
+
+      globalProductsCache = newProducts;
+      globalTotalPages = newTotalPages;
+      globalTotalRecords = newTotalRecords;
+
+      setProducts(newProducts);
+      setTotalPages(newTotalPages);
+      setTotalRecords(newTotalRecords);
     } catch (error) {
       console.error('Error fetching products:', error);
       toast.error('Failed to load products');

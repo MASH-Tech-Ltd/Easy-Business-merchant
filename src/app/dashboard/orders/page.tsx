@@ -29,15 +29,19 @@ interface Order {
   paymentStatus: string;
 }
 
+let globalOrdersCache: Order[] = [];
+let globalTotalPages = 1;
+let globalTotalRecords = 0;
+
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>(globalOrdersCache);
+  const [loading, setLoading] = useState(globalOrdersCache.length === 0);
   
   // Pagination
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(globalTotalPages);
+  const [totalRecords, setTotalRecords] = useState(globalTotalRecords);
   
   // Filters
   const [search, setSearch] = useState('');
@@ -68,17 +72,27 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+    window.addEventListener('dashboard:refresh', fetchOrders);
+    return () => window.removeEventListener('dashboard:refresh', fetchOrders);
   }, [page, statusFilter, search]);
 
   const fetchOrders = async () => {
-    setLoading(true);
+    if (globalOrdersCache.length === 0) setLoading(true);
     try {
       const response = await api.get('/orders/my-orders', {
         params: { page, limit, status: statusFilter, search }
       });
-      setOrders(response.data.data || []);
-      setTotalPages(response.data.meta?.totalPages || 1);
-      setTotalRecords(response.data.meta?.total || 0);
+      const newOrders = response.data.data || [];
+      const newTotalPages = response.data.meta?.totalPages || 1;
+      const newTotalRecords = response.data.meta?.total || 0;
+
+      globalOrdersCache = newOrders;
+      globalTotalPages = newTotalPages;
+      globalTotalRecords = newTotalRecords;
+
+      setOrders(newOrders);
+      setTotalPages(newTotalPages);
+      setTotalRecords(newTotalRecords);
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {

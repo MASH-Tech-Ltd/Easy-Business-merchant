@@ -14,23 +14,27 @@ interface Customer {
   createdAt: string;
 }
 
+let globalCustomersCache: Customer[] = [];
+let globalTotalPages = 0;
+let globalTotalRecords = 0;
+
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [customers, setCustomers] = useState<Customer[]>(globalCustomersCache);
+  const [loading, setLoading] = useState(globalCustomersCache.length === 0);
   const [search, setSearch] = useState('');
   
   // Pagination State
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(globalTotalRecords);
+  const [totalPages, setTotalPages] = useState(globalTotalPages);
 
   useEffect(() => {
     fetchCustomers();
   }, [page, limit]);
 
   const fetchCustomers = async () => {
-    setLoading(true);
+    if (customers.length === 0) setLoading(true);
     try {
       const query = new URLSearchParams({
         page: page.toString(),
@@ -38,11 +42,18 @@ export default function CustomersPage() {
         ...(search && { search })
       });
       const response = await api.get(`/customers/my-customers?${query.toString()}`).catch(() => ({ data: { data: [], meta: { total: 0, totalPages: 0 } } }));
-      setCustomers(response.data.data || []);
-      if (response.data.meta) {
-        setTotalRecords(response.data.meta.total);
-        setTotalPages(response.data.meta.totalPages);
-      }
+      
+      const newCustomers = response.data.data || [];
+      const newTotalRecords = response.data.meta?.total || 0;
+      const newTotalPages = response.data.meta?.totalPages || 0;
+
+      globalCustomersCache = newCustomers;
+      globalTotalRecords = newTotalRecords;
+      globalTotalPages = newTotalPages;
+
+      setCustomers(newCustomers);
+      setTotalRecords(newTotalRecords);
+      setTotalPages(newTotalPages);
     } catch (error) {
       console.error('Error fetching customers:', error);
     } finally {

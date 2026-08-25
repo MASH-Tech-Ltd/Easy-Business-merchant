@@ -25,7 +25,7 @@ export default function SupportDetailsPage() {
   useEffect(() => {
     fetchTicketDetails();
 
-    const newSocket = io('http://localhost:8000');
+    const newSocket = io(process.env.NEXT_PUBLIC_WS_URL || "");
     setSocket(newSocket);
 
     return () => {

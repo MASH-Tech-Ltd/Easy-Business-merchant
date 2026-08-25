@@ -7,9 +7,9 @@ import {
   LayoutDashboard, ShoppingBag, Package, ListTree, Users, Truck,
   Store, BarChart2, Palette, Paintbrush, LayoutTemplate, Smartphone, 
   Star, Tag, BadgeCheck, RefreshCw, Boxes, UserCog, CreditCard,
-  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy
+  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle
 } from 'lucide-react';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
 import { api } from '@/utils/api';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -21,6 +21,52 @@ const Badge = ({ children, type = 'NEW' }: { children: React.ReactNode, type?: '
   </span>
 );
 
+let audioCtx: AudioContext | null = null;
+if (typeof window !== 'undefined') {
+  const unlockAudio = () => {
+    if (!audioCtx) {
+      const AC = window.AudioContext || (window as any).webkitAudioContext;
+      if (AC) {
+        audioCtx = new AC();
+        audioCtx.resume();
+      }
+    }
+    window.removeEventListener('click', unlockAudio);
+  };
+  window.addEventListener('click', unlockAudio);
+}
+
+const playNotificationSound = () => {
+  try {
+    if (!audioCtx) {
+      const AC = window.AudioContext || (window as any).webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    if (!audioCtx) return;
+
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
+    
+    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.5);
+  } catch(e) { console.error('Audio play error', e) }
+};
+
 export default function DashboardLayout({
   children,
 }: {
@@ -30,7 +76,8 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [merchantUser, setMerchantUser] = useState<any>(null);
-  const [currentPlan, setCurrentPlan] = useState<string>('Free plan');
+  const [currentPlan, setCurrentPlan] = useState<string>('Free Trial');
+  const [fullSubscription, setFullSubscription] = useState<any>(null);
   const [openTicketsCount, setOpenTicketsCount] = useState(0);
 
   useEffect(() => {
@@ -46,19 +93,34 @@ export default function DashboardLayout({
       fetchTicketsCount();
 
       import('socket.io-client').then(({ io }) => {
-        const socket = io('http://localhost:8000');
+        const socket = io(process.env.NEXT_PUBLIC_WS_URL || "");
         
         if (merchantUser?._id) {
           socket.emit('join_user_room', merchantUser._id);
         }
 
+        const tenantId = merchantUser?.tenantId || merchantUser?._id;
+        if (tenantId) {
+          socket.emit('join_tenant_room', tenantId);
+        }
+
         socket.on('refresh_tickets', fetchTicketsCount);
+
+        socket.on('new_order', (order: any) => {
+          playNotificationSound();
+          toast.success(`New order received from ${order.customerName || 'a customer'}!`, { duration: 4000 });
+          window.dispatchEvent(new Event('dashboard:refresh'));
+        });
 
         return () => {
           if (merchantUser?._id) {
             socket.emit('leave_user_room', merchantUser._id);
           }
+          if (tenantId) {
+            socket.emit('leave_tenant_room', tenantId);
+          }
           socket.off('refresh_tickets');
+          socket.off('new_order');
           socket.close();
         };
       });
@@ -92,8 +154,14 @@ export default function DashboardLayout({
       const fetchSubscription = async () => {
         try {
           const res = await api.get('/subscriptions/my-subscription');
-          if (res.data?.data?.packageId?.name) {
-            setCurrentPlan(res.data.data.packageId.name);
+          const sub = res.data?.data;
+          if (sub) {
+            setFullSubscription(sub);
+            if (sub.packageId?.name) {
+              setCurrentPlan(sub.packageId.name);
+            } else if (sub.isTrial) {
+              setCurrentPlan('Free Trial');
+            }
           }
         } catch (error) {
           console.error('Error fetching subscription in layout', error);
@@ -143,6 +211,31 @@ export default function DashboardLayout({
       ]
     }
   ];
+
+  let banner = null;
+  if (fullSubscription) {
+    const end = new Date(fullSubscription.endDate);
+    const now = new Date();
+    const daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    
+    if (fullSubscription.status === 'expired' || fullSubscription.status === 'cancelled' || daysLeft <= 0) {
+      banner = (
+        <div className="bg-red-50 text-red-600 px-4 py-2 flex items-center justify-center gap-2 border-b border-red-100 text-sm font-medium z-50">
+          <AlertTriangle className="w-4 h-4" />
+          <span>Your subscription has expired. Your store is currently offline.</span>
+          <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-red-700">Subscribe Now</Link>
+        </div>
+      );
+    } else if (daysLeft <= 5 && fullSubscription.isTrial) {
+      banner = (
+        <div className="bg-amber-50 text-amber-700 px-4 py-2 flex items-center justify-center gap-2 border-b border-amber-100 text-sm font-medium z-50">
+          <AlertTriangle className="w-4 h-4" />
+          <span> Your free trial expires in {daysLeft} {daysLeft === 1 ? 'day' : 'days'}. Upgrade now to keep your store live.</span>
+          <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-amber-800">View Plans</Link>
+        </div>
+      );
+    }
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 text-gray-800 font-sans overflow-hidden">
@@ -219,9 +312,11 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden bg-[#FAFBFF]">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 flex-shrink-0">
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
+        {banner}
+        {/* Header */}
+        <header className="h-16 flex items-center justify-between px-6 border-b border-gray-100 flex-shrink-0 bg-white">
           <div className="flex flex-col justify-center">
              <h2 className="text-lg font-bold text-gray-900">
                {pathname === '/dashboard/orders' ? 'Orders Management' : 

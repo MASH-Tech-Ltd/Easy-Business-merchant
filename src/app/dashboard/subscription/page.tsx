@@ -28,7 +28,7 @@ export default function SubscriptionPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [confirmModal, setConfirmModal] = useState<Package | null>(null);
+  const [confirmModal, setConfirmModal] = useState<(Package & { isRenewal?: boolean }) | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -120,7 +120,7 @@ export default function SubscriptionPage() {
           No {billingCycle} packages available at the moment.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 w-full mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-6xl mx-auto px-4">
           {displayedPackages.sort((a,b) => a.price - b.price).map((pkg, index) => {
             const isPopular = pkg.name.toLowerCase().includes('premium') || pkg.name.toLowerCase().includes('premimus'); 
             const isCurrentActive = activePackageId === pkg._id && subscription?.status === 'active';
@@ -131,7 +131,7 @@ export default function SubscriptionPage() {
                 key={pkg._id} 
                 className={`relative bg-white rounded-3xl border transition-all duration-500 flex flex-col overflow-hidden group ${
                   isPopular 
-                    ? 'border-[#5022C3] shadow-[0_20px_50px_rgba(80,34,195,0.15)] xl:-mt-4 xl:mb-4 z-10' 
+                    ? 'border-[#5022C3] shadow-[0_20px_50px_rgba(80,34,195,0.15)] lg:-mt-4 lg:mb-4 z-10' 
                     : 'border-gray-100 hover:border-gray-300 hover:shadow-xl shadow-sm'
                 }`}
               >
@@ -143,6 +143,12 @@ export default function SubscriptionPage() {
                 {isPopular && (
                   <div className="bg-[#5022C3] text-white text-xs font-bold uppercase tracking-wider py-2 text-center flex items-center justify-center gap-1.5 shadow-sm">
                     <Star className="w-3.5 h-3.5 fill-current" /> Most Popular
+                  </div>
+                )}
+                
+                {isCurrentActive && (
+                  <div className="absolute top-6 right-6 bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-sm z-20 flex items-center gap-1.5 border border-green-200">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Active
                   </div>
                 )}
                 
@@ -188,8 +194,15 @@ export default function SubscriptionPage() {
                   </ul>
                   
                   {isCurrentActive ? (
-                    <button disabled className="w-full py-3.5 px-4 rounded-xl font-bold bg-green-50 text-green-600 border-2 border-green-200 flex items-center justify-center gap-2 cursor-default">
-                      <Check className="w-5 h-5" /> Current Plan
+                    <button 
+                      onClick={() => setConfirmModal({ ...pkg, isRenewal: true })}
+                      disabled={isPending}
+                      className={`w-full py-3.5 px-4 rounded-xl font-bold transition-all duration-300 transform group-hover:-translate-y-1 ${
+                        isPending ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                        'bg-green-50 hover:bg-green-100 text-green-700 border-2 border-green-200 shadow-sm'
+                      }`}
+                    >
+                      <Check className="w-5 h-5 inline-block mr-1 -mt-0.5" /> Renew Plan
                     </button>
                   ) : isCurrentPending ? (
                     <button disabled className="w-full py-3.5 px-4 rounded-xl font-bold bg-amber-50 text-amber-600 border-2 border-amber-200 flex items-center justify-center gap-2 cursor-default animate-pulse">
@@ -264,22 +277,22 @@ export default function SubscriptionPage() {
               <div className="w-20 h-20 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Crown className="w-10 h-10 text-[#5022C3]" />
               </div>
-              <h2 className="text-2xl font-black text-gray-900 mb-2">Confirm Upgrade</h2>
+              <h2 className="text-2xl font-black text-gray-900 mb-2">Confirm {confirmModal.isRenewal ? 'Renewal' : 'Upgrade'}</h2>
               <p className="text-gray-500 mb-6">
-                Are you sure you want to request an upgrade to the <span className="font-bold text-gray-900">{confirmModal.name}</span> plan for <span className="font-bold text-gray-900">৳{confirmModal.price}/{confirmModal.billingCycle === 'yearly' ? 'yr' : 'mo'}</span>?
+                Are you sure you want to request a {confirmModal.isRenewal ? 'renewal for' : 'upgrade to'} the <span className="font-bold text-gray-900">{confirmModal.name}</span> plan for <span className="font-bold text-gray-900">৳{confirmModal.price}/{confirmModal.billingCycle === 'yearly' ? 'yr' : 'mo'}</span>?
               </p>
               
               <div className="bg-gray-50 rounded-2xl p-4 mb-8 text-left border border-gray-100">
                 <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">What happens next</h4>
                 <ul className="space-y-2 text-sm text-gray-700">
                   <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-500" /> Request sent to admin
+                    <Check className="w-4 h-4 text-green-500" /> Request sent to admin for approval
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-500" /> Current plan remains active
+                    <Check className="w-4 h-4 text-green-500" /> New time is added to your existing expiration date
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-green-500" /> Automatically switches upon approval
+                    <Check className="w-4 h-4 text-green-500" /> You will not lose any remaining subscription time
                   </li>
                 </ul>
               </div>
@@ -302,7 +315,7 @@ export default function SubscriptionPage() {
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing
                     </>
                   ) : (
-                    'Confirm Upgrade'
+                    `Confirm ${confirmModal.isRenewal ? 'Renewal' : 'Upgrade'}`
                   )}
                 </button>
               </div>
