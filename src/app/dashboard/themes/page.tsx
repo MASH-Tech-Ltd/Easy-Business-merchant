@@ -4,24 +4,28 @@ import { useState, useEffect } from 'react';
 import { 
   Palette, CheckCircle2, LayoutTemplate, 
   Settings, Type, Link as LinkIcon, Save,
-  Phone, Mail, MapPin, Shield, HelpCircle
+  Phone, Mail, MapPin, Shield, HelpCircle, Image as ImageIcon
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../../utils/api';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 
 const availableThemes = [
-  { id: 'light', name: 'Clean Light', color: '#ffffff', textColor: '#171717', accent: '#5022C3' },
-  { id: 'dark', name: 'Midnight Dark', color: '#0f172a', textColor: '#f8fafc', accent: '#3b82f6' },
-  { id: 'nature', name: 'Earthy Green', color: '#f0fdf4', textColor: '#14532d', accent: '#16a34a' },
-  { id: 'sunset', name: 'Sunset Warm', color: '#fffbeb', textColor: '#78350f', accent: '#d97706' },
+  { id: 'design-01', name: 'Design 01 (Classic)', color: '#ffffff', textColor: '#171717', accent: '#5022C3' },
+  { id: 'design-02', name: 'Design 02 (Minimal)', color: '#f8fafc', textColor: '#0f172a', accent: '#3b82f6' },
+  { id: 'design-03', name: 'Design 03 (Brutalist)', color: '#050505', textColor: '#ffffff', accent: '#06b6d4' },
+  { id: 'design-04', name: 'Design 04 (Clean)', color: '#ffffff', textColor: '#111827', accent: '#111827' },
+  { id: 'design-05', name: 'Design 05 (Premium)', color: '#ffffff', textColor: '#000000', accent: '#000000' },
 ];
 
 export default function ThemesPage() {
-  const [activeTheme, setActiveTheme] = useState('light');
+  const [activeTheme, setActiveTheme] = useState('design-01');
   const [primaryColor, setPrimaryColor] = useState('#5022C3');
+  const [buttonColors, setButtonColors] = useState({ addToCart: '', buyNow: '' });
   const [fontFamily, setFontFamily] = useState('Inter');
   const [language, setLanguage] = useState('en');
   const [footer, setFooter] = useState({
@@ -30,9 +34,26 @@ export default function ThemesPage() {
     policies: { aboutUs: '', privacyPolicy: '', termsAndConditions: '', returnPolicy: '' },
     copyrightText: ''
   });
+  const [banner, setBanner] = useState<{
+    title: string;
+    subtitle: string;
+    buttonText: string;
+    buttonLink: string;
+    image: any;
+  }>({
+    title: '',
+    subtitle: '',
+    buttonText: '',
+    buttonLink: '',
+    image: null
+  });
+  const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('template');
+  const [activePolicyTab, setActivePolicyTab] = useState<string>('aboutUs');
 
   useEffect(() => {
     fetchTheme();
@@ -45,6 +66,12 @@ export default function ThemesPage() {
       if (themeData) {
         if (themeData.themeId) setActiveTheme(themeData.themeId);
         if (themeData.primaryColor) setPrimaryColor(themeData.primaryColor);
+        if (themeData.buttonColors) {
+          setButtonColors({
+            addToCart: themeData.buttonColors.addToCart || '',
+            buyNow: themeData.buttonColors.buyNow || ''
+          });
+        }
         if (themeData.fontFamily) setFontFamily(themeData.fontFamily);
         if (themeData.language) setLanguage(themeData.language);
         if (themeData.footer) {
@@ -68,6 +95,18 @@ export default function ThemesPage() {
             copyrightText: themeData.footer.copyrightText || '',
           });
         }
+        if (themeData.banner) {
+          setBanner({
+            title: themeData.banner.title || '',
+            subtitle: themeData.banner.subtitle || '',
+            buttonText: themeData.banner.buttonText || '',
+            buttonLink: themeData.banner.buttonLink || '',
+            image: themeData.banner.image || null
+          });
+          if (themeData.banner.image?.secure_url) {
+            setBannerPreviewUrl(themeData.banner.image.secure_url);
+          }
+        }
       }
     } catch (error) {
       console.error('Error fetching theme', error);
@@ -79,12 +118,23 @@ export default function ThemesPage() {
   const handleSaveTheme = async () => {
     setSaving(true);
     try {
-      await api.put('/themes/update', {
+      const formData = new FormData();
+      formData.append('data', JSON.stringify({
         themeId: activeTheme,
         primaryColor,
+        buttonColors,
         fontFamily,
         language,
-        footer
+        footer,
+        banner
+      }));
+      
+      if (bannerImageFile) {
+        formData.append('bannerImage', bannerImageFile);
+      }
+      
+      await api.put('/themes/update', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
       toast.success('Settings saved successfully!');
     } catch (error) {
@@ -134,9 +184,34 @@ export default function ThemesPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-8 pb-24">
+      <div className="flex flex-col pb-24">
         
+        {/* Tabs Navigation */}
+        <div className="flex items-center gap-2 mb-8 bg-gray-50/80 p-1.5 rounded-xl border border-gray-100 shadow-sm overflow-x-auto w-fit">
+          {[
+            { id: 'template', label: 'Theme Template', icon: LayoutTemplate },
+            { id: 'customization', label: 'Advanced Customization', icon: Settings },
+            { id: 'banner', label: 'Banner Settings', icon: ImageIcon },
+            { id: 'footer', label: 'Footer & Policies', icon: Type }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shrink-0 ${
+                activeTab === tab.id
+                  ? 'bg-white text-indigo-600 shadow-sm border border-gray-100'
+                  : 'text-gray-500 hover:bg-white hover:text-gray-800'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 gap-8">
         {/* Theme Template Selection */}
+        {activeTab === 'template' && (
         <Card className="border-0 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl">
           <div className="border-b border-gray-100 bg-gray-50/50 p-6 flex items-center gap-3">
             <div className="p-2.5 bg-indigo-100 text-indigo-600 rounded-xl">
@@ -191,9 +266,10 @@ export default function ThemesPage() {
             </div>
           </div>
         </Card>
+        )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          {/* Advanced Customization */}
+        {/* Advanced Customization */}
+        {activeTab === 'customization' && (
           <Card className="border-0 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl h-full mb-0">
             <div className="border-b border-gray-100 bg-gray-50/50 p-6 flex items-center gap-3">
               <div className="p-2.5 bg-purple-100 text-purple-600 rounded-xl">
@@ -230,6 +306,52 @@ export default function ThemesPage() {
 
                 <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100">
                   <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+                    <Palette className="w-4 h-4 text-gray-500" /> Add to Cart Button Color
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-200 shadow-sm cursor-pointer group">
+                      <input 
+                        type="color" 
+                        value={buttonColors.addToCart || primaryColor} 
+                        onChange={(e) => setButtonColors({ ...buttonColors, addToCart: e.target.value })} 
+                        className="absolute inset-[-10px] w-20 h-20 cursor-pointer" 
+                      />
+                    </div>
+                    <Input 
+                      value={buttonColors.addToCart} 
+                      onChange={(e) => setButtonColors({ ...buttonColors, addToCart: e.target.value })} 
+                      placeholder={primaryColor}
+                      className="w-32 font-mono uppercase text-center" 
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3 font-medium">Optional. Overrides the primary color.</p>
+                </div>
+
+                <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100">
+                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+                    <Palette className="w-4 h-4 text-gray-500" /> Buy Now Button Color
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-14 h-14 rounded-xl overflow-hidden border-2 border-gray-200 shadow-sm cursor-pointer group">
+                      <input 
+                        type="color" 
+                        value={buttonColors.buyNow || '#ef4444'} 
+                        onChange={(e) => setButtonColors({ ...buttonColors, buyNow: e.target.value })} 
+                        className="absolute inset-[-10px] w-20 h-20 cursor-pointer" 
+                      />
+                    </div>
+                    <Input 
+                      value={buttonColors.buyNow} 
+                      onChange={(e) => setButtonColors({ ...buttonColors, buyNow: e.target.value })} 
+                      placeholder="#ef4444"
+                      className="w-32 font-mono uppercase text-center" 
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3 font-medium">Optional. Defaults to standard red.</p>
+                </div>
+
+                <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100">
+                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
                     <Type className="w-4 h-4 text-gray-500" /> Heading Font
                   </label>
                   <Select
@@ -262,8 +384,80 @@ export default function ThemesPage() {
               </div>
             </div>
           </Card>
+        )}
 
-          {/* Footer Settings */}
+        {/* Banner Settings */}
+        {activeTab === 'banner' && (
+          <Card className="border-0 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl h-full mb-0 lg:col-span-2">
+            <div className="border-b border-gray-100 bg-gray-50/50 p-6 flex items-center gap-3">
+              <div className="p-2.5 bg-green-100 text-green-600 rounded-xl">
+                <LayoutTemplate className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-gray-900">Banner Settings</h2>
+                <p className="text-xs text-gray-500 font-medium">Configure the hero banner for your storefront</p>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div className="space-y-6">
+                  <h4 className="font-bold text-gray-800 border-b border-gray-100 pb-2">Banner Image</h4>
+                  <ImageUpload 
+                    previewUrl={bannerPreviewUrl}
+                    onChange={(file) => {
+                      setBannerImageFile(file);
+                      if (file) {
+                        setBannerPreviewUrl(URL.createObjectURL(file));
+                      } else {
+                        setBannerPreviewUrl(null);
+                      }
+                    }}
+                  />
+                </div>
+                
+                <div className="space-y-6">
+                  <h4 className="font-bold text-gray-800 border-b border-gray-100 pb-2">Banner Content</h4>
+                  <div className="space-y-5">
+                    <Input 
+                      label="Title"
+                      type="text" 
+                      value={banner.title} 
+                      onChange={(e) => setBanner(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="e.g. Summer Sale 2026"
+                    />
+                    <Input 
+                      label="Subtitle"
+                      type="text" 
+                      value={banner.subtitle} 
+                      onChange={(e) => setBanner(prev => ({ ...prev, subtitle: e.target.value }))}
+                      placeholder="e.g. Up to 50% off on all electronics"
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <Input 
+                        label="Button Text"
+                        type="text" 
+                        value={banner.buttonText} 
+                        onChange={(e) => setBanner(prev => ({ ...prev, buttonText: e.target.value }))}
+                        placeholder="e.g. Shop Now"
+                      />
+                      <Input 
+                        label="Button Link"
+                        type="text" 
+                        value={banner.buttonLink} 
+                        onChange={(e) => setBanner(prev => ({ ...prev, buttonLink: e.target.value }))}
+                        placeholder="e.g. /categories"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Footer Settings */}
+        {activeTab === 'footer' && (
           <Card className="border-0 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl h-full mb-0">
           <div className="border-b border-gray-100 bg-gray-50/50 p-6 flex items-center gap-3">
             <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl">
@@ -310,40 +504,40 @@ export default function ThemesPage() {
                 </div>
               </div>
 
-              {/* Policy Links */}
+              {/* Policy Content */}
               <div className="space-y-6">
                 <h4 className="font-bold text-gray-800 border-b border-gray-100 pb-2 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-gray-400" /> Policy Pages (URLs)
+                  <Shield className="w-4 h-4 text-gray-400" /> Policy Content
                 </h4>
-                <div className="space-y-5">
-                  <Input 
-                    label="About Us URL"
-                    type="url" 
-                    value={footer.policies.aboutUs} 
-                    onChange={(e) => updateFooter('policies', 'aboutUs', e.target.value)}
-                    placeholder="https://yourstore.com/about"
-                  />
-                  <Input 
-                    label="Privacy Policy URL"
-                    type="url" 
-                    value={footer.policies.privacyPolicy} 
-                    onChange={(e) => updateFooter('policies', 'privacyPolicy', e.target.value)}
-                    placeholder="https://yourstore.com/privacy"
-                  />
-                  <Input 
-                    label="Terms & Conditions URL"
-                    type="url" 
-                    value={footer.policies.termsAndConditions} 
-                    onChange={(e) => updateFooter('policies', 'termsAndConditions', e.target.value)}
-                    placeholder="https://yourstore.com/terms"
-                  />
-                  <Input 
-                    label="Return Policy URL"
-                    type="url" 
-                    value={footer.policies.returnPolicy} 
-                    onChange={(e) => updateFooter('policies', 'returnPolicy', e.target.value)}
-                    placeholder="https://yourstore.com/returns"
-                  />
+                <div className="space-y-3">
+                  {[
+                    { id: 'aboutUs', label: 'About Us Content' },
+                    { id: 'privacyPolicy', label: 'Privacy Policy Content' },
+                    { id: 'termsAndConditions', label: 'Terms & Conditions Content' },
+                    { id: 'returnPolicy', label: 'Return Policy Content' },
+                  ].map(policy => (
+                    <div key={policy.id} className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+                      <button 
+                        className="w-full flex items-center justify-between p-4 bg-gray-50/50 hover:bg-gray-50 text-sm font-bold text-gray-700 transition-colors"
+                        onClick={() => setActivePolicyTab(activePolicyTab === policy.id ? '' : policy.id)}
+                      >
+                        {policy.label}
+                        <svg className={`w-4 h-4 transition-transform ${activePolicyTab === policy.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                      </button>
+                      
+                      {activePolicyTab === policy.id && (
+                        <div className="p-4 border-t border-gray-100">
+                          <Textarea 
+                            value={footer.policies[policy.id as keyof typeof footer.policies]} 
+                            onChange={(e) => updateFooter('policies', policy.id, e.target.value)}
+                            placeholder={`Enter ${policy.label} here...`}
+                            className="min-h-[250px]" 
+                            richText={true}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -389,8 +583,9 @@ export default function ThemesPage() {
             </div>
           </div>
         </Card>
+        )}
+        </div>
       </div>
-    </div>
 
       {/* Floating Action Bar */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-auto md:right-10 z-50">
