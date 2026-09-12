@@ -28,6 +28,7 @@ export default function ThemesPage() {
   const [buttonColors, setButtonColors] = useState({ addToCart: '', buyNow: '' });
   const [fontFamily, setFontFamily] = useState('Inter');
   const [language, setLanguage] = useState('en');
+  const [currencySymbol, setCurrencySymbol] = useState('৳');
   const [footer, setFooter] = useState({
     socialLinks: { facebook: '', youtube: '', tiktok: '' },
     contactInfo: { email: '', phone: '', address: '' },
@@ -74,6 +75,7 @@ export default function ThemesPage() {
         }
         if (themeData.fontFamily) setFontFamily(themeData.fontFamily);
         if (themeData.language) setLanguage(themeData.language);
+        if (themeData.currencySymbol) setCurrencySymbol(themeData.currencySymbol);
         if (themeData.footer) {
           setFooter({
             socialLinks: {
@@ -125,6 +127,7 @@ export default function ThemesPage() {
         buttonColors,
         fontFamily,
         language,
+        currencySymbol,
         footer,
         banner
       }));
@@ -367,7 +370,7 @@ export default function ThemesPage() {
                   <p className="text-xs text-gray-500 mt-3 font-medium">Select the font used for titles and headers.</p>
                 </div>
 
-                <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100 md:col-span-2">
+                <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100">
                   <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
                     <LayoutTemplate className="w-4 h-4 text-gray-500" /> Store Language
                   </label>
@@ -380,6 +383,18 @@ export default function ThemesPage() {
                     ]}
                   />
                   <p className="text-xs text-gray-500 mt-3 font-medium">Select the default language for your storefront.</p>
+                </div>
+
+                <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100">
+                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
+                    <Type className="w-4 h-4 text-gray-500" /> Currency Symbol
+                  </label>
+                  <Input 
+                    value={currencySymbol} 
+                    onChange={(e) => setCurrencySymbol(e.target.value)} 
+                    placeholder="e.g. ৳, BDT, $"
+                  />
+                  <p className="text-xs text-gray-500 mt-3 font-medium">Set the currency symbol to display (e.g. ৳ or BDT).</p>
                 </div>
               </div>
             </div>
