@@ -261,7 +261,7 @@ export default function DashboardOverview() {
                   ) : recentOrders.map((order, idx) => (
                     <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="font-semibold text-indigo-600 text-sm">#{order._id?.slice(-6).toUpperCase()}</span>
+                        <span className="font-semibold text-indigo-600 text-sm">#{order.orderId || order._id?.slice(-6).toUpperCase()}</span>
                         <div className="text-xs text-gray-400 mt-0.5">{formatDate(order.createdAt)}</div>
                       </td>
                       <td className="px-6 py-4">

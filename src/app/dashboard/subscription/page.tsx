@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, Star, Zap, ShieldCheck, Clock, Crown } from 'lucide-react';
+import { AlertCircle, Check, Star, Zap, ShieldCheck, Clock, Crown } from 'lucide-react';
 import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
 
@@ -16,15 +16,17 @@ interface Package {
 
 interface Subscription {
   _id: string;
-  packageId: Package;
+  packageId: Package | null;
   status: 'active' | 'pending' | 'expired' | 'cancelled';
   startDate: string;
   endDate: string;
+  isTrial?: boolean;
 }
 
 export default function SubscriptionPage() {
   const [packages, setPackages] = useState<Package[]>([]);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [expiredSubscription, setExpiredSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
@@ -38,12 +40,21 @@ export default function SubscriptionPage() {
     try {
       const [packagesRes, subRes] = await Promise.all([
         api.get('/packages/get-all-packages'),
-        api.get('/subscriptions/my-subscription')
+        api.get('/subscriptions/my-subscription?includeExpired=true')
       ]);
       
       const activePackages = (packagesRes.data.data || []).filter((p: Package) => p.isActive);
       setPackages(activePackages);
-      setSubscription(subRes.data.data);
+
+      const sub: Subscription | null = subRes.data.data;
+      if (sub && sub.status === 'expired') {
+        // No active subscription — this is the last expired one
+        setExpiredSubscription(sub);
+        setSubscription(null);
+      } else {
+        setSubscription(sub);
+        setExpiredSubscription(null);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load subscription data');
@@ -71,6 +82,17 @@ export default function SubscriptionPage() {
   const displayedPackages = packages.filter(p => p.billingCycle.toLowerCase() === billingCycle);
   const activePackageId = subscription?.packageId?._id;
   const isPending = subscription?.status === 'pending';
+  const isTrialActive = subscription?.isTrial && subscription?.status === 'active';
+  const trialDaysLeft = isTrialActive
+    ? Math.max(0, Math.ceil((new Date(subscription!.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
+  const isExpired = !!expiredSubscription;
+  const expiredPackageName = expiredSubscription?.isTrial
+    ? 'Free Trial'
+    : expiredSubscription?.packageId?.name || 'Previous Plan';
+  const expiredDate = expiredSubscription
+    ? new Date(expiredSubscription.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '';
 
   return (
     <div className="p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)] bg-[#f8f9fc]">
@@ -110,6 +132,63 @@ export default function SubscriptionPage() {
           </div>
         </div>
       </div>
+
+      {/* Free Trial Active Banner */}
+      {!loading && isTrialActive && (
+        <div className="max-w-6xl mx-auto px-4 mb-8">
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Clock className="w-6 h-6 text-amber-600" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="font-bold text-gray-900 text-base">Free Trial</span>
+                  <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-green-200">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Active
+                  </span>
+                </div>
+                <p className="text-sm text-amber-700 font-medium">
+                  {trialDaysLeft > 0
+                    ? <>Your free trial expires in <strong>{trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'}</strong>. Upgrade to keep your store live.</>
+                    : 'Your free trial expires today. Upgrade now to avoid interruption.'}
+                </p>
+              </div>
+            </div>
+            <div className="text-xs text-amber-600 font-semibold shrink-0">
+              Expires: {new Date(subscription!.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Expired Subscription Banner */}
+      {!loading && isExpired && (
+        <div className="max-w-6xl mx-auto px-4 mb-8">
+          <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <AlertCircle className="w-6 h-6 text-red-500" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-bold text-gray-900 text-base">{expiredPackageName}</span>
+                  <span className="inline-flex items-center gap-1.5 bg-red-100 text-red-600 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-red-200">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span> Expired
+                  </span>
+                </div>
+                <p className="text-sm text-red-600 font-medium">
+                  Your {expiredSubscription?.isTrial ? 'free trial' : 'subscription'} expired on <strong>{expiredDate}</strong>. Your store is currently <strong>offline</strong>. Choose a plan below to go live again.
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0 text-right">
+              <div className="text-xs text-red-400 font-semibold mb-1">Expired on</div>
+              <div className="text-sm font-bold text-red-600">{expiredDate}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center min-h-[400px]">

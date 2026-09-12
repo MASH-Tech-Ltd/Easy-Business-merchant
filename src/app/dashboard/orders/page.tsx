@@ -16,6 +16,7 @@ interface OrderItem {
 
 interface Order {
   _id: string;
+  orderId?: string;
   customerName: string;
   customerPhone: string;
   shippingAddress: string;
@@ -219,7 +220,7 @@ export default function OrdersPage() {
                   <tr key={order._id} className="hover:bg-gray-50/80 transition-colors group">
                     <td className="px-6 py-4">
                       <span className="font-mono text-xs font-medium text-[#5022C3] bg-purple-50 px-2 py-1 rounded">
-                        #{order._id.substring(order._id.length - 6).toUpperCase()}
+                        #{order.orderId || order._id?.substring(order._id.length - 6).toUpperCase()}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -369,7 +370,7 @@ export default function OrdersPage() {
             <div className="p-6 border-b border-gray-100 flex justify-between items-center print:hidden">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Order Details</h2>
-                <div className="text-sm font-mono text-[#5022C3] mt-1 bg-purple-50 inline-block px-2 py-0.5 rounded">#{viewOrder._id.substring(viewOrder._id.length - 6).toUpperCase()}</div>
+                <div className="text-sm font-mono text-[#5022C3] mt-1 bg-purple-50 inline-block px-2 py-0.5 rounded">#{viewOrder.orderId || viewOrder._id?.substring(viewOrder._id.length - 6).toUpperCase()}</div>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => window.print()} className="p-2.5 text-[#5022C3] bg-purple-50 hover:bg-purple-100 rounded-full transition-colors flex items-center gap-2 px-4 font-semibold text-sm">
@@ -390,9 +391,9 @@ export default function OrdersPage() {
                   <h1 className="text-3xl font-black text-gray-900 tracking-tight">{storeName}</h1>
                   <p className="text-gray-500 mt-1 font-medium tracking-widest text-sm uppercase">Packing Slip</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-gray-900">Order #{viewOrder._id.substring(viewOrder._id.length - 6).toUpperCase()}</p>
-                  <p className="text-sm text-gray-500 mt-1">Date: {new Date(viewOrder.createdAt).toLocaleDateString()}</p>
+                <div className="text-center md:text-right">
+                  <p className="text-sm font-bold text-gray-900">Order #{viewOrder.orderId || viewOrder._id?.substring(viewOrder._id.length - 6).toUpperCase()}</p>
+                  <p className="text-xs text-gray-500 mt-1">Date: {new Date(viewOrder.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
 
@@ -518,8 +519,8 @@ export default function OrdersPage() {
                 <Trash2 className="w-8 h-8" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Order?</h2>
-              <p className="text-sm text-gray-500">
-                Are you sure you want to delete order <span className="font-bold text-gray-700">#{deleteOrder._id.substring(deleteOrder._id.length - 6).toUpperCase()}</span>? This action cannot be undone.
+              <p className="text-sm text-gray-500 mb-6">
+                Are you sure you want to delete order <span className="font-bold text-gray-700">#{deleteOrder.orderId || deleteOrder._id?.substring(deleteOrder._id.length - 6).toUpperCase()}</span>? This action cannot be undone.
               </p>
             </div>
             <div className="p-5 border-t border-gray-100 bg-gray-50 flex gap-3">

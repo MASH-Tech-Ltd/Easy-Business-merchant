@@ -76,8 +76,9 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [merchantUser, setMerchantUser] = useState<any>(null);
-  const [currentPlan, setCurrentPlan] = useState<string>('Free Trial');
+  const [currentPlan, setCurrentPlan] = useState<string>('');
   const [fullSubscription, setFullSubscription] = useState<any>(null);
+  const [subscriptionExpired, setSubscriptionExpired] = useState(false);
   const [openTicketsCount, setOpenTicketsCount] = useState(0);
 
   useEffect(() => {
@@ -156,11 +157,28 @@ export default function DashboardLayout({
           const res = await api.get('/subscriptions/my-subscription');
           const sub = res.data?.data;
           if (sub) {
+            // Active or pending subscription
             setFullSubscription(sub);
+            setSubscriptionExpired(false);
             if (sub.packageId?.name) {
               setCurrentPlan(sub.packageId.name);
             } else if (sub.isTrial) {
               setCurrentPlan('Free Trial');
+            }
+          } else {
+            // No active sub — fetch the last one (could be expired/cancelled) for display
+            setSubscriptionExpired(true);
+            try {
+              const lastRes = await api.get('/subscriptions/my-subscription?includeExpired=true');
+              const lastSub = lastRes.data?.data;
+              if (lastSub) {
+                setFullSubscription({ ...lastSub, status: 'expired' });
+                setCurrentPlan(lastSub.isTrial ? 'Free Trial (Expired)' : `${lastSub.packageId?.name || 'Plan'} (Expired)`);
+              } else {
+                setCurrentPlan('No Active Plan');
+              }
+            } catch {
+              setCurrentPlan('No Active Plan');
             }
           }
         } catch (error) {
@@ -213,7 +231,19 @@ export default function DashboardLayout({
   ];
 
   let banner = null;
-  if (fullSubscription) {
+  if (subscriptionExpired) {
+    // Subscription/trial is expired — show red banner immediately
+    const isTrial = fullSubscription?.isTrial;
+    banner = (
+      <div className="bg-red-50 text-red-600 px-4 py-2 flex items-center justify-center gap-2 border-b border-red-100 text-sm font-medium z-50">
+        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+        <span>{isTrial ? '⏱️ Your free trial has ended.' : '🔴 Your subscription has expired.'} Your store is currently <strong>offline</strong>.</span>
+        <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-red-700 whitespace-nowrap">
+          {isTrial ? 'Upgrade Now' : 'Subscribe Now'}
+        </Link>
+      </div>
+    );
+  } else if (fullSubscription) {
     const end = new Date(fullSubscription.endDate);
     const now = new Date();
     const daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
@@ -221,17 +251,25 @@ export default function DashboardLayout({
     if (fullSubscription.status === 'expired' || fullSubscription.status === 'cancelled' || daysLeft <= 0) {
       banner = (
         <div className="bg-red-50 text-red-600 px-4 py-2 flex items-center justify-center gap-2 border-b border-red-100 text-sm font-medium z-50">
-          <AlertTriangle className="w-4 h-4" />
-          <span>Your subscription has expired. Your store is currently offline.</span>
-          <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-red-700">Subscribe Now</Link>
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>{fullSubscription.isTrial ? '⏱️ Your free trial has ended.' : '🔴 Your subscription has expired.'} Your store is currently <strong>offline</strong>.</span>
+          <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-red-700 whitespace-nowrap">{fullSubscription.isTrial ? 'Upgrade Now' : 'Subscribe Now'}</Link>
         </div>
       );
     } else if (daysLeft <= 5 && fullSubscription.isTrial) {
       banner = (
         <div className="bg-amber-50 text-amber-700 px-4 py-2 flex items-center justify-center gap-2 border-b border-amber-100 text-sm font-medium z-50">
-          <AlertTriangle className="w-4 h-4" />
-          <span> Your free trial expires in {daysLeft} {daysLeft === 1 ? 'day' : 'days'}. Upgrade now to keep your store live.</span>
-          <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-amber-800">View Plans</Link>
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>⏱️ Your free trial expires in <strong>{daysLeft} {daysLeft === 1 ? 'day' : 'days'}</strong>. Upgrade now to keep your store live after the trial.</span>
+          <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-amber-800 whitespace-nowrap">View Plans</Link>
+        </div>
+      );
+    } else if (daysLeft <= 5 && !fullSubscription.isTrial) {
+      banner = (
+        <div className="bg-orange-50 text-orange-700 px-4 py-2 flex items-center justify-center gap-2 border-b border-orange-100 text-sm font-medium z-50">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>⚠️ Your subscription expires in <strong>{daysLeft} {daysLeft === 1 ? 'day' : 'days'}</strong>. Renew now to avoid any downtime.</span>
+          <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-orange-800 whitespace-nowrap">Renew Now</Link>
         </div>
       );
     }
@@ -290,25 +328,39 @@ export default function DashboardLayout({
           ))}
         </div>
         
-        {/* Upgrade Plan Card */}
+        {/* Subscription Status Card */}
         <div className="p-4 border-t border-gray-200 bg-white">
-          <div className="border border-purple-100 rounded-xl p-3 bg-white shadow-sm relative overflow-hidden">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="w-4 h-4 text-[#5022C3] flex items-center justify-center">
-                <Star className="w-3.5 h-3.5 fill-current" />
+          {subscriptionExpired ? (
+            <div className="border border-red-200 rounded-xl p-3 bg-red-50 shadow-sm">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                <span className="font-semibold text-sm text-red-700 truncate">{currentPlan}</span>
+                <div className="w-1.5 h-1.5 bg-red-500 rounded-full ml-auto flex-shrink-0"></div>
               </div>
-              <span className="font-semibold text-sm text-gray-900">{currentPlan}</span>
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full ml-auto"></div>
+              <p className="text-xs text-red-600 mb-3">Your store is currently offline.</p>
+              <Link href="/dashboard/subscription" className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center">
+                Subscribe Now
+              </Link>
             </div>
-            {currentPlan.toLowerCase().includes('free') && (
-              <>
-                <p className="text-xs text-gray-500 mb-3">Unlock more features as you grow.</p>
-                <Link href="/dashboard/subscription" className="w-full bg-[#5022C3] hover:bg-purple-700 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center">
-                  Upgrade plan
-                </Link>
-              </>
-            )}
-          </div>
+          ) : (
+            <div className="border border-purple-100 rounded-xl p-3 bg-white shadow-sm relative overflow-hidden">
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-4 h-4 text-[#5022C3] flex items-center justify-center">
+                  <Star className="w-3.5 h-3.5 fill-current" />
+                </div>
+                <span className="font-semibold text-sm text-gray-900 truncate">{currentPlan || '...'}</span>
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full ml-auto flex-shrink-0"></div>
+              </div>
+              {(currentPlan.toLowerCase().includes('trial') || currentPlan.toLowerCase().includes('free')) && (
+                <>
+                  <p className="text-xs text-gray-500 mb-3">Upgrade to unlock all features.</p>
+                  <Link href="/dashboard/subscription" className="w-full bg-[#5022C3] hover:bg-purple-700 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center">
+                    Upgrade Plan
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
         </div>
       </aside>
 
