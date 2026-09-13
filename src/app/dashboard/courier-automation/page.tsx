@@ -10,6 +10,7 @@ export default function CourierAutomation() {
   const [clientId, setClientId] = useState('');
   const [apiSecret, setApiSecret] = useState('');
   const [autoForward, setAutoForward] = useState(false);
+  const [configuredProvider, setConfiguredProvider] = useState('');
   const [loading, setLoading] = useState(false);
   
   const providers = [
@@ -21,13 +22,15 @@ export default function CourierAutomation() {
   useEffect(() => {
     const fetchCredentials = async () => {
       try {
-        // Here we could get existing credentials if we had an endpoint that returns them unencrypted for the merchant.
-        // For security, usually you don't return the secret. But we can fetch the general settings.
         const res = await api.get('/courier/my-charges');
-        if (res.data?.success && res.data.data) {
+        if (res.data?.status === 'ok' && res.data.data) {
           const data = res.data.data;
-          if (data.provider) setActiveProvider(data.provider);
+          if (data.provider) {
+            setActiveProvider(data.provider);
+            setConfiguredProvider(data.provider);
+          }
           if (data.clientId) setClientId(data.clientId);
+          if (data.apiSecret) setApiSecret(data.apiSecret);
           if (data.autoForward !== undefined) setAutoForward(data.autoForward);
         }
       } catch (error) {
@@ -48,7 +51,13 @@ export default function CourierAutomation() {
         autoForward,
       });
       toast.success('Configuration saved successfully!');
-      setApiSecret(''); // Clear it from state for security after saving
+      setConfiguredProvider(activeProvider);
+      
+      // Re-fetch to get the new masked secret
+      const res = await api.get('/courier/my-charges');
+      if (res.data?.status === 'ok' && res.data.data) {
+        if (res.data.data.apiSecret) setApiSecret(res.data.data.apiSecret);
+      }
     } catch (error) {
       toast.error('Failed to save configuration.');
     } finally {
@@ -89,6 +98,11 @@ export default function CourierAutomation() {
               <span className={`font-semibold ${activeProvider === provider.id ? 'text-[#5022C3]' : 'text-gray-700'}`}>
                 {provider.name}
               </span>
+              {configuredProvider === provider.id && (
+                <span className="ml-2 text-[10px] font-bold px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                  Configured
+                </span>
+              )}
               {activeProvider === provider.id && (
                 <CheckCircle2 className="w-5 h-5 text-[#5022C3] ml-auto" />
               )}

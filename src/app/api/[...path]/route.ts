@@ -25,60 +25,66 @@ async function handleProxy(req: NextRequest) {
     const response = await fetch(url.toString(), {
       method: req.method,
       headers,
-      body: req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined,
+      body: req.method !== 'GET' && req.method !== 'HEAD' ? req.body : undefined,
       // Don't follow redirects automatically if we want to handle them
       redirect: 'manual',
+      // @ts-ignore
+      duplex: 'half'
     });
 
     // 5. Prepare the response to send back to the client
     const responseHeaders = new Headers(response.headers);
     
+    // Delete headers that might cause issues when the body is modified
+    responseHeaders.delete('content-length');
+    responseHeaders.delete('content-encoding');
+
     // Get the response body
     const data = await response.text();
-    let parsedData = null;
+    let parsedData: any = null;
     try {
       parsedData = JSON.parse(data);
     } catch {
       // It's not JSON
     }
 
-    // 6. If it's a login/register response, intercept tokens and set cookies
-    const nextResponse = new NextResponse(data, {
+    const hasAccessToken = parsedData?.data?.accessToken;
+    const hasRefreshToken = parsedData?.data?.refreshToken;
+
+    if (hasAccessToken) {
+      delete parsedData.data.accessToken;
+    }
+    if (hasRefreshToken) {
+      delete parsedData.data.refreshToken;
+    }
+
+    // Re-serialize data if we mutated it
+    let finalBody = data;
+    if (parsedData && (hasAccessToken !== undefined || hasRefreshToken !== undefined)) {
+      finalBody = JSON.stringify(parsedData);
+    }
+
+    const nextResponse = new NextResponse(finalBody, {
       status: response.status,
       statusText: response.statusText,
       headers: responseHeaders,
     });
 
-    if (parsedData?.data?.accessToken) {
-      // Set Access Token
-      nextResponse.cookies.set('accessToken', parsedData.data.accessToken, {
+    if (hasAccessToken) {
+      nextResponse.cookies.set('accessToken', hasAccessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
       });
-      
-      // We don't want to expose tokens to the client
-      delete parsedData.data.accessToken;
     }
 
-    if (parsedData?.data?.refreshToken) {
-      // Set Refresh Token
-      nextResponse.cookies.set('refreshToken', parsedData.data.refreshToken, {
+    if (hasRefreshToken) {
+      nextResponse.cookies.set('refreshToken', hasRefreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/',
-      });
-      
-      delete parsedData.data.refreshToken;
-    }
-
-    // Re-serialize data if we mutated it
-    if (parsedData && (parsedData.data?.accessToken === undefined || parsedData.data?.refreshToken === undefined)) {
-       return new NextResponse(JSON.stringify(parsedData), {
-        status: response.status,
-        headers: responseHeaders,
       });
     }
 

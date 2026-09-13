@@ -389,8 +389,12 @@ export default function DashboardLayout({
                   <div className="font-medium text-gray-900">{merchantUser.name || 'Merchant'}</div>
                   <div className="text-xs text-gray-500">{merchantUser.email}</div>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-purple-100 text-[#5022C3] flex items-center justify-center font-bold">
-                  {(merchantUser.name || merchantUser.email || 'M').charAt(0).toUpperCase()}
+                <div className="w-9 h-9 rounded-full bg-purple-100 text-[#5022C3] flex items-center justify-center font-bold overflow-hidden border border-purple-200">
+                  {merchantUser.avatar?.secure_url ? (
+                    <img src={merchantUser.avatar.secure_url} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    (merchantUser.name || merchantUser.email || 'M').charAt(0).toUpperCase()
+                  )}
                 </div>
               </div>
             )}

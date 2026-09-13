@@ -28,6 +28,7 @@ interface Order {
   subTotal: number;
   shippingCharge: number;
   paymentStatus: string;
+  isDeliveryChargePaid?: boolean;
 }
 
 let globalOrdersCache: Order[] = [];
@@ -55,6 +56,7 @@ export default function OrdersPage() {
   const [checkingFraud, setCheckingFraud] = useState<string | null>(null);
 
   const [storeName, setStoreName] = useState('Your Store');
+  const [storeLogo, setStoreLogo] = useState('');
 
   useEffect(() => {
     try {
@@ -69,6 +71,19 @@ export default function OrdersPage() {
         setStoreName(sName);
       }
     } catch (e) {}
+
+    const fetchStoreSettings = async () => {
+      try {
+        const res = await api.get('/tenants/my-store');
+        const data = res.data?.data;
+        if (data?.logo) {
+          setStoreLogo(data.logo);
+        }
+      } catch (err) {
+        console.error('Failed to fetch store settings', err);
+      }
+    };
+    fetchStoreSettings();
   }, []);
 
   useEffect(() => {
@@ -387,9 +402,14 @@ export default function OrdersPage() {
               
               {/* Slip Header (Visible mainly on print or as nice UI) */}
               <div className="flex justify-between items-start border-b border-gray-200 pb-6">
-                <div>
-                  <h1 className="text-3xl font-black text-gray-900 tracking-tight">{storeName}</h1>
-                  <p className="text-gray-500 mt-1 font-medium tracking-widest text-sm uppercase">Packing Slip</p>
+                <div className="flex items-center gap-3">
+                  {storeLogo && (
+                    <img src={storeLogo} alt="Store Logo" className="w-12 h-12 object-contain" />
+                  )}
+                  <div>
+                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">{storeName}</h1>
+                    <p className="text-gray-500 mt-1 font-medium tracking-widest text-sm uppercase">Packing Slip</p>
+                  </div>
                 </div>
                 <div className="text-center md:text-right">
                   <p className="text-sm font-bold text-gray-900">Order #{viewOrder.orderId || viewOrder._id?.substring(viewOrder._id.length - 6).toUpperCase()}</p>
@@ -455,7 +475,7 @@ export default function OrdersPage() {
               </div>
               
               <div className="flex justify-between items-end pt-4">
-                {viewOrder.paymentStatus === 'paid' ? (
+                {viewOrder.isDeliveryChargePaid ? (
                   <div className="border-2 border-green-500 text-green-600 rounded px-4 py-2 transform -rotate-6 flex flex-col items-center justify-center opacity-90 print:opacity-100 print:border-gray-900 print:text-gray-900 ml-4 mb-4">
                     <span className="text-lg font-black uppercase tracking-wider">Paid</span>
                     <span className="text-[10px] font-bold uppercase tracking-widest">Delivery Charge</span>

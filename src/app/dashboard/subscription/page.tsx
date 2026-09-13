@@ -11,6 +11,7 @@ interface Package {
   price: number;
   billingCycle: string;
   productLimit: number;
+  features?: string[];
   isActive: boolean;
 }
 
@@ -252,24 +253,14 @@ export default function SubscriptionPage() {
                         Up to <span className="font-bold text-gray-900">{pkg.productLimit}</span> Products
                       </span>
                     </li>
-                    <li className="flex items-start gap-3">
-                      <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isPopular ? 'bg-[#5022C3] text-white' : 'bg-purple-100 text-[#5022C3]'}`}>
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                      </div>
-                      <span className="text-sm text-gray-700 font-medium">Custom Domain Setup</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isPopular ? 'bg-[#5022C3] text-white' : 'bg-purple-100 text-[#5022C3]'}`}>
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                      </div>
-                      <span className="text-sm text-gray-700 font-medium">Advanced Analytics</span>
-                    </li>
-                    <li className="flex items-start gap-3 opacity-60 hover:opacity-100 transition-opacity">
-                      <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isPopular ? 'bg-[#5022C3] text-white' : 'bg-purple-100 text-[#5022C3]'}`}>
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                      </div>
-                      <span className="text-sm text-gray-700 font-medium">24/7 Priority Support</span>
-                    </li>
+                    {pkg.features && pkg.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-3">
+                        <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isPopular ? 'bg-[#5022C3] text-white' : 'bg-purple-100 text-[#5022C3]'}`}>
+                          <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                        </div>
+                        <span className="text-sm text-gray-700 font-medium">{feature}</span>
+                      </li>
+                    ))}
                   </ul>
                   
                   {isCurrentActive ? (

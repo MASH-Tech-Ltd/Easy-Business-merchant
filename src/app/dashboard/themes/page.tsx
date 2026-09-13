@@ -26,6 +26,7 @@ const availableThemes = [
 
 export default function ThemesPage() {
   const [activeTheme, setActiveTheme] = useState('design-01');
+  const [savedTheme, setSavedTheme] = useState('design-01');
   const [primaryColor, setPrimaryColor] = useState('#5022C3');
   const [buttonColors, setButtonColors] = useState({ addToCart: '', buyNow: '' });
   const [fontFamily, setFontFamily] = useState('Inter');
@@ -40,12 +41,14 @@ export default function ThemesPage() {
   const [banner, setBanner] = useState<{
     title: string;
     subtitle: string;
+    description: string;
     buttonText: string;
     buttonLink: string;
     image: any;
   }>({
     title: '',
     subtitle: '',
+    description: '',
     buttonText: '',
     buttonLink: '',
     image: null
@@ -74,7 +77,11 @@ export default function ThemesPage() {
       const res = await api.get('/themes/my-theme');
       const themeData = res.data.data;
       if (themeData) {
-        if (themeData.themeId) setActiveTheme(themeData.themeId);
+        if (themeData.themeId) {
+          const dbTheme = themeData.themeId === 'light' ? 'design-01' : themeData.themeId;
+          setActiveTheme(dbTheme);
+          setSavedTheme(dbTheme);
+        }
         if (themeData.primaryColor) setPrimaryColor(themeData.primaryColor);
         if (themeData.buttonColors) {
           setButtonColors({
@@ -112,6 +119,7 @@ export default function ThemesPage() {
           setBanner({
             title: themeData.banner.title || '',
             subtitle: themeData.banner.subtitle || '',
+            description: themeData.banner.description || '',
             buttonText: themeData.banner.buttonText || '',
             buttonLink: themeData.banner.buttonLink || '',
             image: themeData.banner.image || null
@@ -152,6 +160,7 @@ export default function ThemesPage() {
       await api.put('/themes/update', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+      setSavedTheme(activeTheme);
       toast.success('Settings saved successfully!');
     } catch (error) {
       console.error('Error saving theme', error);
@@ -254,6 +263,11 @@ export default function ThemesPage() {
                       : 'border-gray-200 hover:border-indigo-300 hover:shadow-md'
                   }`}
                 >
+                  {savedTheme === theme.id && (
+                    <div className="absolute top-0 left-0 bg-indigo-600 text-white text-[10px] uppercase tracking-wide font-bold px-2.5 py-1 rounded-br-lg rounded-tl-xl z-20 shadow-sm border-r border-b border-indigo-700">
+                      Live
+                    </div>
+                  )}
                   {activeTheme === theme.id && (
                     <div className="absolute top-3 right-3 text-indigo-600 z-10">
                       <CheckCircle2 className="w-6 h-6 fill-indigo-100" />
@@ -462,6 +476,15 @@ export default function ThemesPage() {
                       onChange={(e) => setBanner(prev => ({ ...prev, subtitle: e.target.value }))}
                       placeholder="e.g. Up to 50% off on all electronics"
                     />
+                    <div className="space-y-1">
+                      <label className="block text-sm font-semibold text-gray-700">Description</label>
+                      <textarea
+                        value={banner.description}
+                        onChange={(e) => setBanner(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="e.g. Discover premium products curated for every lifestyle and budget."
+                        className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all resize-none text-sm shadow-sm"
+                      />
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                       <Input 
                         label="Button Text"

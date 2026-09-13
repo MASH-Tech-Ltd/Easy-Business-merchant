@@ -19,6 +19,7 @@ interface Order {
   subTotal: number;
   shippingCharge: number;
   paymentStatus: string;
+  isDeliveryChargePaid?: boolean;
   status: string;
   createdAt: string;
   items: OrderItem[];
@@ -39,6 +40,7 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
   const [items, setItems] = useState<OrderItem[]>(order.items);
   const [status, setStatus] = useState(order.status);
   const [paymentStatus, setPaymentStatus] = useState(order.paymentStatus || 'unpaid');
+  const [isDeliveryChargePaid, setIsDeliveryChargePaid] = useState(order.isDeliveryChargePaid || false);
   const [shippingCharge] = useState(derivedShippingCharge);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -66,6 +68,7 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
     const payload = {
       status,
       paymentStatus,
+      isDeliveryChargePaid,
       shippingCharge,
       subTotal,
       totalPrice,
@@ -167,11 +170,21 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
                 <select 
                   value={paymentStatus}
                   onChange={(e) => setPaymentStatus(e.target.value)}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-[#5022C3] bg-white font-medium text-gray-700"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-[#5022C3] bg-white font-medium text-gray-700 mb-4"
                 >
                   <option value="unpaid">Unpaid</option>
                   <option value="paid">Paid</option>
                 </select>
+                
+                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={isDeliveryChargePaid}
+                    onChange={(e) => setIsDeliveryChargePaid(e.target.checked)}
+                    className="w-5 h-5 text-[#5022C3] rounded focus:ring-[#5022C3]"
+                  />
+                  <span className="text-sm font-bold text-gray-700">Delivery Charge Paid in Advance</span>
+                </label>
               </div>
             </div>
 
