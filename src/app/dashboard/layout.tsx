@@ -67,6 +67,68 @@ const playNotificationSound = () => {
   } catch(e) { console.error('Audio play error', e) }
 };
 
+const SidebarItem = ({ item, pathname }: { item: any, pathname: string }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (item.subItems) {
+    const isActive = item.subItems.some((sub: any) => pathname === sub.path || pathname.startsWith(sub.path + '/'));
+    
+    useEffect(() => {
+      if (isActive) setIsExpanded(true);
+    }, [isActive]);
+
+    return (
+      <div className="flex flex-col gap-0.5">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className={`flex items-center px-3 py-2 w-full rounded-lg text-sm transition-colors group ${
+            isActive ? 'bg-purple-50 text-[#5022C3] font-medium' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+          }`}
+        >
+          <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-[#5022C3]' : 'text-slate-400 group-hover:text-slate-600'}`} />
+          <span>{item.name}</span>
+          <ChevronRight className={`w-4 h-4 ml-auto text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+        </button>
+        {isExpanded && (
+          <div className="flex flex-col gap-0.5 pl-11 pr-2 py-1">
+            {item.subItems.map((sub: any) => {
+              const subActive = pathname === sub.path;
+              return (
+                <Link
+                  key={sub.name}
+                  href={sub.path}
+                  className={`flex items-center px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    subActive ? 'text-[#5022C3] font-medium bg-purple-50/50' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                  }`}
+                >
+                  <span>{sub.name}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  const isActive = pathname === item.path;
+  return (
+    <Link
+      href={item.path}
+      className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors group ${
+        isActive 
+          ? 'bg-purple-50 text-[#5022C3] font-medium' 
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+      }`}
+    >
+      <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-[#5022C3]' : 'text-slate-400 group-hover:text-slate-600'}`} />
+      <span>{item.name}</span>
+      {item.badge && <Badge type={item.badge}>{item.badge}</Badge>}
+      {item.hasArrow && <ChevronRight className="w-4 h-4 ml-auto text-slate-300" />}
+    </Link>
+  );
+};
+
 export default function DashboardLayout({
   children,
 }: {
@@ -149,7 +211,6 @@ export default function DashboardLayout({
           const res = await api.get('/subscriptions/my-subscription');
           const sub = res.data?.data;
           if (sub) {
-            // Active or pending subscription
             setFullSubscription(sub);
             setSubscriptionExpired(false);
             if (sub.packageId?.name) {
@@ -158,7 +219,6 @@ export default function DashboardLayout({
               setCurrentPlan('Free Trial');
             }
           } else {
-            // No active sub — fetch the last one (could be expired/cancelled) for display
             setSubscriptionExpired(true);
             try {
               const lastRes = await api.get('/subscriptions/my-subscription?includeExpired=true');
@@ -199,15 +259,14 @@ export default function DashboardLayout({
         { name: 'Customers', path: '/dashboard/customers', icon: Users },
         { name: 'Courier', path: '/dashboard/courier-automation', icon: Truck, badge: 'NEW' },
         { name: 'Fraud Check', path: '/dashboard/fraud-check', icon: ShieldCheck, badge: 'NEW' },
+        { name: 'Checkout Leads', path: '/dashboard/checkout-leads', icon: Users, badge: 'NEW' },
       ]
     },
     {
       title: 'Shop & Growth',
       items: [
-        // { name: 'Manage Shop', path: '/dashboard/manage-shop', icon: Store, badge: 'NEW' },
         { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart2 },
         { name: 'Themes', path: '/dashboard/themes', icon: Palette },
-
       ]
     },
     {
@@ -217,14 +276,20 @@ export default function DashboardLayout({
         { name: 'Domain', path: '/dashboard/domain', icon: Globe },
         { name: 'API Keys', path: '/dashboard/api-keys', icon: Key },
         { name: 'Support', path: '/dashboard/support', icon: LifeBuoy, badge: openTicketsCount > 0 ? String(openTicketsCount) : undefined, badgeType: 'OPEN' },
-        { name: 'Subscription', path: '/dashboard/subscription', icon: CreditCard, hasArrow: true },
+        { 
+          name: 'Subscription', 
+          icon: CreditCard,
+          subItems: [
+            { name: 'My Plan', path: '/dashboard/subscription' },
+            { name: 'Add-ons', path: '/dashboard/subscription/addons' }
+          ]
+        },
       ]
     }
   ];
 
   let banner = null;
   if (subscriptionExpired) {
-    // Subscription/trial is expired — show red banner immediately
     const isTrial = fullSubscription?.isTrial;
     banner = (
       <div className="bg-red-50 text-red-600 px-4 py-2 flex items-center justify-center gap-2 border-b border-red-100 text-sm font-medium z-50">
@@ -296,25 +361,9 @@ export default function DashboardLayout({
                 </div>
               )}
               <nav className="flex flex-col gap-0.5">
-                {group.items.map((item) => {
-                  const isActive = pathname === item.path;
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.path}
-                      className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors group ${
-                        isActive 
-                          ? 'bg-purple-50 text-[#5022C3] font-medium' 
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      }`}
-                    >
-                      <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-[#5022C3]' : 'text-slate-400 group-hover:text-slate-600'}`} />
-                      <span>{item.name}</span>
-                      {(item as any).badge && <Badge type={(item as any).badge}>{(item as any).badge}</Badge>}
-                      {(item as any).hasArrow && <ChevronRight className="w-4 h-4 ml-auto text-slate-300" />}
-                    </Link>
-                  );
-                })}
+                {group.items.map((item) => (
+                  <SidebarItem key={item.name} item={item} pathname={pathname} />
+                ))}
               </nav>
             </div>
           ))}

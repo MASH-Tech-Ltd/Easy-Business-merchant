@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, MoreVertical, ShoppingBag, Eye, Edit, Trash2, X, ChevronLeft, ChevronRight, FileText, Printer, ShieldCheck } from 'lucide-react';
 import { api } from '@/utils/api';
 import { toast } from 'react-hot-toast';
@@ -49,11 +50,14 @@ export default function OrdersPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  const router = useRouter();
   // Modals
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
   const [editOrder, setEditOrder] = useState<Order | null>(null);
   const [deleteOrder, setDeleteOrder] = useState<Order | null>(null);
   const [checkingFraud, setCheckingFraud] = useState<string | null>(null);
+  const [fraudErrorModal, setFraudErrorModal] = useState<{show: boolean, message: string} | null>(null);
+  const [fraudResultModal, setFraudResultModal] = useState<any>(null);
 
   const [storeName, setStoreName] = useState('Your Store');
   const [storeLogo, setStoreLogo] = useState('');
@@ -140,16 +144,23 @@ export default function OrdersPage() {
     }
   };
 
-  const handleFraudCheck = async (orderId: string) => {
+  const handleFraudCheck = async (orderId: string, force: boolean = false) => {
     setCheckingFraud(orderId);
     try {
-      const response = await api.post('/fraud/check', { orderId });
+      const response = await api.post('/fraud/check', { orderId, force });
       const data = response.data?.data;
       if (data) {
-        toast.success(`Fraud Score: ${data.score} (${data.status.toUpperCase()})`);
+        setFraudResultModal(data);
       }
-    } catch (error) {
-      toast.error('Failed to check fraud score');
+    } catch (error: any) {
+      if (error.response?.status === 403 || error.response?.status === 402) {
+        setFraudErrorModal({
+          show: true,
+          message: error.response?.data?.message || 'Fraud check add-on is not active or limit reached for this subscription.'
+        });
+      } else {
+        toast.error('Failed to check fraud score');
+      }
     } finally {
       setCheckingFraud(null);
     }
@@ -555,6 +566,90 @@ export default function OrdersPage() {
                 className="flex-1 py-3 text-sm font-bold bg-red-600 text-white hover:bg-red-700 rounded-xl transition-colors shadow-md"
               >
                 Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fraud Result Modal */}
+      {fraudResultModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl relative overflow-hidden">
+            <div className="text-center mb-6">
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                fraudResultModal.status === 'safe' ? 'bg-green-100 text-green-600' :
+                fraudResultModal.status === 'suspicious' ? 'bg-yellow-100 text-yellow-600' :
+                'bg-red-100 text-red-600'
+              }`}>
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-1">Fraud Score: {fraudResultModal.score}</h3>
+              <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">{fraudResultModal.status}</p>
+            </div>
+            
+            <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100">
+              <p className="text-sm text-gray-700 text-center leading-relaxed">
+                {fraudResultModal.details}
+              </p>
+              {fraudResultModal.isCached && (
+                <div className="mt-3 text-xs text-amber-600 text-center bg-amber-50 py-1.5 px-3 rounded-lg border border-amber-200">
+                  This is your previous check history.
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setFraudResultModal(null)}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold transition-colors"
+              >
+                Close
+              </button>
+              {fraudResultModal.isCached && (
+                <button 
+                  onClick={() => {
+                    handleFraudCheck(fraudResultModal.orderId, true);
+                    setFraudResultModal(null);
+                  }}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-[#5022C3] hover:bg-[#4319a3] text-white text-sm font-semibold transition-colors"
+                >
+                  Check Again
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fraud Error Modal */}
+      {fraudErrorModal?.show && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl text-center">
+            <div className="p-8">
+              <div className="w-16 h-16 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-5">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Action Required</h2>
+              <p className="text-sm text-gray-500 mb-6">
+                {fraudErrorModal.message}
+              </p>
+            </div>
+            <div className="p-5 border-t border-gray-100 bg-gray-50 flex gap-3">
+              <button 
+                onClick={() => setFraudErrorModal(null)}
+                className="flex-1 py-3 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                Close
+              </button>
+              <button 
+                onClick={() => {
+                  setFraudErrorModal(null);
+                  router.push('/dashboard/subscription/addons');
+                }}
+                className="flex-1 py-3 text-sm font-bold bg-[#5022C3] text-white hover:bg-[#401b9c] rounded-xl transition-colors shadow-md"
+              >
+                Purchase Add-on
               </button>
             </div>
           </div>
