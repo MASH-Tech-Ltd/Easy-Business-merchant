@@ -153,6 +153,9 @@ export default function ProfilePage() {
       const storeData = new FormData();
       storeData.append('name', formData.storeName);
       storeData.append('checkoutNote', checkoutNote);
+      if (formData.details) {
+        storeData.append('description', formData.details);
+      }
       if (storeLogo) {
         storeData.append('logo', storeLogo);
       }

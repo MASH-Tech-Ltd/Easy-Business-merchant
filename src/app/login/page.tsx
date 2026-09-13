@@ -17,7 +17,7 @@ export default function LoginPage() {
     setError('');
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      const res = await fetch(`/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -29,7 +29,6 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed');
       }
       
-      sessionStorage.setItem('merchantToken', data.data.accessToken);
       sessionStorage.setItem('merchantUser', JSON.stringify(data.data.user));
       router.push('/dashboard');
     } catch (err: any) {

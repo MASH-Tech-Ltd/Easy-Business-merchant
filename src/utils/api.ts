@@ -1,22 +1,12 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL}`;
-
+// Point to the Next.js proxy route instead of the real backend URL
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
-});
-
-api.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = sessionStorage.getItem('merchantToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  }
-  return config;
+  withCredentials: true,
 });
 
 api.interceptors.response.use(
@@ -24,7 +14,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        sessionStorage.removeItem('merchantToken');
         sessionStorage.removeItem('merchantUser');
         window.location.href = '/login';
       }

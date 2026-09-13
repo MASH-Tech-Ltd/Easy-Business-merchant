@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { 
   Palette, CheckCircle2, LayoutTemplate, 
   Settings, Type, Link as LinkIcon, Save,
-  Phone, Mail, MapPin, Shield, HelpCircle, Image as ImageIcon
+  Phone, Mail, MapPin, Shield, HelpCircle, Image as ImageIcon,
+  Truck, Plus, Trash2, Minus
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../../utils/api';
@@ -13,6 +14,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
 import { ImageUpload } from '@/components/ui/ImageUpload';
+import { bdLocations } from '@/data/locations';
 
 const availableThemes = [
   { id: 'design-01', name: 'Design 01 (Classic)', color: '#ffffff', textColor: '#171717', accent: '#5022C3' },
@@ -56,6 +58,13 @@ export default function ThemesPage() {
   const [activeTab, setActiveTab] = useState('template');
   const [activePolicyTab, setActivePolicyTab] = useState<string>('aboutUs');
 
+  // Shipping zones state
+  interface ShippingZone { name: string; cost: number; division: string; districts: string[]; }
+  const [defaultShippingCost, setDefaultShippingCost] = useState(120);
+  const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
+  const [newZone, setNewZone] = useState<ShippingZone>({ name: '', cost: 0, division: '', districts: [] });
+  const [newZoneDistrictsList, setNewZoneDistrictsList] = useState<string[]>([]);
+
   useEffect(() => {
     fetchTheme();
   }, []);
@@ -76,6 +85,8 @@ export default function ThemesPage() {
         if (themeData.fontFamily) setFontFamily(themeData.fontFamily);
         if (themeData.language) setLanguage(themeData.language);
         if (themeData.currencySymbol) setCurrencySymbol(themeData.currencySymbol);
+        if (Array.isArray(themeData.shippingZones)) setShippingZones(themeData.shippingZones);
+        if (themeData.defaultShippingCost !== undefined) setDefaultShippingCost(themeData.defaultShippingCost);
         if (themeData.footer) {
           setFooter({
             socialLinks: {
@@ -129,7 +140,9 @@ export default function ThemesPage() {
         language,
         currencySymbol,
         footer,
-        banner
+        banner,
+        shippingZones,
+        defaultShippingCost
       }));
       
       if (bannerImageFile) {
@@ -195,7 +208,8 @@ export default function ThemesPage() {
             { id: 'template', label: 'Theme Template', icon: LayoutTemplate },
             { id: 'customization', label: 'Advanced Customization', icon: Settings },
             { id: 'banner', label: 'Banner Settings', icon: ImageIcon },
-            { id: 'footer', label: 'Footer & Policies', icon: Type }
+            { id: 'footer', label: 'Footer & Policies', icon: Type },
+            { id: 'shipping', label: 'Shipping', icon: Truck }
           ].map(tab => (
             <button
               key={tab.id}
@@ -598,6 +612,166 @@ export default function ThemesPage() {
             </div>
           </div>
         </Card>
+        )}
+
+        {/* Shipping Settings Tab */}
+        {activeTab === 'shipping' && (
+          <Card className="p-8 border border-gray-100 shadow-sm rounded-2xl bg-white animate-in fade-in slide-in-from-bottom-4 duration-500 relative overflow-visible">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2"></div>
+            
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <Truck className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 tracking-tight">Shipping Zones</h3>
+                <p className="text-gray-500 text-sm">Configure delivery charges based on customer location.</p>
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              {/* Default Shipping */}
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                <h4 className="font-bold text-gray-800 mb-2 flex items-center gap-2">Default Shipping Cost</h4>
+                <p className="text-sm text-gray-500 mb-4">This cost applies to any location that doesn't match a specific zone below.</p>
+                <div className="max-w-xs">
+                  <Input 
+                    type="number" 
+                    value={defaultShippingCost.toString()} 
+                    onChange={(e) => setDefaultShippingCost(Number(e.target.value))}
+                    placeholder="e.g. 120"
+                    label="Amount (BDT)"
+                  />
+                </div>
+              </div>
+
+              {/* Existing Zones */}
+              <div className="space-y-4">
+                <h4 className="font-bold text-gray-800 flex items-center gap-2">Configured Zones</h4>
+                {shippingZones.length === 0 ? (
+                  <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    <p className="text-gray-500 text-sm">No shipping zones configured yet. Add one below.</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {shippingZones.map((zone, idx) => (
+                      <div key={idx} className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                        <div className="space-y-1">
+                          <h5 className="font-bold text-gray-900 flex items-center gap-2">
+                            {zone.name}
+                            <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded-md">
+                              {zone.cost === 0 ? 'Free' : `৳ ${zone.cost}`}
+                            </span>
+                          </h5>
+                          <p className="text-sm text-gray-500">
+                            <span className="font-medium text-gray-700">{zone.division}</span>
+                            {zone.districts.length > 0 && ` • ${zone.districts.join(', ')}`}
+                            {zone.districts.length === 0 && ` • All districts`}
+                          </p>
+                        </div>
+                        <button 
+                          onClick={() => setShippingZones(prev => prev.filter((_, i) => i !== idx))}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+                          title="Delete Zone"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Add New Zone */}
+              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                <h4 className="font-bold text-gray-800 mb-4">Add New Zone</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <Input 
+                    label="Zone Name" 
+                    placeholder="e.g. Inside Dhaka"
+                    value={newZone.name}
+                    onChange={(e) => setNewZone(prev => ({ ...prev, name: e.target.value }))}
+                  />
+                  <Input 
+                    label="Delivery Charge (৳)" 
+                    type="number"
+                    placeholder="e.g. 80 (0 for Free)"
+                    value={newZone.cost.toString()}
+                    onChange={(e) => setNewZone(prev => ({ ...prev, cost: Number(e.target.value) }))}
+                  />
+                  
+                  <div className="space-y-1">
+                    <label className="text-sm font-semibold text-gray-700">Division</label>
+                    <Select 
+                      value={newZone.division} 
+                      onChange={(e) => {
+                        setNewZone(prev => ({ ...prev, division: e.target.value, districts: [] }));
+                        const found = bdLocations.find(d => d.division === e.target.value);
+                        setNewZoneDistrictsList(found ? found.districts.map(d => d.district) : []);
+                      }}
+                      options={[
+                        { label: 'Select Division...', value: '' },
+                        ...bdLocations.map(d => ({ label: d.division, value: d.division }))
+                      ]}
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-sm font-semibold text-gray-700 flex justify-between">
+                      <span>Districts</span>
+                      <span className="text-xs text-gray-400 font-normal">Optional</span>
+                    </label>
+                    <Select 
+                      disabled={!newZone.division}
+                      value="" 
+                      onChange={(e) => {
+                        const dist = e.target.value;
+                        if (dist && !newZone.districts.includes(dist)) {
+                          setNewZone(prev => ({ ...prev, districts: [...prev.districts, dist] }));
+                        }
+                      }}
+                      options={[
+                        { label: 'Select districts to add...', value: '' },
+                        ...newZoneDistrictsList.map(dist => ({ label: dist, value: dist }))
+                      ]}
+                    />
+                    
+                    {newZone.districts.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {newZone.districts.map(dist => (
+                          <div key={dist} className="bg-indigo-50 text-indigo-700 text-xs font-semibold px-2.5 py-1 rounded-md flex items-center gap-1 border border-indigo-100">
+                            {dist}
+                            <button 
+                              onClick={() => setNewZone(prev => ({ ...prev, districts: prev.districts.filter(d => d !== dist) }))}
+                              className="hover:text-indigo-900 transition-colors"
+                            >
+                              <Minus size={12} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">If no districts are selected, this zone applies to the entire division.</p>
+                  </div>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    if (!newZone.name) {
+                      toast.error("Please provide a zone name");
+                      return;
+                    }
+                    setShippingZones(prev => [...prev, newZone]);
+                    setNewZone({ name: '', cost: 0, division: '', districts: [] });
+                    setNewZoneDistrictsList([]);
+                  }}
+                  className="w-full sm:w-auto px-6 py-2.5 bg-indigo-50 text-indigo-600 font-bold rounded-lg hover:bg-indigo-100 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-4 h-4" /> Add Zone
+                </button>
+              </div>
+            </div>
+          </Card>
         )}
         </div>
       </div>

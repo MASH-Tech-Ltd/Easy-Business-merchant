@@ -129,20 +129,12 @@ export default function DashboardLayout({
   }, [isAuthenticated, merchantUser?._id]);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('merchantToken');
-    if (!token) {
+    const storedUser = sessionStorage.getItem('merchantUser');
+    if (!storedUser) {
       router.push('/login');
     } else {
       try {
-        const storedUser = sessionStorage.getItem('merchantUser');
-        if (storedUser) {
-          setMerchantUser(JSON.parse(storedUser));
-        } else {
-          // Fallback to decode JWT if user object is not in local storage
-          const payload = token.split('.')[1];
-          const decoded = atob(payload);
-          setMerchantUser(JSON.parse(decoded));
-        }
+        setMerchantUser(JSON.parse(storedUser));
       } catch (e) {
         console.error('Error parsing user data', e);
       }
@@ -404,7 +396,6 @@ export default function DashboardLayout({
             )}
             <button 
               onClick={() => {
-                sessionStorage.removeItem('merchantToken');
                 sessionStorage.removeItem('merchantUser');
                 router.push('/login');
               }}
