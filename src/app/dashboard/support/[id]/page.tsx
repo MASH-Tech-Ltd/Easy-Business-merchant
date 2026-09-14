@@ -210,7 +210,7 @@ export default function SupportDetailsPage() {
                     : 'bg-white border border-gray-100 text-gray-800 rounded-bl-sm'
                 }`}>
                   <div className="text-[11px] font-medium opacity-70 mb-1.5 flex items-center gap-1.5">
-                    <span className="font-bold">{msg.senderId?.name || (isMerchant ? 'You' : 'Super Admin')}</span>
+                    <span className="font-bold">{isMerchant ? (msg.senderId?.name || 'You') : 'Support Team'}</span>
                     <span className="opacity-50">•</span>
                     <Clock className="w-3 h-3" />
                     {new Date(msg.createdAt || msg._id.getTimestamp?.() || Date.now()).toLocaleString()}
@@ -234,51 +234,58 @@ export default function SupportDetailsPage() {
           </div>
         )}
 
-        <div className="p-4 bg-white border-t border-gray-100">
-          <form onSubmit={handleReply} className="flex items-end gap-3">
-            <div className="flex-1 relative">
-              <textarea
-                value={replyMessage}
-                onChange={(e) => {
-                  setReplyMessage(e.target.value);
-                  if (socket) {
-                    // Try to get user name from local storage or fallback to "Merchant"
-                    const userStr = sessionStorage.getItem('user');
-                    let name = 'Merchant';
-                    if (userStr) {
-                      try {
-                        const user = JSON.parse(userStr);
-                        if (user.name) name = user.name;
-                      } catch(err) {}
+        {ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' ? (
+          <div className="p-4 bg-gray-50 border-t border-gray-100 text-center text-gray-500 text-sm flex items-center justify-center gap-2 h-[92px]">
+            <CheckCircle className="w-5 h-5 text-gray-400" />
+            This ticket is {ticket.status.toLowerCase()}. You cannot reply to this conversation.
+          </div>
+        ) : (
+          <div className="p-4 bg-white border-t border-gray-100">
+            <form onSubmit={handleReply} className="flex items-end gap-3">
+              <div className="flex-1 relative">
+                <textarea
+                  value={replyMessage}
+                  onChange={(e) => {
+                    setReplyMessage(e.target.value);
+                    if (socket) {
+                      // Try to get user name from local storage or fallback to "Merchant"
+                      const userStr = sessionStorage.getItem('user');
+                      let name = 'Merchant';
+                      if (userStr) {
+                        try {
+                          const user = JSON.parse(userStr);
+                          if (user.name) name = user.name;
+                        } catch(err) {}
+                      }
+                      socket.emit('typing_start', { ticketId: ticket.ticketId, senderName: name });
+                      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+                      typingTimeoutRef.current = setTimeout(() => {
+                        socket.emit('typing_end', { ticketId: ticket.ticketId });
+                      }, 2000);
                     }
-                    socket.emit('typing_start', { ticketId: ticket.ticketId, senderName: name });
-                    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-                    typingTimeoutRef.current = setTimeout(() => {
-                      socket.emit('typing_end', { ticketId: ticket.ticketId });
-                    }, 2000);
-                  }
-                }}
-                placeholder="Type your message here..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none max-h-32 min-h-[60px]"
-                rows={2}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (socket) socket.emit('typing_end', { ticketId: ticket.ticketId });
-                    handleReply(e);
-                  }
-                }}
-              />
-            </div>
-            <button 
-              type="submit"
-              disabled={sending || !replyMessage.trim()}
-              className="bg-[#5022C3] hover:bg-purple-700 text-white p-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center shrink-0 shadow-sm shadow-purple-200 h-[60px] w-[60px]"
-            >
-              <Send className="w-5 h-5" />
-            </button>
-          </form>
-        </div>
+                  }}
+                  placeholder="Type your message here..."
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none max-h-32 min-h-[60px]"
+                  rows={2}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      if (socket) socket.emit('typing_end', { ticketId: ticket.ticketId });
+                      handleReply(e);
+                    }
+                  }}
+                />
+              </div>
+              <button 
+                type="submit"
+                disabled={sending || !replyMessage.trim()}
+                className="bg-[#5022C3] hover:bg-purple-700 text-white p-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center shrink-0 shadow-sm shadow-purple-200 h-[60px] w-[60px]"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );

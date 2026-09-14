@@ -148,7 +148,7 @@ export default function DashboardLayout({
       const fetchTicketsCount = async () => {
         try {
           const res = await api.get('/support/my-tickets');
-          const openTickets = res.data.data.filter((t: any) => t.status === 'OPEN');
+          const openTickets = res.data.data.filter((t: any) => t.status === 'OPEN' || t.status === 'PENDING');
           setOpenTicketsCount(openTickets.length);
         } catch (err) {}
       };

@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { 
   TrendingUp, Users, ShoppingBag, DollarSign, 
-  MoreVertical, Activity, HeadphonesIcon, Copy, ArrowUpRight, ArrowDownRight, Store, ExternalLink, Crown, Calendar, Clock, CreditCard, Tag, Package, Star, Sparkles, Trash2, X, CheckCircle2, AlertTriangle
+  MoreVertical, Activity, Headset, Copy, ArrowUpRight, ArrowDownRight, Store, ExternalLink, Crown, Calendar, Clock, CreditCard, Tag, Package, Star, Sparkles, Trash2, X, CheckCircle2, AlertTriangle
 } from 'lucide-react';
+import Link from 'next/link';
 import { api } from '../../utils/api';
 import { toast } from 'react-hot-toast';
 
@@ -450,10 +451,10 @@ export default function DashboardOverview() {
       </div>
 
       {/* Floating Action Button */}
-      <button className="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgb(79,70,229,0.3)] hover:bg-indigo-700 hover:scale-105 transition-all duration-300 z-50">
-        <HeadphonesIcon className="w-6 h-6" />
+      <Link href="/dashboard/support" className="fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgb(79,70,229,0.3)] hover:bg-indigo-700 hover:scale-105 transition-all duration-300 z-50">
+        <Headset className="w-6 h-6" />
         <span className="absolute top-2 right-2 w-3 h-3 bg-green-400 border-2 border-indigo-600 rounded-full"></span>
-      </button>
+      </Link>
 
       {/* ── Seed Demo Data Modal ─────────────────────────────────────────────── */}
       {showSeedModal && (
