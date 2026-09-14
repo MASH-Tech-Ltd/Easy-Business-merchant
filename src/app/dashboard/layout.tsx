@@ -196,11 +196,19 @@ export default function DashboardLayout({
       router.push('/login');
     } else {
       try {
-        setMerchantUser(JSON.parse(storedUser));
+        const user = JSON.parse(storedUser);
+        if (user.role !== 'tenant_admin') {
+          sessionStorage.removeItem('merchantUser');
+          router.push('/login');
+          return;
+        }
+        setMerchantUser(user);
+        setIsAuthenticated(true);
       } catch (e) {
         console.error('Error parsing user data', e);
+        sessionStorage.removeItem('merchantUser');
+        router.push('/login');
       }
-      setIsAuthenticated(true);
     }
   }, [router]);
 
@@ -448,7 +456,12 @@ export default function DashboardLayout({
               </div>
             )}
             <button 
-              onClick={() => {
+              onClick={async () => {
+                try {
+                  await api.post('/auth/logout');
+                } catch (err) {
+                  console.error('Logout error', err);
+                }
                 sessionStorage.removeItem('merchantUser');
                 router.push('/login');
               }}

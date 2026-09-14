@@ -31,7 +31,12 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed');
       }
       
-      sessionStorage.setItem('merchantUser', JSON.stringify(data.data.user));
+      const user = data.data.user;
+      if (user && user.role !== 'tenant_admin') {
+        throw new Error('Access denied. Merchant account required.');
+      }
+      
+      sessionStorage.setItem('merchantUser', JSON.stringify(user));
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message);
