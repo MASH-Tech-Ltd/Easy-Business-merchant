@@ -124,14 +124,14 @@ export default function ProductsPage() {
               className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
             />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
             <select 
               value={categoryId}
               onChange={(e) => {
                 setCategoryId(e.target.value);
                 setPage(1); // Reset page on filter change
               }}
-              className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium hidden sm:block">
+              className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium flex-1 sm:flex-none min-w-[140px]">
               <option value="all">All Categories</option>
               {categories.map((cat) => (
                 <option key={cat._id} value={cat._id}>{cat.name}</option>
@@ -145,7 +145,7 @@ export default function ProductsPage() {
                 setSortOrder(order === 'default' ? '' : order);
                 setPage(1); // Reset page on sort change
               }}
-              className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium hidden sm:block">
+              className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium flex-1 sm:flex-none min-w-[150px]">
               <option value="default-default">Sort by: Newest</option>
               <option value="createdAt-asc">Oldest</option>
               <option value="discountedPrice-asc">Price: Low to High</option>
@@ -158,8 +158,76 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto flex-1">
+        {/* Mobile View (Cards) */}
+        <div className="md:hidden flex-1 p-4 space-y-4 bg-gray-50/50">
+          {loading ? (
+            <div className="text-center py-10 text-gray-500">
+              <div className="w-8 h-8 border-4 border-purple-200 border-t-[#5022C3] rounded-full animate-spin mx-auto mb-4"></div>
+              Loading products...
+            </div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-10 bg-white rounded-xl border border-gray-200">
+              <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-4 mx-auto">
+                <Package className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">No products found</h3>
+              <p className="text-gray-500 text-sm mb-4">You haven't added any products or none match your search.</p>
+              {!search && (
+                <Link href="/dashboard/products/new" className="text-[#5022C3] font-bold text-sm hover:underline">Add your first product</Link>
+              )}
+            </div>
+          ) : (
+            products.map((product) => (
+              <div key={product._id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+                <div className="flex gap-4">
+                  <div className="w-20 h-20 rounded-lg border border-gray-200 bg-white p-1 shrink-0 overflow-hidden">
+                    <img src={product.images?.[0]?.secure_url || '/placeholder.png'} alt={product.title} className="w-full h-full object-cover mix-blend-multiply" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-bold text-gray-900 text-sm line-clamp-2 mb-1">{product.title}</div>
+                    <span className="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-0.5 rounded-md inline-block mb-2">
+                      {product.categoryId?.name || 'Uncategorized'}
+                    </span>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <div className="font-bold text-gray-900 text-sm">৳{product.discountedPrice?.toFixed(2)}</div>
+                        {product.originalPrice > product.discountedPrice && (
+                          <div className="text-[10px] text-gray-400 line-through">৳{product.originalPrice?.toFixed(2)}</div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs font-bold text-gray-900">{product.salesCount || 0} Sold</div>
+                        <div className={`text-[10px] font-medium ${(product.stock || 0) > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                          {(product.stock || 0) > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  {getStatusBadge(product.status || 'ACTIVE')}
+                  <div className="flex items-center gap-2">
+                    <Link 
+                      href={`/dashboard/products/${product._id}/edit`}
+                      className="w-8 h-8 flex items-center justify-center bg-[#fff4ed] text-[#f97316] hover:bg-orange-100 rounded-lg transition-colors"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Link>
+                    <button 
+                      onClick={() => setDeleteProduct(product)}
+                      className="w-8 h-8 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] hover:bg-red-100 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
@@ -174,14 +242,14 @@ export default function ProductsPage() {
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-20 text-gray-500">
+                  <td colSpan={6} className="text-center py-20 text-gray-500">
                     <div className="w-8 h-8 border-4 border-purple-200 border-t-[#5022C3] rounded-full animate-spin mx-auto mb-4"></div>
                     Loading products...
                   </td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-20">
+                  <td colSpan={6} className="text-center py-20">
                     <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-4 mx-auto">
                       <Package className="w-8 h-8" />
                     </div>

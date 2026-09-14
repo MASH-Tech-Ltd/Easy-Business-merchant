@@ -209,8 +209,91 @@ export default function OrdersPage() {
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto flex-1">
+        {/* Mobile View (Cards) */}
+        <div className="md:hidden flex-1 p-4 space-y-4 bg-gray-50/50 overflow-y-auto">
+          {loading ? (
+            <div className="text-center py-10 text-gray-500">
+              <div className="w-8 h-8 border-4 border-purple-200 border-t-[#5022C3] rounded-full animate-spin mx-auto mb-4"></div>
+              Loading orders...
+            </div>
+          ) : orders.length === 0 ? (
+            <div className="text-center py-10 bg-white rounded-xl border border-gray-200">
+              <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-4 mx-auto">
+                <ShoppingBag className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">No orders found</h3>
+              <p className="text-gray-500 text-sm">Adjust your filters or wait for new orders.</p>
+            </div>
+          ) : (
+            orders.map((order) => (
+              <div key={order._id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+                <div className="flex justify-between items-start mb-1">
+                  <div>
+                    <span className="font-mono text-xs font-bold text-[#5022C3] bg-purple-50 px-2 py-1 rounded">
+                      #{order.orderId || order._id?.substring(order._id.length - 6).toUpperCase()}
+                    </span>
+                    <div className="text-xs text-gray-500 mt-2 font-medium">
+                      {new Date(order.createdAt).toLocaleDateString('en-GB')} at {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                  <div>{getStatusBadge(order.status)}</div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 mt-1 border-t border-b border-gray-50 py-3">
+                  <div>
+                    <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Customer</div>
+                    <div className="font-bold text-gray-900 text-sm truncate">{order.customerName}</div>
+                    <div className="text-xs text-gray-500">{order.customerPhone}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Total</div>
+                    <div className="font-bold text-gray-900 text-sm">{order.totalPrice.toLocaleString()} BDT</div>
+                    <div className="text-xs text-gray-500">{order.items?.length || 0} item(s)</div>
+                  </div>
+                  <div className="col-span-2 mt-1">
+                    <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Location</div>
+                    <div className="text-sm text-gray-700 truncate" title={order.shippingAddress}>{order.shippingAddress}</div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 mt-1">
+                  <button 
+                    onClick={() => handleFraudCheck(order._id)}
+                    disabled={checkingFraud === order._id}
+                    className="w-8 h-8 flex items-center justify-center bg-[#f3e8ff] text-[#9333ea] hover:bg-purple-200 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {checkingFraud === order._id ? (
+                      <div className="w-4 h-4 border-2 border-[#9333ea] border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <ShieldCheck className="w-4 h-4" />
+                    )}
+                  </button>
+                  <button 
+                    onClick={() => setViewOrder(order)}
+                    className="w-8 h-8 flex items-center justify-center bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100 rounded-lg transition-colors"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => setEditOrder(order)}
+                    className="w-8 h-8 flex items-center justify-center bg-[#fff4ed] text-[#f97316] hover:bg-orange-100 rounded-lg transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={() => setDeleteOrder(order)}
+                    className="w-8 h-8 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">

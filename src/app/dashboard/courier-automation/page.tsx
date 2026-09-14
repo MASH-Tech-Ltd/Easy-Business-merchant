@@ -67,14 +67,14 @@ export default function CourierAutomation() {
 
   return (
     <div className="p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)] space-y-6">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-6 items-center sm:items-start justify-between">
+      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <Truck className="w-6 h-6 text-[#5022C3]" /> Courier Automation
           </h2>
           <p className="text-gray-500 mt-1 text-sm">Configure automated order forwarding to your preferred delivery partners.</p>
         </div>
-        <button className="bg-[#5022C3] hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+        <button className="bg-[#5022C3] hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
           <Play className="w-4 h-4" /> Start Automation
         </button>
       </div>

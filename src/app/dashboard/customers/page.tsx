@@ -77,15 +77,82 @@ export default function CustomersPage() {
               className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
             />
           </div>
-          <div className="flex items-center gap-3">
-            <select className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium hidden sm:block">
+          <div className="flex items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
+            <select className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium w-full sm:w-auto">
               <option>Sort by: Newest</option>
             </select>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto flex-1">
+        {/* Mobile View (Cards) */}
+        <div className="md:hidden flex-1 p-4 space-y-4 bg-gray-50/50 overflow-y-auto">
+          {loading ? (
+            <div className="text-center py-10 text-gray-500">
+              <div className="flex flex-col items-center justify-center">
+                <div className="w-8 h-8 border-4 border-purple-200 border-t-[#5022C3] rounded-full animate-spin mb-4"></div>
+                <p>Loading customers...</p>
+              </div>
+            </div>
+          ) : customers.length === 0 ? (
+            <div className="text-center py-10 bg-white rounded-xl border border-gray-200">
+              <div className="flex flex-col items-center justify-center">
+                <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-4">
+                  <Users className="w-8 h-8" />
+                </div>
+                <p className="text-lg font-medium text-gray-900">No customers found</p>
+                <p className="text-sm mt-1">Customers will appear here when they place an order.</p>
+              </div>
+            </div>
+          ) : (
+            customers.map((customer) => (
+              <div key={customer._id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-purple-100 text-[#5022C3] flex items-center justify-center font-bold text-sm shrink-0">
+                    {customer.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-gray-900 truncate">{customer.name}</div>
+                    <div className="text-xs text-gray-500">
+                      Joined {new Date(customer.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </div>
+                  </div>
+                  <button className="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:text-[#5022C3] hover:bg-purple-50 flex items-center justify-center transition-colors shrink-0">
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div>
+                    <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Orders</div>
+                    <div className="inline-flex items-center justify-center bg-white border border-gray-200 px-2 py-0.5 rounded-full text-xs font-bold text-gray-700">
+                      {customer.totalOrders || 0}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Total Spent</div>
+                    <div className="font-bold text-gray-900 text-sm">{customer.totalSpent ? customer.totalSpent.toLocaleString() : 0} BDT</div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5 mt-1">
+                  {customer.email && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Mail className="w-3.5 h-3.5 text-gray-400" /> <span className="truncate">{customer.email}</span>
+                    </div>
+                  )}
+                  {customer.phone && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Phone className="w-3.5 h-3.5 text-gray-400" /> <span>{customer.phone}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">

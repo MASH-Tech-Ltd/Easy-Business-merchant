@@ -7,7 +7,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, ListTree, Users, Truck,
   Store, BarChart2, Palette, Paintbrush, LayoutTemplate, Smartphone, 
   Star, Tag, BadgeCheck, RefreshCw, Boxes, UserCog, CreditCard,
-  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle
+  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, Menu, X
 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { api } from '@/utils/api';
@@ -142,6 +142,12 @@ export default function DashboardLayout({
   const [fullSubscription, setFullSubscription] = useState<any>(null);
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
   const [openTicketsCount, setOpenTicketsCount] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Close sidebar when route changes on mobile
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -342,9 +348,21 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen bg-gray-50 text-gray-800 font-sans overflow-hidden">
+      {/* Mobile overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-gray-900/50 z-40 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-[260px] flex-shrink-0 border-r border-gray-200 bg-white flex flex-col h-full overflow-hidden">
-        <div className="h-16 flex items-center px-6 border-b border-gray-100 flex-shrink-0">
+      <aside 
+        className={`fixed inset-y-0 left-0 z-50 w-[260px] flex-shrink-0 border-r border-gray-200 bg-white flex flex-col h-full overflow-hidden transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-lg overflow-hidden">
               <img src="/MEasy.png" alt="MashEasy" className="w-full h-full object-contain" />
@@ -356,6 +374,12 @@ export default function DashboardLayout({
               <span className="text-xs font-medium text-gray-500">Merchant Hub</span>
             </div>
           </div>
+          <button 
+            className="lg:hidden p-1 text-gray-500 hover:bg-gray-100 rounded-md"
+            onClick={() => setIsSidebarOpen(false)}
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
         <div className="p-4 overflow-y-auto flex-1 custom-scrollbar">
           {navGroups.map((group, idx) => (
@@ -416,18 +440,43 @@ export default function DashboardLayout({
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
         {banner}
+        
+        {/* Mobile Top Branding Bar */}
+        <div className="lg:hidden h-14 px-4 border-b border-gray-100 flex items-center justify-center bg-white flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-md overflow-hidden">
+              <img src="/MEasy.png" alt="MashEasy" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex flex-col items-center">
+              <h1 className="text-sm font-bold text-gray-900 tracking-tight leading-none">
+                {process.env.NEXT_PUBLIC_PLATFORM_NAME || 'Platform'}
+              </h1>
+              <span className="text-[10px] font-medium text-gray-500">Merchant Hub</span>
+            </div>
+          </div>
+        </div>
+
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-6 border-b border-gray-100 flex-shrink-0 bg-white">
-          <div className="flex flex-col justify-center">
-             <h2 className="text-lg font-bold text-gray-900">
-               {pathname === '/dashboard/orders' ? 'Orders Management' : 
-                pathname === '/dashboard/products' ? 'Products Management' : 
-                pathname === '/dashboard/categories' ? 'Categories Management' : 
-                pathname === '/dashboard/customers' ? 'Customers Management' : 
-                'Dashboard'}
-             </h2>
-             {pathname !== '/dashboard' && (
-               <p className="text-xs text-gray-500">
+        <header className="h-16 flex items-center justify-between px-4 lg:px-6 border-b border-gray-100 flex-shrink-0 bg-white">
+          <div className="flex items-center gap-3">
+            <button 
+              className="lg:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-md shrink-0"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+
+            {/* Desktop Page Title (and mobile page title) */}
+            <div className="flex flex-col justify-center">
+               <h2 className="text-lg font-bold text-gray-900">
+                 {pathname === '/dashboard/orders' ? 'Orders Management' : 
+                  pathname === '/dashboard/products' ? 'Products Management' : 
+                  pathname === '/dashboard/categories' ? 'Categories Management' : 
+                  pathname === '/dashboard/customers' ? 'Customers Management' : 
+                  'Dashboard'}
+               </h2>
+               {pathname !== '/dashboard' && (
+                 <p className="text-xs text-gray-500 hidden sm:block">
                  {pathname === '/dashboard/orders' ? 'View and process customer orders' : 
                   pathname === '/dashboard/products' ? "Manage your store's inventory" : 
                   pathname === '/dashboard/categories' ? 'Organize your products into categories' : 
@@ -437,6 +486,7 @@ export default function DashboardLayout({
                   ''}
                </p>
              )}
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <NotificationBell userId={merchantUser?._id} />

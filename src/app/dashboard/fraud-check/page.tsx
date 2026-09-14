@@ -47,14 +47,14 @@ export default function FraudCheckHistory() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-[#5022C3]" /> Fraud Check History
           </h2>
           <p className="text-gray-500 mt-1 text-sm">Review historical fraud analyses of your customer orders.</p>
         </div>
-        <button onClick={fetchChecks} className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+        <button onClick={fetchChecks} className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors w-full sm:w-auto flex justify-center">
           <RefreshCw className={`w-5 h-5 text-gray-500 ${loading ? 'animate-spin' : ''}`} />
         </button>
       </div>
@@ -65,45 +65,47 @@ export default function FraudCheckHistory() {
         ) : checks.length === 0 ? (
           <div className="text-center py-20 text-gray-500">No fraud checks performed yet.</div>
         ) : (
-          <table className="w-full text-left">
-            <thead className="bg-gray-50 text-gray-500 text-sm font-medium border-b border-gray-100">
-              <tr>
-                <th className="px-6 py-4">Customer</th>
-                <th className="px-6 py-4">Order ID</th>
-                <th className="px-6 py-4">Score</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Details</th>
-                <th className="px-6 py-4 text-right">Checked At</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {checks.map((check: any) => (
-                <tr key={check._id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-gray-900">{check.customerName}</div>
-                    <div className="text-xs text-gray-500">{check.customerPhone}</div>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-700">
-                    {check.orderId?._id?.slice(-6) || 'Unknown'}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-bold text-gray-900">{check.score}%</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyle(check.status)}`}>
-                      {getStatusIcon(check.status)} {check.status.toUpperCase()}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={check.details}>
-                    {check.details || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 text-right text-sm text-gray-500">
-                    {new Date(check.checkedAt).toLocaleString()}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 text-gray-500 text-sm font-medium border-b border-gray-100">
+                <tr>
+                  <th className="px-6 py-4">Customer</th>
+                  <th className="px-6 py-4">Order ID</th>
+                  <th className="px-6 py-4">Score</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Details</th>
+                  <th className="px-6 py-4 text-right">Checked At</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {checks.map((check: any) => (
+                  <tr key={check._id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-semibold text-gray-900">{check.customerName}</div>
+                      <div className="text-xs text-gray-500">{check.customerPhone}</div>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-700">
+                      {check.orderId?._id?.slice(-6) || 'Unknown'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-gray-900">{check.score}%</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${getStatusStyle(check.status)}`}>
+                        {getStatusIcon(check.status)} {check.status.toUpperCase()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate" title={check.details}>
+                      {check.details || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm text-gray-500">
+                      {new Date(check.checkedAt).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

@@ -471,13 +471,13 @@ export default function ProfilePage() {
         </div>
 
         {/* Floating Action Bar */}
-        <div className="sticky bottom-6 z-20 flex justify-end">
-          <div className="bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100/50 flex items-center gap-4">
+        <div className="sticky bottom-6 z-20 flex justify-center sm:justify-end px-4 sm:px-0">
+          <div className="bg-white/90 backdrop-blur-xl p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100/50 flex items-center justify-between sm:justify-start gap-4 w-full sm:w-auto">
             <p className="text-sm text-gray-500 font-medium mr-4 hidden sm:block">Update your profile to save changes</p>
             <button 
               type="submit" 
               disabled={loading}
-              className="px-8 py-3 text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl transition-all duration-300 flex items-center gap-2 disabled:opacity-70 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:-translate-y-0.5"
+              className="px-8 py-3 text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:-translate-y-0.5 w-full sm:w-auto"
             >
               <Save className="w-5 h-5" /> 
               {loading ? 'Saving Changes...' : 'Save Profile Settings'}

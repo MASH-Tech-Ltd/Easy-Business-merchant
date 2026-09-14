@@ -96,18 +96,92 @@ export default function CategoriesPage() {
               className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
             />
           </div>
-          <div className="flex items-center gap-3">
-            <select className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium hidden sm:block">
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
+            <select className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium flex-1 sm:flex-none">
               <option>Sort by: Newest</option>
             </select>
-            <Link href="/dashboard/categories/new" className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
+            <Link href="/dashboard/categories/new" className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap flex-1 sm:flex-none">
               <Plus className="w-5 h-5" /> Add Category
             </Link>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto flex-1">
+        {/* Mobile View (Cards) */}
+        <div className="md:hidden flex-1 p-4 space-y-4 bg-gray-50/50 overflow-y-auto">
+          {loading ? (
+            <div className="text-center py-10 text-gray-500">
+              <div className="w-8 h-8 border-4 border-purple-200 border-t-[#5022C3] rounded-full animate-spin mx-auto mb-4"></div>
+              Loading categories...
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="text-center py-10 bg-white rounded-xl border border-gray-200">
+              <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-4 mx-auto">
+                <ListTree className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">No categories found</h3>
+              <p className="text-gray-500 text-sm mb-4">You haven't created any categories or none match your search.</p>
+              {!search && (
+                <Link href="/dashboard/categories/new" className="text-[#5022C3] font-bold text-sm hover:underline">Create your first category</Link>
+              )}
+            </div>
+          ) : (
+            categories.map((category) => (
+              <div key={category._id} className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 relative">
+                <div className="flex gap-3 items-start pr-16">
+                  {category.image?.secure_url ? (
+                    <div className="w-12 h-12 rounded-lg border border-gray-200 bg-white p-0.5 shrink-0 overflow-hidden">
+                      <img src={category.image.secure_url} alt={category.name} className="w-full h-full object-cover rounded mix-blend-multiply" />
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0">
+                      <ListTree className="w-6 h-6" />
+                    </div>
+                  )}
+                  <div className="flex-1 pt-0.5">
+                    <div className="font-bold text-gray-900 text-sm mb-1 line-clamp-1">{category.name}</div>
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold ${
+                      (!category.status || category.status === 'ACTIVE')
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {(!category.status || category.status === 'ACTIVE') ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Action Buttons Top Right */}
+                <div className="absolute top-3 right-3 flex justify-end gap-1.5">
+                  <Link 
+                    href={`/dashboard/categories/${category._id}/edit`}
+                    className="w-7 h-7 flex items-center justify-center bg-[#fff4ed] text-[#f97316] hover:bg-orange-100 rounded-lg transition-colors"
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                  </Link>
+                  <button 
+                    onClick={() => setDeleteCategory(category)}
+                    className="w-7 h-7 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] hover:bg-red-100 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 mt-1">
+                  <div>
+                    <div className="text-[9px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Products</div>
+                    <div className="font-bold text-gray-900 text-xs">{category.productCount || 0}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[9px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Created At</div>
+                    <div className="text-xs font-medium text-gray-700">{new Date(category.createdAt).toLocaleDateString('en-GB')}</div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">

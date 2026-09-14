@@ -177,52 +177,54 @@ export default function DashboardOverview() {
           </div>
           
           {/* Quick Actions / Store Link */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
             {/* Seed Demo Data Button */}
             <button
               onClick={() => { setShowSeedModal(true); setSeedResult(null); }}
-              className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-md hover:shadow-lg hover:from-violet-700 hover:to-indigo-700 hover:-translate-y-0.5 transition-all duration-200"
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-md hover:shadow-lg hover:from-violet-700 hover:to-indigo-700 hover:-translate-y-0.5 transition-all duration-200"
               title="Seed demo categories and products"
             >
               <Sparkles className="w-4 h-4" />
               Seed Demo Data
             </button>
 
-            <div className="bg-white border border-gray-200 rounded-xl px-4 py-2 flex items-center gap-3 shadow-sm">
-              <span className="text-sm font-medium text-gray-600 truncate max-w-[200px]">
+            <div className="bg-white border border-gray-200 rounded-xl px-4 py-2 flex items-center justify-between sm:justify-start gap-3 shadow-sm w-full sm:w-auto">
+              <span className="text-sm font-medium text-gray-600 truncate max-w-[150px] sm:max-w-[200px]">
                 {storeSlug ? `${storeSlug}.localhost:3000` : 'Loading...'}
               </span>
-              <div className="w-px h-4 bg-gray-200"></div>
-              <button onClick={copyToClipboard} className="text-gray-400 hover:text-indigo-600 transition-colors" title="Copy URL">
-                <Copy className="w-4 h-4" />
-              </button>
-              <a href={storeUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-indigo-600 transition-colors" title="Visit Store">
-                <ExternalLink className="w-4 h-4" />
-              </a>
+              <div className="flex items-center gap-2">
+                <div className="w-px h-4 bg-gray-200"></div>
+                <button onClick={copyToClipboard} className="text-gray-400 hover:text-indigo-600 transition-colors" title="Copy URL">
+                  <Copy className="w-4 h-4" />
+                </button>
+                <a href={storeUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-indigo-600 transition-colors" title="Visit Store">
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
           {loading ? (
              Array(4).fill(0).map((_, idx) => (
-                <div key={idx} className="bg-white/50 animate-pulse rounded-2xl p-6 border border-gray-100 h-[140px]"></div>
+                <div key={idx} className="bg-white/50 animate-pulse rounded-2xl p-4 sm:p-6 border border-gray-100 h-[120px] sm:h-[140px]"></div>
              ))
           ) : (
             metrics.map((metric, idx) => (
-              <div key={idx} className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300">
-                <div className="flex justify-between items-start mb-4">
-                  <div className={`p-3 rounded-xl ${metric.bg}`}>
-                    <metric.icon className={`w-5 h-5 ${metric.color}`} />
+              <div key={idx} className="bg-white/80 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300">
+                <div className="flex justify-between items-start mb-3 sm:mb-4">
+                  <div className={`p-2 sm:p-3 rounded-xl ${metric.bg}`}>
+                    <metric.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${metric.color}`} />
                   </div>
-                  <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg ${metric.isPositive ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                    {metric.isPositive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                  <div className={`flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg ${metric.isPositive ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                    {metric.isPositive ? <ArrowUpRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : <ArrowDownRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />}
                     {metric.change}
                   </div>
                 </div>
-                <h3 className="text-gray-500 text-sm font-medium mb-1">{metric.title}</h3>
-                <p className="text-2xl font-bold text-gray-900 tracking-tight">{metric.value}</p>
+                <h3 className="text-gray-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 truncate">{metric.title}</h3>
+                <p className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight truncate">{metric.value}</p>
               </div>
             ))
           )}
@@ -237,9 +239,44 @@ export default function DashboardOverview() {
             <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
             <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-white/50 backdrop-blur-md">
               <h2 className="text-lg font-bold text-gray-900">Recent Orders</h2>
-              <button className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">View All</button>
+              <Link href="/dashboard/orders" className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+                View All
+              </Link>
             </div>
-            <div className="overflow-x-auto">
+            {/* Mobile View (2 boxes per row) */}
+            <div className="md:hidden p-3 grid grid-cols-2 gap-3 bg-gray-50/30">
+              {loading ? (
+                <div className="col-span-2 p-6 text-center text-gray-500">Loading orders...</div>
+              ) : recentOrders.length === 0 ? (
+                <div className="col-span-2 p-6 text-center text-gray-500">No orders found.</div>
+              ) : recentOrders.slice(0, 2).map((order, idx) => (
+                <div key={idx} className="bg-white rounded-xl p-3 border border-gray-100 shadow-sm flex flex-col gap-2 relative">
+                  <div className="flex justify-between items-start">
+                    <span className="font-bold text-indigo-600 text-xs bg-indigo-50 px-1.5 py-0.5 rounded">
+                      #{order.orderId || order._id?.slice(-6).toUpperCase()}
+                    </span>
+                    <button className="text-gray-400 hover:text-indigo-600 absolute top-2 right-2 p-0.5">
+                      <MoreVertical className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <div className="mt-1">
+                    <div className="font-bold text-gray-900 text-[13px] truncate pr-4">{order.customerName}</div>
+                    <div className="text-[10px] text-gray-500 mt-0.5 truncate">{order.items?.[0]?.title || 'Multiple Items'}</div>
+                  </div>
+                  <div className="mt-auto pt-2 flex flex-col gap-1.5 border-t border-gray-50">
+                    <div className="font-bold text-gray-900 text-sm">
+                      {order.totalPrice?.toLocaleString()} BDT
+                    </div>
+                    <div className="scale-90 origin-left -ml-1">
+                      {getStatusBadge(order.status)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-50/50">
@@ -326,26 +363,28 @@ export default function DashboardOverview() {
 
           {/* Current Subscription Plan */}
           <div className="flex flex-col gap-6">
-            <div className="bg-gradient-to-br from-[#1E1B4B] via-[#312E81] to-[#1E1B4B] rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group">
+            <div className="bg-gradient-to-br from-[#1E1B4B] via-[#312E81] to-[#1E1B4B] rounded-2xl p-4 sm:p-6 text-white shadow-xl relative overflow-hidden group">
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
               
               {loading ? (
                  <div className="relative z-10 animate-pulse">
-                   <div className="w-12 h-12 bg-white/20 rounded-xl mb-6"></div>
-                   <div className="h-6 bg-white/20 rounded w-1/2 mb-4"></div>
-                   <div className="h-4 bg-white/20 rounded w-full mb-2"></div>
-                   <div className="h-4 bg-white/20 rounded w-3/4 mb-6"></div>
+                   <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/20 rounded-xl mb-3 sm:mb-6"></div>
+                   <div className="h-5 sm:h-6 bg-white/20 rounded w-1/2 mb-3 sm:mb-4"></div>
+                   <div className="h-3 sm:h-4 bg-white/20 rounded w-full mb-2"></div>
+                   <div className="h-3 sm:h-4 bg-white/20 rounded w-3/4 mb-4 sm:mb-6"></div>
                  </div>
               ) : subscription ? (
                 <div className="relative z-10">
-                  <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center mb-6 border border-white/20 shadow-lg">
-                    <Crown className="w-6 h-6 text-yellow-400" />
-                  </div>
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-bold">
-                      {subscription.packageId?.name || (subscription.isTrial ? 'Free Trial' : 'Unknown Plan')}
-                    </h3>
-                    <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full ${
+                  <div className="flex justify-between items-start mb-3 sm:mb-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-lg shrink-0">
+                        <Crown className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400" />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-bold">
+                        {subscription.packageId?.name || (subscription.isTrial ? 'Free Trial' : 'Unknown Plan')}
+                      </h3>
+                    </div>
+                    <span className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider rounded-full mt-1 ${
                       subscription.status === 'active' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
                       subscription.status === 'pending' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
                       subscription.status === 'expired' || subscription.status === 'cancelled' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
@@ -355,38 +394,38 @@ export default function DashboardOverview() {
                     </span>
                   </div>
                   
-                  <div className="space-y-4 mt-6">
-                    <div className="flex items-center gap-3 text-indigo-100 bg-white/5 p-3 rounded-xl border border-white/10">
-                      <Calendar className="w-4 h-4 text-indigo-300" />
+                  <div className="space-y-2 sm:space-y-4 mt-4 sm:mt-6">
+                    <div className="flex items-center gap-2 sm:gap-3 text-indigo-100 bg-white/5 p-2 sm:p-3 rounded-xl border border-white/10">
+                      <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-300 shrink-0" />
                       <div className="flex flex-col">
-                        <span className="text-[10px] text-indigo-300 uppercase tracking-wider font-semibold">Start Date</span>
-                        <span className="text-sm font-medium">{formatDate(subscription.startDate)}</span>
+                        <span className="text-[9px] sm:text-[10px] text-indigo-300 uppercase tracking-wider font-semibold">Start Date</span>
+                        <span className="text-xs sm:text-sm font-medium">{formatDate(subscription.startDate)}</span>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-3 text-indigo-100 bg-white/5 p-3 rounded-xl border border-white/10">
-                      <Clock className="w-4 h-4 text-indigo-300" />
+                    <div className="flex items-center gap-2 sm:gap-3 text-indigo-100 bg-white/5 p-2 sm:p-3 rounded-xl border border-white/10">
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-300 shrink-0" />
                       <div className="flex flex-col">
-                        <span className="text-[10px] text-indigo-300 uppercase tracking-wider font-semibold">Expires Date</span>
-                        <span className="text-sm font-medium">{formatDate(subscription.endDate)}</span>
+                        <span className="text-[9px] sm:text-[10px] text-indigo-300 uppercase tracking-wider font-semibold">Expires Date</span>
+                        <span className="text-xs sm:text-sm font-medium">{formatDate(subscription.endDate)}</span>
                       </div>
                     </div>
                   </div>
 
-                  <a href="/dashboard/subscription" className="mt-6 w-full flex items-center justify-center gap-2 bg-white text-indigo-900 font-bold py-3 rounded-xl shadow-lg hover:bg-gray-50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
-                    <CreditCard className="w-4 h-4" /> Manage Subscription
+                  <a href="/dashboard/subscription" className="mt-4 sm:mt-6 w-full flex items-center justify-center gap-2 bg-white text-indigo-900 font-bold py-2 sm:py-3 text-sm sm:text-base rounded-xl shadow-lg hover:bg-gray-50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300">
+                    <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Manage Subscription
                   </a>
                 </div>
               ) : (
                 <div className="relative z-10">
-                  <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center mb-6 border border-white/20">
-                    <Store className="w-6 h-6 text-white" />
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center mb-3 sm:mb-6 border border-white/20">
+                    <Store className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold mb-2">No Active Plan</h3>
-                  <p className="text-indigo-200 text-sm mb-6 leading-relaxed">
+                  <h3 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">No Active Plan</h3>
+                  <p className="text-indigo-200 text-xs sm:text-sm mb-4 sm:mb-6 leading-relaxed">
                     You do not currently have an active subscription plan.
                   </p>
-                  <a href="/dashboard/subscription" className="block text-center w-full bg-white text-indigo-900 font-bold py-3 rounded-xl shadow-lg hover:bg-gray-50 hover:-translate-y-0.5 transition-all duration-300">
+                  <a href="/dashboard/subscription" className="block text-center w-full bg-white text-indigo-900 font-bold py-2 sm:py-3 text-sm sm:text-base rounded-xl shadow-lg hover:bg-gray-50 hover:-translate-y-0.5 transition-all duration-300">
                     Subscribe Now
                   </a>
                 </div>

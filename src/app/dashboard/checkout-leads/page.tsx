@@ -112,39 +112,39 @@ export default function CheckoutLeadsPage() {
             </select>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-purple-50 to-white border border-purple-100 rounded-xl p-4 shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-[#5022C3]">
-                  <ShoppingCart className="w-4 h-4" />
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="bg-gradient-to-br from-purple-50 to-white border border-purple-100 rounded-xl p-3 sm:p-4 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-purple-100 flex items-center justify-center text-[#5022C3] shrink-0">
+                  <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4" />
                 </div>
-                <span className="text-sm font-medium text-purple-900">Abandoned Checkouts</span>
+                <span className="text-[10px] sm:text-sm font-medium text-purple-900 leading-tight">Abandoned Checkouts</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg sm:text-2xl font-bold text-gray-900 pl-1">
                 {statsLoading ? '-' : stats?.[timeframe]?.abandoned || 0}
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 rounded-xl p-4 shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-                  <CheckCircle className="w-4 h-4" />
+            <div className="bg-gradient-to-br from-emerald-50 to-white border border-emerald-100 rounded-xl p-3 sm:p-4 shadow-sm">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                 </div>
-                <span className="text-sm font-medium text-emerald-900">Recovered Checkouts</span>
+                <span className="text-[10px] sm:text-sm font-medium text-emerald-900 leading-tight">Recovered Checkouts</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg sm:text-2xl font-bold text-gray-900 pl-1">
                 {statsLoading ? '-' : stats?.[timeframe]?.completed || 0}
               </div>
             </div>
             
-            <div className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-xl p-4 shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-                  <TrendingUp className="w-4 h-4" />
+            <div className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-xl p-3 sm:p-4 shadow-sm col-span-2 lg:col-span-1">
+              <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                  <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
                 </div>
-                <span className="text-sm font-medium text-blue-900">Recovery Rate</span>
+                <span className="text-[10px] sm:text-sm font-medium text-blue-900 leading-tight">Recovery Rate</span>
               </div>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg sm:text-2xl font-bold text-gray-900 pl-1">
                 {statsLoading ? '-' : 
                   (stats?.[timeframe]?.abandoned + stats?.[timeframe]?.completed > 0) 
                   ? Math.round((stats?.[timeframe]?.completed / (stats?.[timeframe]?.abandoned + stats?.[timeframe]?.completed)) * 100) + '%' 
@@ -171,22 +171,69 @@ export default function CheckoutLeadsPage() {
 
         {/* Limit Warning Banner */}
         {limitReached && (
-          <div className="bg-orange-50 border-b border-orange-200 p-3 px-6 flex items-center justify-center gap-3 shrink-0">
+          <div className="bg-orange-50 border-b border-orange-200 p-3 px-6 flex flex-col sm:flex-row items-center justify-center gap-3 shrink-0">
             <ShieldCheck className="w-5 h-5 text-orange-500 shrink-0" />
             <p className="text-sm text-orange-800 font-medium text-center">
               You have reached your Abandoned Checkout limit. You will not receive new leads until you activate the add-on again.
             </p>
             <button 
               onClick={() => router.push('/dashboard/subscription/addons')}
-              className="text-xs font-bold bg-orange-100 text-orange-700 hover:bg-orange-200 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer"
+              className="text-xs font-bold bg-orange-100 text-orange-700 hover:bg-orange-200 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer mt-2 sm:mt-0"
             >
               Increase Limit
             </button>
           </div>
         )}
 
-        {/* Table */}
-        <div className="overflow-x-auto flex-1">
+        {/* Mobile View (Cards) */}
+        <div className="md:hidden flex-1 p-3 space-y-3 bg-gray-50/50 overflow-y-auto">
+          {loading ? (
+            <div className="text-center py-10 text-gray-500">
+              <div className="w-8 h-8 border-4 border-purple-200 border-t-[#5022C3] rounded-full animate-spin mx-auto mb-4"></div>
+              Loading leads...
+            </div>
+          ) : leads.length === 0 ? (
+            <div className="text-center py-10 bg-white rounded-xl border border-gray-200">
+              <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-3 mx-auto">
+                <Users className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-medium text-gray-900 mb-1">No leads found</h3>
+              <p className="text-gray-500 text-xs">Customers who abandon checkout will appear here.</p>
+            </div>
+          ) : (
+            leads.map((lead) => (
+              <div key={lead._id} className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 relative">
+                <div className="flex justify-between items-start gap-2">
+                  <div className="font-bold text-gray-900 text-sm line-clamp-1">{(lead.firstName || '') + ' ' + (lead.lastName || '')}</div>
+                  <span className={`shrink-0 px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${
+                    lead.status === 'recovered' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                  }`}>
+                    {lead.status}
+                  </span>
+                </div>
+                <div>
+                  {lead.phone && <div className="text-xs text-gray-700 font-medium">{lead.phone}</div>}
+                  {lead.email && <div className="text-[10px] text-gray-500">{lead.email}</div>}
+                </div>
+                <div className="text-[10px] text-gray-500 line-clamp-1">
+                  {lead.address}
+                  {lead.upazila && `, ${lead.upazila}`}
+                  {lead.district && `, ${lead.district}`}
+                  {lead.division && `, ${lead.division}`}
+                </div>
+                <div className="mt-1 flex justify-between items-center pt-2 border-t border-gray-50">
+                  <div className="text-[9px] text-gray-400 uppercase tracking-wider font-bold">Time Tracked</div>
+                  <div className="text-xs font-medium text-gray-900 text-right">
+                    {new Date(lead.updatedAt).toLocaleDateString('en-GB')} {new Date(lead.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto flex-1">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">

@@ -212,7 +212,7 @@ export default function ThemesPage() {
       <div className="flex flex-col pb-24">
         
         {/* Tabs Navigation */}
-        <div className="flex items-center gap-2 mb-8 bg-gray-50/80 p-1.5 rounded-xl border border-gray-100 shadow-sm overflow-x-auto w-fit">
+        <div className="flex flex-wrap justify-center md:justify-start items-center gap-2 mb-8 bg-gray-50/80 p-2 rounded-xl border border-gray-100 shadow-sm w-full">
           {[
             { id: 'template', label: 'Theme Template', icon: LayoutTemplate },
             { id: 'customization', label: 'Advanced Customization', icon: Settings },
@@ -223,14 +223,14 @@ export default function ThemesPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shrink-0 ${
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all grow md:grow-0 ${
                 activeTab === tab.id
                   ? 'bg-white text-indigo-600 shadow-sm border border-gray-100'
                   : 'text-gray-500 hover:bg-white hover:text-gray-800'
               }`}
             >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <tab.icon className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">{tab.label}</span>
             </button>
           ))}
         </div>

@@ -178,11 +178,11 @@ export default function ApiKeysPage() {
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex justify-center sm:justify-end w-full">
               <button
                 type="submit"
                 disabled={saving}
-                className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-8 py-3 rounded-xl font-bold shadow-md shadow-purple-500/20 transition-all flex items-center gap-2 disabled:opacity-70"
+                className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-8 py-3 rounded-xl font-bold shadow-md shadow-purple-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 w-full sm:w-auto"
               >
                 <Save className="w-5 h-5" />
                 {saving ? 'Saving Changes...' : 'Save Configuration'}

@@ -79,7 +79,7 @@ export default function DomainManagementPage() {
             <form onSubmit={handleSave} className="space-y-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Primary Domain</label>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <div className="relative flex-1">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <Globe className="h-5 w-5 text-gray-400" />
@@ -92,18 +92,18 @@ export default function DomainManagementPage() {
                       className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5022C3] focus:border-transparent transition-all"
                     />
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <button
                       type="submit"
                       disabled={saving}
-                      className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-purple-500/20 transition-all flex items-center gap-2 whitespace-nowrap disabled:opacity-70"
+                      className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-purple-500/20 transition-all flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-70 w-full sm:w-auto"
                     >
                       {saving ? 'Saving...' : 'Save Domain'}
                     </button>
                     <button
                       type="button"
                       onClick={() => toast('Support team will contact you shortly!', { icon: '👋' })}
-                      className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 whitespace-nowrap"
+                      className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
                     >
                       <LifeBuoy className="w-5 h-5 text-gray-500" />
                       Get Help

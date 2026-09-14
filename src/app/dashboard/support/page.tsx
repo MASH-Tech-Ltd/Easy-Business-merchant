@@ -87,7 +87,7 @@ export default function SupportPage() {
 
   return (
     <div className="p-6 w-full max-w-[1800px] mx-auto min-h-screen">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <LifeBuoy className="w-6 h-6 text-[#5022C3]" />
@@ -97,7 +97,7 @@ export default function SupportPage() {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-[#5022C3] text-white px-4 py-2.5 rounded-lg flex items-center gap-2 hover:bg-purple-700 transition-colors font-medium text-sm shadow-sm shadow-purple-200"
+          className="bg-[#5022C3] text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors font-medium text-sm shadow-sm shadow-purple-200 w-full sm:w-auto"
         >
           <Plus className="w-4 h-4" />
           Open New Ticket
