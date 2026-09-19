@@ -138,6 +138,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [merchantUser, setMerchantUser] = useState<any>(null);
+  const [isAccountFrozen, setIsAccountFrozen] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string>('');
   const [fullSubscription, setFullSubscription] = useState<any>(null);
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
@@ -174,6 +175,20 @@ export default function DashboardLayout({
         }
 
         socket.on('refresh_tickets', fetchTicketsCount);
+        socket.on('account_status_changed', async () => {
+          try {
+            const res = await api.get('/tenants/my-store');
+            if(res.data?.data?.status === 'suspended') {
+              setIsAccountFrozen(true);
+            } else {
+              setIsAccountFrozen(false);
+            }
+          } catch(e){}
+        });
+
+        socket.on('refresh_subscriptions', () => {
+          window.dispatchEvent(new Event('dashboard:refresh'));
+        });
 
         socket.on('new_order', (order: any) => {
           playNotificationSound();
@@ -189,6 +204,8 @@ export default function DashboardLayout({
             socket.emit('leave_tenant_room', tenantId);
           }
           socket.off('refresh_tickets');
+          socket.off('account_status_changed');
+          socket.off('refresh_subscriptions');
           socket.off('new_order');
           socket.close();
         };
@@ -221,6 +238,7 @@ export default function DashboardLayout({
   useEffect(() => {
     if (isAuthenticated) {
       const fetchSubscription = async () => {
+        try { const res = await api.get("/tenants/my-store"); if(res.data?.data?.status === "suspended") setIsAccountFrozen(true); } catch(e){}
         try {
           const res = await api.get('/subscriptions/my-subscription');
           const sub = res.data?.data;
@@ -438,6 +456,14 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main Content */}
+      {isAccountFrozen && (
+        <div className="fixed inset-0 z-[100] bg-white bg-opacity-95 flex flex-col items-center justify-center backdrop-blur-sm">
+          <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Account Suspended</h1>
+          <p className="text-gray-500 text-center max-w-md mb-6">Your merchant account has been suspended by the administration. You have restricted access to the dashboard. Please contact support.</p>
+          <button onClick={() => { sessionStorage.removeItem("merchantUser"); window.location.href="/login"; }} className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700">Logout</button>
+        </div>
+      )}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
         {banner}
         

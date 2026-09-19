@@ -4,6 +4,7 @@ import { Bell, Check } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
 import { api } from '@/utils/api';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 export default function NotificationBell({ userId }: { userId?: string }) {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -39,6 +40,34 @@ export default function NotificationBell({ userId }: { userId?: string }) {
 
     newSocket.on('new_notification', (notification) => {
       setNotifications(prev => [notification, ...prev]);
+      toast.custom((t) => (
+        <div
+          className={`${
+            t.visible ? 'animate-enter' : 'animate-leave'
+          } max-w-md w-full bg-white shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+        >
+          <div className="flex-1 w-0 p-4">
+            <div className="flex items-start">
+              <div className="flex-1">
+                <p className="text-sm font-bold text-gray-900">
+                  {notification.title}
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  {notification.message}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex border-l border-gray-200">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="w-full border border-transparent rounded-none rounded-r-xl p-4 flex items-center justify-center text-sm font-medium text-[#5022C3] hover:text-[#401ba0] focus:outline-none"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      ), { duration: 5000 });
     });
 
     return () => {
@@ -50,7 +79,8 @@ export default function NotificationBell({ userId }: { userId?: string }) {
   const fetchNotifications = async () => {
     try {
       const res = await api.get('/notifications/my-notifications');
-      setNotifications(res.data.data);
+      const data = res.data?.data || {};
+      setNotifications(Array.isArray(data) ? data : (data.notifications || []));
     } catch (error) {
       console.error('Failed to load notifications', error);
     }
@@ -95,7 +125,9 @@ export default function NotificationBell({ userId }: { userId?: string }) {
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+          <span className="absolute top-0 right-0 flex items-center justify-center min-w-[16px] h-[16px] text-[9px] font-bold text-white bg-red-500 rounded-full border-2 border-white px-0.5">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
         )}
       </button>
 
@@ -121,7 +153,7 @@ export default function NotificationBell({ userId }: { userId?: string }) {
               </div>
             ) : (
               <div className="flex flex-col">
-                {notifications.map((notification) => (
+                {notifications.slice(0, 5).map((notification) => (
                   <button
                     key={notification._id}
                     onClick={() => handleNotificationClick(notification)}
@@ -143,6 +175,14 @@ export default function NotificationBell({ userId }: { userId?: string }) {
                 ))}
               </div>
             )}
+          </div>
+          <div className="p-2 border-t border-gray-100 bg-gray-50/50">
+            <button
+              onClick={() => { setIsOpen(false); router.push('/dashboard/notifications'); }}
+              className="w-full text-center text-sm font-medium text-[#5022C3] hover:text-[#401ba0] hover:underline p-1"
+            >
+              View all notifications
+            </button>
           </div>
         </div>
       )}

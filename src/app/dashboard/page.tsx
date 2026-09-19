@@ -29,6 +29,7 @@ export default function DashboardOverview() {
   const [productStats, setProductStats] = useState(globalCache?.productStats || { total: 0, active: 0, inactive: 0 });
   const [categoryStats, setCategoryStats] = useState(globalCache?.categoryStats || { total: 0, active: 0, inactive: 0 });
   const [topProducts, setTopProducts] = useState<any[]>(globalCache?.topProducts || []);
+  const [showDemoSeed, setShowDemoSeed] = useState<boolean>(globalCache?.showDemoSeed ?? false);
   const [showSeedModal, setShowSeedModal] = useState(false);
   const [seedLoading, setSeedLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
@@ -67,6 +68,7 @@ export default function DashboardOverview() {
       globalCache = {
         storeName: summary.store?.name || "Your Store",
         storeSlug: summary.store?.slug || "",
+        showDemoSeed: summary.store?.showDemoSeed !== false,
         metrics: newMetrics,
         recentOrders: summary.recentOrders || [],
         subscription: summary.subscription || null,
@@ -77,6 +79,7 @@ export default function DashboardOverview() {
 
       setStoreName(globalCache.storeName);
       setStoreSlug(globalCache.storeSlug);
+      setShowDemoSeed(globalCache.showDemoSeed);
       setMetrics(globalCache.metrics);
       setRecentOrders(globalCache.recentOrders);
       setSubscription(globalCache.subscription);
@@ -179,14 +182,16 @@ export default function DashboardOverview() {
           {/* Quick Actions / Store Link */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto mt-4 md:mt-0">
             {/* Seed Demo Data Button */}
-            <button
-              onClick={() => { setShowSeedModal(true); setSeedResult(null); }}
-              className="flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-md hover:shadow-lg hover:from-violet-700 hover:to-indigo-700 hover:-translate-y-0.5 transition-all duration-200"
-              title="Seed demo categories and products"
-            >
-              <Sparkles className="w-4 h-4" />
-              Seed Demo Data
-            </button>
+            {showDemoSeed && (
+              <button
+                onClick={() => { setShowSeedModal(true); setSeedResult(null); }}
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-md hover:shadow-lg hover:from-violet-700 hover:to-indigo-700 hover:-translate-y-0.5 transition-all duration-200"
+                title="Seed demo categories and products"
+              >
+                <Sparkles className="w-4 h-4" />
+                Seed Demo Data
+              </button>
+            )}
 
             <div className="bg-white border border-gray-200 rounded-xl px-4 py-2 flex items-center justify-between sm:justify-start gap-3 shadow-sm w-full sm:w-auto">
               <span className="text-sm font-medium text-gray-600 truncate max-w-[150px] sm:max-w-[200px]">

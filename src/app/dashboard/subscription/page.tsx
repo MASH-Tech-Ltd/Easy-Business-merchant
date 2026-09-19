@@ -35,6 +35,8 @@ export default function SubscriptionPage() {
 
   useEffect(() => {
     fetchData();
+    window.addEventListener('dashboard:refresh', fetchData);
+    return () => window.removeEventListener('dashboard:refresh', fetchData);
   }, []);
 
   const fetchData = async () => {
