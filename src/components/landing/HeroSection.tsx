@@ -17,7 +17,7 @@ export default function HeroSection() {
           </span>
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-xl text-gray-600 mb-10">
-          Your one-stop shop to take your business online. Setup your e-commerce store with just a few clicks. No coding required.
+          Your one-stop shop to take your electronics business online. Setup your multi-tenant e-commerce store with just a few clicks. No coding required.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -25,7 +25,7 @@ export default function HeroSection() {
             Start Free Trial 
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
-          <Link href="#demo" className="w-full sm:w-auto px-8 py-4 text-lg font-medium text-gray-700 bg-white border border-gray-200 rounded-[var(--radius-md)] hover:bg-gray-50 transition-colors">
+          <Link href="/landing/book-a-demo" className="w-full sm:w-auto px-8 py-4 text-lg font-medium text-gray-700 bg-white border border-gray-200 rounded-[var(--radius-md)] hover:bg-gray-50 transition-colors">
             Book a Demo
           </Link>
         </div>

@@ -2,23 +2,23 @@ import { CheckCircle2, ShieldCheck, Zap, Repeat } from 'lucide-react';
 
 const features = [
   {
-    name: 'Authentic products from trusted sellers',
-    description: 'Provide an authentic marketplace for your customers with verified sellers and transparent product listings.',
-    icon: ShieldCheck,
-  },
-  {
-    name: 'Lightning fast store setup',
-    description: 'Get your store running in minutes, not days. We handle the technical details so you can focus on selling.',
+    name: 'Courier Automation',
+    description: 'Automate your shipping and fulfillment processes seamlessly with top logistics providers.',
     icon: Zap,
   },
   {
-    name: 'Easy Return, Pickup & Refund',
-    description: 'Seamlessly manage reverse logistics. Automatically process refunds and schedule pickups with integrated partners.',
+    name: 'Advanced Fraud Check',
+    description: 'Protect your electronics store with advanced fraud detection for your orders.',
+    icon: ShieldCheck,
+  },
+  {
+    name: 'Abandoned Checkout Recovery',
+    description: 'Capture and recover abandoned checkout leads to increase sales effectively.',
     icon: Repeat,
   },
   {
-    name: 'Great collection of themes',
-    description: 'Choose from a variety of premium templates to make your store look exactly how you imagined.',
+    name: 'SMS Notifications & Marketing',
+    description: 'Send automated SMS updates to your customers and utilize powerful email marketing tools.',
     icon: CheckCircle2,
   },
 ];

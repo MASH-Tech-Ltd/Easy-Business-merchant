@@ -6,23 +6,23 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 const faqs = [
   {
     question: "What is MashEasy?",
-    answer: "MashEasy is a comprehensive multi-tenant e-commerce platform designed to help you launch, manage, and scale your online business without any coding knowledge."
+    answer: "MashEasy is a comprehensive multi-tenant e-commerce platform specifically optimized for electronics merchants to launch, manage, and scale their online business."
   },
   {
-    question: "How do I add my shop to MashEasy?",
-    answer: "Simply click the 'Become a Merchant' button, fill in your details, and follow the simple setup wizard. Your store can be live in less than 10 minutes."
+    question: "How many products can I upload?",
+    answer: "Our plans are designed to scale with you: Free Plan (50 products), Basic (100 products), Premium (200 products), and Enterprise (up to 500 products)."
   },
   {
-    question: "Why should I choose MashEasy over others?",
-    answer: "We provide an all-in-one solution that includes authentic seller verification, integrated logistics for easy returns, and a premium collection of responsive themes, all managed from a single easy-to-use dashboard."
+    question: "What addons are available for my store?",
+    answer: "We offer powerful addons through our dashboard including Abandoned Checkout recovery (9.99), Fraud Check (19.99), SMS Notifications (14.99), and Courier Automation (39.99)."
   },
   {
-    question: "What payment methods are available?",
-    answer: "MashEasy integrates with major payment gateways including Stripe, PayPal, and local mobile banking options, ensuring you can accept payments globally and locally."
+    question: "Do you offer yearly billing?",
+    answer: "Yes! All of our packages (Basic, Premium, Enterprise) have discounted yearly billing options available in your dashboard."
   },
   {
-    question: "Is there any limit to the products I can upload?",
-    answer: "No, our premium plans offer unlimited product listings. You can scale your inventory as much as you need."
+    question: "Can I track my store's performance?",
+    answer: "Absolutely. We offer an Advanced Analytics addon that provides a deep dive into your store's performance with custom reports."
   }
 ];
 
