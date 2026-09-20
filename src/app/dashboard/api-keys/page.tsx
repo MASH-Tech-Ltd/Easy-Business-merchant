@@ -130,7 +130,7 @@ export default function ApiKeysPage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">Payment Gateway</h2>
-                  <p className="text-xs text-gray-500">Configure Stripe to securely accept credit card payments.</p>
+                  <p className="text-xs text-gray-500">Configure Easy Payment, SSL Commerz, bKash, and Nagad to securely accept payments.</p>
                 </div>
               </div>
               

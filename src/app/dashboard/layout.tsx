@@ -289,9 +289,9 @@ export default function DashboardLayout({
         { name: 'Products', path: '/dashboard/products', icon: Package },
         { name: 'Categories', path: '/dashboard/categories', icon: ListTree },
         { name: 'Customers', path: '/dashboard/customers', icon: Users },
-        { name: 'Courier', path: '/dashboard/courier-automation', icon: Truck, badge: 'NEW' },
-        { name: 'Fraud Check', path: '/dashboard/fraud-check', icon: ShieldCheck, badge: 'NEW' },
-        { name: 'Checkout Leads', path: '/dashboard/checkout-leads', icon: Users, badge: 'NEW' },
+        { name: 'Courier', path: '/dashboard/courier-automation', icon: Truck, badge: 'BETA' },
+        { name: 'Fraud Check', path: '/dashboard/fraud-check', icon: ShieldCheck, badge: 'BETA' },
+        { name: 'Checkout Leads', path: '/dashboard/checkout-leads', icon: Users, badge: 'BETA' },
       ]
     },
     {
@@ -306,7 +306,7 @@ export default function DashboardLayout({
       items: [
         { name: 'Profile', path: '/dashboard/profile', icon: UserCog },
         { name: 'Domain', path: '/dashboard/domain', icon: Globe },
-        { name: 'API Keys', path: '/dashboard/api-keys', icon: Key },
+        { name: 'API Keys', path: '/dashboard/api-keys', icon: Key, badge: 'BETA' },
         { name: 'Support', path: '/dashboard/support', icon: LifeBuoy, badge: openTicketsCount > 0 ? String(openTicketsCount) : undefined, badgeType: 'OPEN' },
         { 
           name: 'Subscription', 

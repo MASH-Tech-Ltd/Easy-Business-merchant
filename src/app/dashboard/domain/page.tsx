@@ -67,7 +67,7 @@ export default function DomainManagementPage() {
           <Globe className="w-6 h-6 text-[#5022C3]" /> Domain Management
         </h1>
         <p className="text-gray-500">
-          Connect your own custom domain to your store to build your brand and build trust with your customers.
+          Enter your custom domain below and configure your DNS. Our system will automatically verify the records and issue a free SSL certificate.
         </p>
       </div>
 
@@ -140,10 +140,10 @@ export default function DomainManagementPage() {
                       </div>
                       <div>
                         <p className="font-bold text-amber-900">{store.customDomain}</p>
-                        <p className="text-xs text-amber-700/70">Awaiting Super Admin Approval</p>
+                        <p className="text-xs text-amber-700/70">Verifying DNS Records (Auto-provisioning SSL)</p>
                       </div>
                     </div>
-                    <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full border border-amber-200">Pending</span>
+                    <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full border border-amber-200">Connecting</span>
                   </div>
                 )}
               </div>
@@ -171,10 +171,17 @@ export default function DomainManagementPage() {
             </p>
             
             <div className="space-y-4">
+              <div className="p-3 bg-indigo-50/80 rounded-xl border border-indigo-100 text-sm mb-4">
+                <p className="text-indigo-800 text-xs leading-relaxed flex gap-2">
+                  <ShieldCheck className="w-4 h-4 flex-shrink-0 mt-0.5" /> 
+                  For optimal DDoS protection, we route traffic through Cloudflare. Please use CNAME flattening (or an ALIAS record) instead of an A Record to keep your origin IP hidden.
+                </p>
+              </div>
+
               <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
                 <div className="flex justify-between mb-1">
                   <span className="font-bold text-gray-700">Type</span>
-                  <span className="text-gray-900">A Record</span>
+                  <span className="text-gray-900">CNAME (or ALIAS)</span>
                 </div>
                 <div className="flex justify-between mb-1">
                   <span className="font-bold text-gray-700">Name</span>
@@ -182,7 +189,7 @@ export default function DomainManagementPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="font-bold text-gray-700">Value</span>
-                  <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">76.76.21.21</span>
+                  <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">cname.masheasy.com</span>
                 </div>
               </div>
               
@@ -197,7 +204,7 @@ export default function DomainManagementPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="font-bold text-gray-700">Value</span>
-                  <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">cname.merchanthub.com</span>
+                  <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">cname.masheasy.com</span>
                 </div>
               </div>
             </div>

@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, MoreVertical, ShoppingBag, Eye, Edit, Trash2, X, ChevronLeft, ChevronRight, FileText, Printer, ShieldCheck } from 'lucide-react';
+import { Search, MoreVertical, ShoppingBag, Eye, Edit, Trash2, X, ChevronLeft, ChevronRight, FileText, Printer, ShieldCheck, Truck } from 'lucide-react';
 import { api } from '@/utils/api';
 import { toast } from 'react-hot-toast';
 import { EditOrderModal } from './EditOrderModal';
+import { CourierModal } from './CourierModal';
 
 interface OrderItem {
   productId: string;
@@ -30,6 +31,7 @@ interface Order {
   shippingCharge: number;
   paymentStatus: string;
   isDeliveryChargePaid?: boolean;
+  consignmentId?: string;
 }
 
 let globalOrdersCache: Order[] = [];
@@ -58,6 +60,9 @@ export default function OrdersPage() {
   const [checkingFraud, setCheckingFraud] = useState<string | null>(null);
   const [fraudErrorModal, setFraudErrorModal] = useState<{show: boolean, message: string} | null>(null);
   const [fraudResultModal, setFraudResultModal] = useState<any>(null);
+  
+  const [courierModal, setCourierModal] = useState<{show: boolean, orderId: string, configuredProvider: string} | null>(null);
+  const [checkingCourier, setCheckingCourier] = useState<string | null>(null);
 
   const [storeName, setStoreName] = useState('Your Store');
   const [storeLogo, setStoreLogo] = useState('');
@@ -166,6 +171,42 @@ export default function OrdersPage() {
     }
   };
 
+  const handleCourierCheck = async (orderId: string) => {
+    setCheckingCourier(orderId);
+    try {
+      const response = await api.get('/courier/check-addon');
+      if (response.data?.data?.allowed) {
+        setCourierModal({
+          show: true,
+          orderId,
+          configuredProvider: response.data.data.configuredProvider || 'pathao'
+        });
+      }
+    } catch (error: any) {
+      if (error.response?.status === 403 || error.response?.status === 402) {
+        setFraudErrorModal({
+          show: true,
+          message: error.response?.data?.message || 'Courier automation add-on is not active or limit reached for this subscription.'
+        });
+      } else {
+        toast.error('Failed to verify courier add-on status.');
+      }
+    } finally {
+      setCheckingCourier(null);
+    }
+  };
+
+  const handleForwardOrder = async (orderId: string, providerId: string) => {
+    try {
+      await api.post('/courier/forward', { orderId, providerId });
+      toast.success(`Order forwarded to ${providerId} successfully!`);
+      setCourierModal(null);
+      fetchOrders(); // refresh order list
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to forward order');
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch(status.toLowerCase()) {
       case 'pending': return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200 capitalize">Pending</span>;
@@ -269,6 +310,22 @@ export default function OrdersPage() {
                     )}
                   </button>
                   <button 
+                    onClick={() => handleCourierCheck(order._id)}
+                    disabled={checkingCourier === order._id || !!order.consignmentId}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors tooltip ${
+                      order.consignmentId 
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100'
+                    }`}
+                    title={order.consignmentId ? 'Already forwarded' : 'Forward to Courier'}
+                  >
+                    {checkingCourier === order._id ? (
+                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <Truck className="w-4 h-4" />
+                    )}
+                  </button>
+                  <button 
                     onClick={() => setViewOrder(order)}
                     className="w-8 h-8 flex items-center justify-center bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100 rounded-lg transition-colors"
                   >
@@ -364,6 +421,22 @@ export default function OrdersPage() {
                             <div className="w-4 h-4 border-2 border-[#9333ea] border-t-transparent rounded-full animate-spin"></div>
                           ) : (
                             <ShieldCheck className="w-4 h-4" />
+                          )}
+                        </button>
+                        <button 
+                          onClick={() => handleCourierCheck(order._id)}
+                          disabled={checkingCourier === order._id || !!order.consignmentId}
+                          className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors tooltip ${
+                            order.consignmentId 
+                              ? 'bg-green-100 text-green-600'
+                              : 'bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100'
+                          }`}
+                          title={order.consignmentId ? 'Already forwarded' : 'Forward to Courier'}
+                        >
+                          {checkingCourier === order._id ? (
+                            <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <Truck className="w-4 h-4" />
                           )}
                         </button>
                         <button 
@@ -737,6 +810,15 @@ export default function OrdersPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {courierModal && courierModal.show && (
+        <CourierModal
+          orderId={courierModal.orderId}
+          configuredProvider={courierModal.configuredProvider}
+          onClose={() => setCourierModal(null)}
+          onForward={handleForwardOrder}
+        />
       )}
     </div>
   );

@@ -37,11 +37,19 @@ export default function DashboardOverview() {
   const [seedLanguage, setSeedLanguage] = useState<'en' | 'bn'>('en');
   const [seedType, setSeedType] = useState<'electronics' | 'fashion' | 'lifestyle' | 'all'>('electronics');
 
+  // Previous code:
+  // const seedTypeData = {
+  //   electronics: { categories: 15, products: 60, desc: "Smartphones, Laptops, Audio, Cameras, TVs, Gaming, Smartwatches, etc." },
+  //   fashion: { categories: 15, products: 60, desc: "Men's & Women's Wear, Shoes, Watches, Bags, Jewelry, Beauty, etc." },
+  //   lifestyle: { categories: 15, products: 60, desc: "Furniture, Home Decor, Sports, Groceries, Books, Stationery, etc." },
+  //   all: { categories: 45, products: 180, desc: "Everything from all business types" }
+  // };
+
   const seedTypeData = {
-    electronics: { categories: 15, products: 60, desc: "Smartphones, Laptops, Audio, Cameras, TVs, Gaming, Smartwatches, etc." },
-    fashion: { categories: 15, products: 60, desc: "Men's & Women's Wear, Shoes, Watches, Bags, Jewelry, Beauty, etc." },
-    lifestyle: { categories: 15, products: 60, desc: "Furniture, Home Decor, Sports, Groceries, Books, Stationery, etc." },
-    all: { categories: 45, products: 180, desc: "Everything from all business types" }
+    electronics: { categories: 15, products: 900, desc: "Smartphones, Laptops, Audio, Cameras, TVs, Gaming, Smartwatches, etc." },
+    fashion: { categories: 15, products: 900, desc: "Men's & Women's Wear, Shoes, Watches, Bags, Jewelry, Beauty, etc." },
+    lifestyle: { categories: 15, products: 900, desc: "Furniture, Home Decor, Sports, Groceries, Books, Stationery, etc." },
+    all: { categories: 45, products: 2700, desc: "Everything from all business types" }
   };
 
   const fetchData = async () => {
@@ -533,7 +541,7 @@ export default function DashboardOverview() {
                     { id: 'electronics', label: 'Electronics' },
                     { id: 'fashion', label: 'Fashion' },
                     { id: 'lifestyle', label: 'Lifestyle' },
-                    { id: 'all', label: 'All Categories' }
+                    // { id: 'all', label: 'All Categories' }
                   ].map((t) => (
                     <label key={t.id} className={`flex items-center gap-2 p-2 rounded-xl border-2 cursor-pointer transition-all ${seedType === t.id ? 'border-indigo-600 bg-indigo-50/50 text-indigo-700' : 'border-gray-200 hover:border-indigo-200 text-gray-600'}`}>
                       <input type="radio" name="seedType" value={t.id} checked={seedType === t.id} onChange={() => setSeedType(t.id as any)} className="hidden" />

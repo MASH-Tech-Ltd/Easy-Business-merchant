@@ -23,6 +23,7 @@ interface Order {
   status: string;
   createdAt: string;
   items: OrderItem[];
+  consignmentId?: string;
 }
 
 interface EditOrderModalProps {
