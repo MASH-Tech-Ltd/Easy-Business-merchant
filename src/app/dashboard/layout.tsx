@@ -7,7 +7,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, ListTree, Users, Truck,
   Store, BarChart2, Palette, Paintbrush, LayoutTemplate, Smartphone, 
   Star, Tag, BadgeCheck, RefreshCw, Boxes, UserCog, CreditCard,
-  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, Menu, X
+  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, Menu, X, Banknote
 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { api } from '@/utils/api';
@@ -307,6 +307,7 @@ export default function DashboardLayout({
         { name: 'Profile', path: '/dashboard/profile', icon: UserCog },
         { name: 'Domain', path: '/dashboard/domain', icon: Globe },
         { name: 'API Keys', path: '/dashboard/api-keys', icon: Key, badge: 'BETA' },
+        { name: 'Payment Methods', path: '/dashboard/payment-methods', icon: Banknote },
         { name: 'Support', path: '/dashboard/support', icon: LifeBuoy, badge: openTicketsCount > 0 ? String(openTicketsCount) : undefined, badgeType: 'OPEN' },
         { 
           name: 'Subscription', 
