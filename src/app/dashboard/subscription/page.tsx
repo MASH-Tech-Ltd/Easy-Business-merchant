@@ -12,7 +12,10 @@ interface Package {
   billingCycle: string;
   productLimit: number;
   features?: string[];
+  tagline?: string;
+  description?: string;
   isActive: boolean;
+  isPopular?: boolean;
 }
 
 interface Subscription {
@@ -202,9 +205,9 @@ export default function SubscriptionPage() {
           No {billingCycle} packages available at the moment.
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-6xl mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-[1500px] mx-auto px-4">
           {displayedPackages.sort((a,b) => a.price - b.price).map((pkg, index) => {
-            const isPopular = pkg.name.toLowerCase().includes('premium') || pkg.name.toLowerCase().includes('premimus'); 
+            const isPopular = pkg.isPopular || pkg.name.toLowerCase().includes('standard'); 
             const isCurrentActive = activePackageId === pkg._id && subscription?.status === 'active';
             const isCurrentPending = activePackageId === pkg._id && subscription?.status === 'pending';
             
@@ -240,29 +243,46 @@ export default function SubscriptionPage() {
                     <span className="text-5xl font-black text-gray-900">৳{pkg.price}</span>
                     <span className="text-gray-500 font-bold">/{pkg.billingCycle === 'yearly' ? 'yr' : 'mo'}</span>
                   </div>
-                  <p className="text-sm text-gray-500 font-medium leading-relaxed">
-                    Perfect for growing businesses that need more power and customization.
-                  </p>
+                  <div className="mb-4 space-y-2">
+                    {pkg.tagline && (
+                      <p className="text-[15px] font-semibold text-gray-900 leading-snug">
+                        {pkg.tagline}
+                      </p>
+                    )}
+                    <p className="text-sm text-gray-500 font-medium leading-relaxed">
+                      {pkg.description || `Perfect for growing businesses that need ${pkg.name.toLowerCase()} features and customization.`}
+                    </p>
+                  </div>
                 </div>
                 
                 <div className="px-8 pb-8 flex-1 flex flex-col relative bg-gradient-to-b from-transparent to-gray-50/50">
                   <ul className="space-y-4 mb-8 flex-1 mt-2">
-                    <li className="flex items-start gap-3">
-                      <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isPopular ? 'bg-[#5022C3] text-white' : 'bg-purple-100 text-[#5022C3]'}`}>
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                      </div>
-                      <span className="text-sm text-gray-700 font-medium">
-                        Up to <span className="font-bold text-gray-900">{pkg.productLimit}</span> Products
-                      </span>
-                    </li>
-                    {pkg.features && pkg.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isPopular ? 'bg-[#5022C3] text-white' : 'bg-purple-100 text-[#5022C3]'}`}>
-                          <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                        </div>
-                        <span className="text-sm text-gray-700 font-medium">{feature}</span>
-                      </li>
-                    ))}
+                    {pkg.features && pkg.features.map((feature, idx) => {
+                      if (feature.startsWith('Key Features:')) return null;
+                      
+                      const isNested = feature.startsWith('- ') || feature.startsWith('* ');
+                      const cleanFeature = isNested ? feature.substring(2) : feature;
+                      const colonIndex = cleanFeature.indexOf(':');
+                      const hasBoldPrefix = colonIndex > 0 && colonIndex < 35;
+                      
+                      return (
+                        <li key={idx} className="flex items-start gap-3">
+                          <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isPopular ? 'bg-[#5022C3] text-white' : 'bg-purple-100 text-[#5022C3]'}`}>
+                            <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                          </div>
+                          <span className="text-sm text-gray-700 font-medium">
+                            {hasBoldPrefix ? (
+                              <>
+                                <strong className="text-gray-900 font-bold">{cleanFeature.substring(0, colonIndex + 1)}</strong>
+                                {cleanFeature.substring(colonIndex + 1)}
+                              </>
+                            ) : (
+                              cleanFeature
+                            )}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                   
                   {isCurrentActive ? (
