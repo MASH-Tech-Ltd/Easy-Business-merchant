@@ -125,7 +125,7 @@ export default function DomainManagementPage() {
                       <CheckCircle2 className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900">{store?.slug}.localhost:3000</p>
+                      <p className="font-bold text-gray-900">{store?.slug}.{process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000'}</p>
                       <p className="text-xs text-gray-500">System Domain (Default)</p>
                     </div>
                   </div>

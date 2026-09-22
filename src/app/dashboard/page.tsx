@@ -109,11 +109,13 @@ export default function DashboardOverview() {
     return () => window.removeEventListener('dashboard:refresh', fetchData);
   }, []);
 
-  const storeUrl = storeSlug ? `http://${storeSlug}.localhost:3000` : '#';
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000';
+  const protocol = process.env.NEXT_PUBLIC_BASE_DOMAIN ? 'https' : 'http';
+  const storeUrl = storeSlug ? `${protocol}://${storeSlug}.${baseDomain}` : '#';
 
   const copyToClipboard = () => {
     if (storeSlug) {
-      navigator.clipboard.writeText(`http://${storeSlug}.localhost:3000`);
+      navigator.clipboard.writeText(storeUrl);
       toast.success('Store URL copied to clipboard!');
     }
   };
@@ -203,7 +205,7 @@ export default function DashboardOverview() {
 
             <div className="bg-white border border-gray-200 rounded-xl px-4 py-2 flex items-center justify-between sm:justify-start gap-3 shadow-sm w-full sm:w-auto">
               <span className="text-sm font-medium text-gray-600 truncate max-w-[150px] sm:max-w-[200px]">
-                {storeSlug ? `${storeSlug}.localhost:3000` : 'Loading...'}
+                {storeSlug ? `${storeSlug}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000'}` : 'Loading...'}
               </span>
               <div className="flex items-center gap-2">
                 <div className="w-px h-4 bg-gray-200"></div>
