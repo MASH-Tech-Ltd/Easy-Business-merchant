@@ -31,6 +31,17 @@ export default function DomainManagementPage() {
     fetchStoreInfo();
   }, []);
 
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    // Silently poll the backend every 30 seconds if the domain is still pending
+    if (store?.domainStatus === 'pending') {
+      intervalId = setInterval(() => {
+        fetchStoreInfo();
+      }, 50000);
+    }
+    return () => clearInterval(intervalId);
+  }, [store?.domainStatus]);
+
   const fetchStoreInfo = async () => {
     try {
       const res = await api.get('/tenants/my-store');
@@ -188,88 +199,90 @@ export default function DomainManagementPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
-            <h3 className="text-md font-bold text-gray-900 mb-4">DNS Configuration</h3>
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-              To connect your domain, log in to your domain provider (e.g., GoDaddy, Namecheap) and add the following records to your DNS settings.
-            </p>
-            
-            <div className="space-y-4">
-              <div className="p-3 bg-indigo-50/80 rounded-xl border border-indigo-100 text-sm mb-4">
-                <p className="text-indigo-800 text-xs leading-relaxed flex gap-2">
-                  <ShieldCheck className="w-4 h-4 flex-shrink-0 mt-0.5" /> 
-                  For optimal DDoS protection, we route traffic through Cloudflare. Please use CNAME flattening (or an ALIAS record) instead of an A Record to keep your origin IP hidden.
-                </p>
-              </div>
+          {store?.domainStatus !== 'active' && (
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+              <h3 className="text-md font-bold text-gray-900 mb-4">DNS Configuration</h3>
+              <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+                To connect your domain, log in to your domain provider (e.g., GoDaddy, Namecheap) and add the following records to your DNS settings.
+              </p>
+              
+              <div className="space-y-4">
+                <div className="p-3 bg-indigo-50/80 rounded-xl border border-indigo-100 text-sm mb-4">
+                  <p className="text-indigo-800 text-xs leading-relaxed flex gap-2">
+                    <ShieldCheck className="w-4 h-4 flex-shrink-0 mt-0.5" /> 
+                    For optimal DDoS protection, we route traffic through Cloudflare. Please use CNAME flattening (or an ALIAS record) instead of an A Record to keep your origin IP hidden.
+                  </p>
+                </div>
 
-              {store?.domainStatus === 'pending' && store?.sslValidationRecords?.length > 0 ? (
-                <>
-                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-sm mb-4">
-                    <p className="text-amber-800 text-xs leading-relaxed flex gap-2 font-semibold">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" /> 
-                      Please add the following TXT records to your DNS to verify domain ownership and issue your SSL certificate.
-                    </p>
-                  </div>
-                  {store.sslValidationRecords.map((record: any, index: number) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
+                {store?.domainStatus === 'pending' && store?.sslValidationRecords?.length > 0 ? (
+                  <>
+                    <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-sm mb-4">
+                      <p className="text-amber-800 text-xs leading-relaxed flex gap-2 font-semibold">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" /> 
+                        Please add the following TXT records to your DNS to verify domain ownership and issue your SSL certificate.
+                      </p>
+                    </div>
+                    {store.sslValidationRecords.map((record: any, index: number) => (
+                      <div key={index} className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
+                        <div className="flex justify-between mb-1">
+                          <span className="font-bold text-gray-700">Type</span>
+                          <span className="text-gray-900 font-mono">TXT</span>
+                        </div>
+                        <div className="flex justify-between mb-1">
+                          <span className="font-bold text-gray-700">Name</span>
+                          <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded break-all">{record.txt_name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-bold text-gray-700">Value</span>
+                          <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded break-all">{record.txt_value}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm mb-4">
+                      <p className="font-bold text-gray-800 mb-2">Step 1: Add Root CNAME (or CNAME Flattening)</p>
+                      <p className="text-gray-600 text-xs mb-3">Add a new CNAME record for your root domain. If your DNS provider does not support root CNAMEs, use an ALIAS or ANAME record instead.</p>
                       <div className="flex justify-between mb-1">
                         <span className="font-bold text-gray-700">Type</span>
-                        <span className="text-gray-900 font-mono">TXT</span>
+                        <span className="text-gray-900">CNAME (or ALIAS/ANAME)</span>
                       </div>
                       <div className="flex justify-between mb-1">
                         <span className="font-bold text-gray-700">Name</span>
-                        <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded break-all">{record.txt_name}</span>
+                        <span className="text-gray-900">@</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="font-bold text-gray-700">Value</span>
-                        <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded break-all">{record.txt_value}</span>
+                        <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">merchant.masheco.com</span>
                       </div>
                     </div>
-                  ))}
-                </>
-              ) : (
-                <>
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm mb-4">
-                    <p className="font-bold text-gray-800 mb-2">Step 1: Add Root CNAME (or CNAME Flattening)</p>
-                    <p className="text-gray-600 text-xs mb-3">Add a new CNAME record for your root domain. If your DNS provider does not support root CNAMEs, use an ALIAS or ANAME record instead.</p>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-bold text-gray-700">Type</span>
-                      <span className="text-gray-900">CNAME (or ALIAS/ANAME)</span>
+                    
+                    <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
+                      <p className="font-bold text-gray-800 mb-2">Step 2: Update WWW Record</p>
+                      <p className="text-gray-600 text-xs mb-3">Add or update the CNAME record for 'www' to point to our servers.</p>
+                      <div className="flex justify-between mb-1">
+                        <span className="font-bold text-gray-700">Type</span>
+                        <span className="text-gray-900">CNAME</span>
+                      </div>
+                      <div className="flex justify-between mb-1">
+                        <span className="font-bold text-gray-700">Name</span>
+                        <span className="text-gray-900">www</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold text-gray-700">Value</span>
+                        <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">merchant.masheco.com</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-bold text-gray-700">Name</span>
-                      <span className="text-gray-900">@</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-bold text-gray-700">Value</span>
-                      <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">merchant.masheco.com</span>
-                    </div>
-                  </div>
-                  
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
-                    <p className="font-bold text-gray-800 mb-2">Step 2: Update WWW Record</p>
-                    <p className="text-gray-600 text-xs mb-3">Add or update the CNAME record for 'www' to point to our servers.</p>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-bold text-gray-700">Type</span>
-                      <span className="text-gray-900">CNAME</span>
-                    </div>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-bold text-gray-700">Name</span>
-                      <span className="text-gray-900">www</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-bold text-gray-700">Value</span>
-                      <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">merchant.masheco.com</span>
-                    </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </div>
+              
+              <button className="w-full mt-6 flex items-center justify-center gap-2 text-sm font-bold text-[#5022C3] hover:text-[#401a9c] transition-colors">
+                Read Detailed Guide <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
-            
-            <button className="w-full mt-6 flex items-center justify-center gap-2 text-sm font-bold text-[#5022C3] hover:text-[#401a9c] transition-colors">
-              Read Detailed Guide <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </div>
