@@ -33,7 +33,7 @@ export default function PricingSection({ packages }: PricingSectionProps) {
     : packages;
 
   return (
-    <section id="pricing" className="py-24 bg-white relative">
+    <section id="pricing" className="py-16 lg:py-24 bg-white relative">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[hsl(var(--accent-primary))]/5 via-white to-white" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,10 +42,10 @@ export default function PricingSection({ packages }: PricingSectionProps) {
           <h2 className="text-base font-semibold text-[hsl(var(--accent-primary))] tracking-wide uppercase">
             Pricing
           </h2>
-          <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+          <p className="mt-2 text-xl sm:text-3xl lg:text-4xl leading-8 font-extrabold tracking-tight text-gray-900">
             Simple, transparent pricing
           </p>
-          <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+          <p className="mt-4 max-w-2xl text-base sm:text-xl text-gray-500 mx-auto">
             Choose the plan that fits your business. No hidden fees, cancel anytime.
           </p>
         </div>
@@ -129,9 +129,9 @@ export default function PricingSection({ packages }: PricingSectionProps) {
               return (
                 <div
                   key={pkg._id}
-                  className={`bg-white rounded-3xl p-8 relative flex flex-col h-full border transition-all duration-300 ${
+                  className={`bg-white rounded-2xl sm:rounded-3xl p-5 md:p-8 relative flex flex-col h-full border transition-all duration-300 ${
                     featured
-                      ? 'border-[hsl(var(--accent-primary))] shadow-2xl shadow-[hsl(var(--accent-primary))]/10 scale-105 z-10'
+                      ? 'border-[hsl(var(--accent-primary))] shadow-2xl shadow-[hsl(var(--accent-primary))]/10 lg:scale-105 z-10'
                       : 'border-gray-200 shadow-sm hover:shadow-md'
                   }`}
                 >
@@ -145,8 +145,8 @@ export default function PricingSection({ packages }: PricingSectionProps) {
                   )}
 
                   {/* Name & description */}
-                  <div className="mb-5">
-                    <h3 className="text-2xl font-bold text-gray-900">{pkg.name}</h3>
+                  <div className="mb-3 sm:mb-5">
+                    <h3 className="text-lg sm:text-2xl font-bold text-gray-900">{pkg.name}</h3>
                     {(pkg.description || pkg.tagline) && (
                       <p className="mt-2 text-sm text-gray-500">
                         {pkg.description || pkg.tagline}
@@ -155,22 +155,22 @@ export default function PricingSection({ packages }: PricingSectionProps) {
                   </div>
 
                   {/* Price */}
-                  <div className="mb-4">
-                    <span className="text-5xl font-extrabold text-gray-900">{formattedPrice}</span>
+                  <div className="mb-3 sm:mb-4">
+                    <span className="text-3xl sm:text-5xl font-extrabold text-gray-900">{formattedPrice}</span>
                     <span className="ml-1 text-gray-500 font-medium text-base">
                       /{billing === 'yearly' ? 'yr' : 'mo'}
                     </span>
                   </div>
 
                   {/* Product limit pill */}
-                  <div className="mb-6">
+                  <div className="mb-4 sm:mb-6">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
                       Up to {pkg.productLimit.toLocaleString()} products
                     </span>
                   </div>
 
                   {/* Features */}
-                  <div className="flex-1 space-y-3 mb-8">
+                  <div className="flex-1 space-y-2 sm:space-y-3 mb-5 sm:mb-8">
                     {features.map((feature) => (
                       <div key={feature} className="flex items-start gap-3">
                         <Check
@@ -189,7 +189,7 @@ export default function PricingSection({ packages }: PricingSectionProps) {
                   <Link
                     href={href}
                     prefetch={false}
-                    className={`mt-auto w-full text-center py-3 px-6 rounded-xl font-semibold text-sm transition-all duration-200 ${
+                    className={`mt-auto w-full text-center py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl font-semibold text-sm transition-all duration-200 ${
                       featured
                         ? 'bg-[hsl(var(--accent-primary))] text-white hover:opacity-90 shadow-lg shadow-[hsl(var(--accent-primary))]/30'
                         : 'bg-gray-900 text-white hover:bg-gray-700'

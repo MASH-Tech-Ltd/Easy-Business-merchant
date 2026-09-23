@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -392,7 +392,7 @@ export default function ProfilePage() {
                         Choose Image
                       </button>
                       <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
-                        Recommended size: 200x50px. Max file size: 2MB. Supported formats: PNG, JPG, SVG.
+                        Recommended size: 200x50px. Max file size: 10MB. Supported formats: PNG, JPG, SVG, WEBP.
                       </p>
                     </div>
                   </div>

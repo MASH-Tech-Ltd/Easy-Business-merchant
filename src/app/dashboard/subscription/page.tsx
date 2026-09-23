@@ -114,25 +114,25 @@ export default function SubscriptionPage() {
         </p>
 
         {/* Billing Cycle Toggle */}
-        <div className="flex items-center justify-center mt-10">
-          <div className="bg-white p-1.5 rounded-2xl inline-flex relative shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
+        <div className="flex items-center justify-center mt-8">
+          <div className="bg-white p-1 rounded-xl inline-flex relative shadow-sm border border-gray-200">
             <button
               onClick={() => setBillingCycle('monthly')}
-              className={`px-8 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
-                billingCycle === 'monthly' ? 'bg-[#5022C3] text-white shadow-lg shadow-purple-500/30 scale-105' : 'text-gray-500 hover:text-gray-900'
+              className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                billingCycle === 'monthly' ? 'bg-[#5022C3] text-white shadow-md shadow-purple-500/20' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Monthly billing
             </button>
             <button
               onClick={() => setBillingCycle('yearly')}
-              className={`px-8 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${
-                billingCycle === 'yearly' ? 'bg-[#5022C3] text-white shadow-lg shadow-purple-500/30 scale-105' : 'text-gray-500 hover:text-gray-900'
+              className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
+                billingCycle === 'yearly' ? 'bg-[#5022C3] text-white shadow-md shadow-purple-500/20' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Yearly billing
             </button>
-            <span className="absolute -top-4 -right-8 bg-gradient-to-r from-green-400 to-emerald-500 text-white text-[11px] font-black px-3 py-1 rounded-full shadow-lg shadow-green-500/30 animate-pulse border-2 border-white">
+            <span className="absolute -top-3 -right-6 bg-gradient-to-r from-emerald-400 to-emerald-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm animate-pulse border border-white">
               SAVE 20%
             </span>
           </div>
@@ -205,7 +205,7 @@ export default function SubscriptionPage() {
           No {billingCycle} packages available at the moment.
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-[1500px] mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-7xl mx-auto px-4 items-start">
           {displayedPackages.sort((a,b) => a.price - b.price).map((pkg, index) => {
             const isPopular = pkg.isPopular || pkg.name.toLowerCase().includes('standard'); 
             const isCurrentActive = activePackageId === pkg._id && subscription?.status === 'active';
@@ -216,8 +216,8 @@ export default function SubscriptionPage() {
                 key={pkg._id} 
                 className={`relative bg-white rounded-3xl border transition-all duration-500 flex flex-col overflow-hidden group ${
                   isPopular 
-                    ? 'border-[#5022C3] shadow-[0_20px_50px_rgba(80,34,195,0.15)] lg:-mt-4 lg:mb-4 z-10' 
-                    : 'border-gray-100 hover:border-gray-300 hover:shadow-xl shadow-sm'
+                    ? 'border-[#5022C3] ring-2 ring-[#5022C3] shadow-xl lg:-mt-4 z-10' 
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-lg shadow-md lg:mt-0'
                 }`}
               >
                 {/* Background Gradient for Popular */}
@@ -226,37 +226,38 @@ export default function SubscriptionPage() {
                 )}
 
                 {isPopular && (
-                  <div className="bg-[#5022C3] text-white text-xs font-bold uppercase tracking-wider py-2 text-center flex items-center justify-center gap-1.5 shadow-sm">
-                    <Star className="w-3.5 h-3.5 fill-current" /> Most Popular
+                  <div className="bg-[#5022C3] text-white text-[10px] font-bold uppercase tracking-widest py-1.5 text-center flex items-center justify-center gap-1.5">
+                    <Star className="w-3 h-3 fill-current" /> Most Popular
                   </div>
                 )}
                 
                 {isCurrentActive && (
-                  <div className="absolute top-6 right-6 bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-sm z-20 flex items-center gap-1.5 border border-green-200">
+                  <div className="absolute top-5 right-5 bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-green-200 z-20">
                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Active
                   </div>
                 )}
                 
-                <div className="p-8 pb-6 relative">
-                  <h3 className="text-2xl font-extrabold text-gray-900 mb-2">{pkg.name}</h3>
-                  <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-5xl font-black text-gray-900">৳{pkg.price}</span>
-                    <span className="text-gray-500 font-bold">/{pkg.billingCycle === 'yearly' ? 'yr' : 'mo'}</span>
+                <div className="p-6 pb-4 relative">
+                  <h3 className="text-xl font-extrabold text-gray-900 mb-1">{pkg.name}</h3>
+                  <div className="flex items-baseline gap-1 mb-2">
+                    <span className="text-4xl font-black text-gray-900 tracking-tight">৳{pkg.price}</span>
+                    <span className="text-xs text-gray-500 font-bold uppercase">/{pkg.billingCycle === 'yearly' ? 'yr' : 'mo'}</span>
                   </div>
-                  <div className="mb-4 space-y-2">
+                  <div className="mb-2 space-y-1">
                     {pkg.tagline && (
-                      <p className="text-[15px] font-semibold text-gray-900 leading-snug">
+                      <p className="text-sm font-bold text-gray-900 leading-snug">
                         {pkg.tagline}
                       </p>
                     )}
-                    <p className="text-sm text-gray-500 font-medium leading-relaxed">
+                    <p className="text-xs text-gray-500 font-medium leading-relaxed">
                       {pkg.description || `Perfect for growing businesses that need ${pkg.name.toLowerCase()} features and customization.`}
                     </p>
                   </div>
                 </div>
                 
-                <div className="px-8 pb-8 flex-1 flex flex-col relative bg-gradient-to-b from-transparent to-gray-50/50">
-                  <ul className="space-y-4 mb-8 flex-1 mt-2">
+                <div className="px-6 pb-5 flex-1 flex flex-col relative bg-gray-50/50">
+                  <div className="h-px w-full bg-gray-200 mb-4"></div>
+                  <ul className="space-y-2 mb-5 flex-1">
                     {pkg.features && pkg.features.map((feature, idx) => {
                       if (feature.startsWith('Key Features:')) return null;
                       
@@ -266,11 +267,11 @@ export default function SubscriptionPage() {
                       const hasBoldPrefix = colonIndex > 0 && colonIndex < 35;
                       
                       return (
-                        <li key={idx} className="flex items-start gap-3">
-                          <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${isPopular ? 'bg-[#5022C3] text-white' : 'bg-purple-100 text-[#5022C3]'}`}>
-                            <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                        <li key={idx} className="flex items-start gap-2.5">
+                          <div className={`mt-0.5 w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${isPopular ? 'bg-[#5022C3] text-white' : 'bg-purple-100 text-[#5022C3]'}`}>
+                            <Check className="w-2.5 h-2.5" strokeWidth={3} />
                           </div>
-                          <span className="text-sm text-gray-700 font-medium">
+                          <span className="text-[13px] text-gray-700 font-medium leading-tight">
                             {hasBoldPrefix ? (
                               <>
                                 <strong className="text-gray-900 font-bold">{cleanFeature.substring(0, colonIndex + 1)}</strong>
@@ -289,29 +290,29 @@ export default function SubscriptionPage() {
                     <button 
                       onClick={() => setConfirmModal({ ...pkg, isRenewal: true })}
                       disabled={isPending}
-                      className={`w-full py-3.5 px-4 rounded-xl font-bold transition-all duration-300 transform group-hover:-translate-y-1 ${
+                      className={`w-full py-2.5 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
                         isPending ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
-                        'bg-green-50 hover:bg-green-100 text-green-700 border-2 border-green-200 shadow-sm'
+                        'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
                       }`}
                     >
-                      <Check className="w-5 h-5 inline-block mr-1 -mt-0.5" /> Renew Plan
+                      <Check className="w-4 h-4 inline-block mr-1 -mt-0.5" /> Renew Plan
                     </button>
                   ) : isCurrentPending ? (
-                    <button disabled className="w-full py-3.5 px-4 rounded-xl font-bold bg-amber-50 text-amber-600 border-2 border-amber-200 flex items-center justify-center gap-2 cursor-default animate-pulse">
-                      <Clock className="w-5 h-5" /> Pending Approval
+                    <button disabled className="w-full py-2.5 px-4 rounded-xl font-bold text-sm bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center gap-2 cursor-default">
+                      <Clock className="w-4 h-4 animate-spin-slow" /> Pending
                     </button>
                   ) : (
                     <button 
                       onClick={() => setConfirmModal(pkg)}
-                      disabled={isPending} // Disable all other buttons if one is pending
-                      className={`w-full py-3.5 px-4 rounded-xl font-bold transition-all duration-300 transform group-hover:-translate-y-1 ${
+                      disabled={isPending}
+                      className={`w-full py-2.5 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
                         isPending ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
                         isPopular 
-                          ? 'bg-[#5022C3] hover:bg-[#401a9c] text-white shadow-xl shadow-purple-500/30' 
-                          : 'bg-white border-2 border-[#5022C3] text-[#5022C3] hover:bg-purple-50'
+                          ? 'bg-[#5022C3] hover:bg-[#401a9c] text-white shadow-md shadow-purple-500/20' 
+                          : 'bg-white border border-gray-300 text-gray-900 hover:bg-gray-50'
                       }`}
                     >
-                      {isPending ? 'Cannot upgrade yet' : 'Upgrade to ' + pkg.name}
+                      {isPending ? 'Cannot upgrade' : 'Upgrade to ' + pkg.name}
                     </button>
                   )}
                 </div>
@@ -322,7 +323,7 @@ export default function SubscriptionPage() {
       )}
 
       {/* Feature Highlight */}
-      <div className="mt-24 bg-gradient-to-br from-slate-900 via-[#1A0B2E] to-slate-900 rounded-[2.5rem] p-10 md:p-14 text-white flex flex-col md:flex-row items-center justify-between gap-12 shadow-2xl relative overflow-hidden w-full mx-auto">
+      <div className="mt-16 bg-gradient-to-br from-slate-900 via-[#1A0B2E] to-slate-900 rounded-[2rem] p-8 md:p-10 text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl relative overflow-hidden w-full max-w-5xl mx-auto">
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>

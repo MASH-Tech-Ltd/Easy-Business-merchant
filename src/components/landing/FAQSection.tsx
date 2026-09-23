@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
@@ -34,13 +34,13 @@ export default function FAQSection() {
   };
 
   return (
-    <section id="faq" className="py-24 bg-white">
+    <section id="faq" className="py-16 lg:py-24 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900">
             Frequently Asked Questions
           </h2>
-          <p className="mt-4 text-xl text-gray-500">
+          <p className="mt-4 text-lg sm:text-xl text-gray-500">
             Have a question? We're here to help.
           </p>
         </div>
@@ -52,10 +52,10 @@ export default function FAQSection() {
               className={`border border-gray-200 rounded-2xl overflow-hidden transition-all duration-300 ${openIndex === index ? 'shadow-md border-[hsl(var(--accent-primary))]/30' : 'hover:border-gray-300'}`}
             >
               <button
-                className="w-full px-6 py-5 flex justify-between items-center bg-white focus:outline-none"
+                className="w-full px-4 py-4 sm:px-6 sm:py-5 flex justify-between items-center bg-white focus:outline-none"
                 onClick={() => toggleFaq(index)}
               >
-                <span className={`font-semibold text-left ${openIndex === index ? 'text-[hsl(var(--accent-primary))]' : 'text-gray-900'}`}>
+                <span className={`font-semibold text-left text-sm sm:text-base ${openIndex === index ? 'text-[hsl(var(--accent-primary))]' : 'text-gray-900'}`}>
                   {faq.question}
                 </span>
                 {openIndex === index ? (
@@ -66,9 +66,9 @@ export default function FAQSection() {
               </button>
               
               <div 
-                className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-96 pb-5 opacity-100' : 'max-h-0 opacity-0'}`}
+                className={`px-4 sm:px-6 overflow-hidden transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-96 pb-4 sm:pb-5 opacity-100' : 'max-h-0 opacity-0'}`}
               >
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
                   {faq.answer}
                 </p>
               </div>
