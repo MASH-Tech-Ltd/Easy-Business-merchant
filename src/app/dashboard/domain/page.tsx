@@ -34,14 +34,7 @@ export default function DomainManagementPage() {
     e.preventDefault();
     setSaving(true);
     try {
-      // In this endpoint it expects FormData because of logo, so we must append.
-      // But we can also just send JSON if the backend supports it, or use FormData.
-      const formData = new FormData();
-      formData.append('customDomain', customDomain);
-      
-      await api.patch('/tenants/update-store', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post('/tenants/custom-domain', { customDomain });
       toast.success('Domain updated successfully');
       fetchStoreInfo();
     } catch (error: any) {
@@ -178,35 +171,64 @@ export default function DomainManagementPage() {
                 </p>
               </div>
 
-              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
-                <div className="flex justify-between mb-1">
-                  <span className="font-bold text-gray-700">Type</span>
-                  <span className="text-gray-900">CNAME (or ALIAS)</span>
-                </div>
-                <div className="flex justify-between mb-1">
-                  <span className="font-bold text-gray-700">Name</span>
-                  <span className="text-gray-900">@</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-bold text-gray-700">Value</span>
-                  <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">cname.masheasy.com</span>
-                </div>
-              </div>
-              
-              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
-                <div className="flex justify-between mb-1">
-                  <span className="font-bold text-gray-700">Type</span>
-                  <span className="text-gray-900">CNAME</span>
-                </div>
-                <div className="flex justify-between mb-1">
-                  <span className="font-bold text-gray-700">Name</span>
-                  <span className="text-gray-900">www</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-bold text-gray-700">Value</span>
-                  <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">cname.masheasy.com</span>
-                </div>
-              </div>
+              {store?.domainStatus === 'pending' && store?.sslValidationRecords?.length > 0 ? (
+                <>
+                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-sm mb-4">
+                    <p className="text-amber-800 text-xs leading-relaxed flex gap-2 font-semibold">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" /> 
+                      Please add the following TXT records to your DNS to verify domain ownership and issue your SSL certificate.
+                    </p>
+                  </div>
+                  {store.sslValidationRecords.map((record: any, index: number) => (
+                    <div key={index} className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
+                      <div className="flex justify-between mb-1">
+                        <span className="font-bold text-gray-700">Type</span>
+                        <span className="text-gray-900 font-mono">TXT</span>
+                      </div>
+                      <div className="flex justify-between mb-1">
+                        <span className="font-bold text-gray-700">Name</span>
+                        <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded break-all">{record.txt_name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="font-bold text-gray-700">Value</span>
+                        <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded break-all">{record.txt_value}</span>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <>
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
+                    <div className="flex justify-between mb-1">
+                      <span className="font-bold text-gray-700">Type</span>
+                      <span className="text-gray-900">CNAME (or ALIAS)</span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                      <span className="font-bold text-gray-700">Name</span>
+                      <span className="text-gray-900">@</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-bold text-gray-700">Value</span>
+                      <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">cname.masheasy.com</span>
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
+                    <div className="flex justify-between mb-1">
+                      <span className="font-bold text-gray-700">Type</span>
+                      <span className="text-gray-900">CNAME</span>
+                    </div>
+                    <div className="flex justify-between mb-1">
+                      <span className="font-bold text-gray-700">Name</span>
+                      <span className="text-gray-900">www</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-bold text-gray-700">Value</span>
+                      <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">cname.masheasy.com</span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
             
             <button className="w-full mt-6 flex items-center justify-center gap-2 text-sm font-bold text-[#5022C3] hover:text-[#401a9c] transition-colors">
