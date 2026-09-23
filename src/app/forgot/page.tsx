@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
       
       <div className="glass-panel w-full max-w-[440px] p-10">
         <div className="text-center mb-8 flex flex-col items-center">
-          <img src="/MEasy.png" alt="MashEasy" className="w-20 h-20 object-contain mb-4" />
+          <img src="/MEasy.png" alt="MASH ECO" className="w-20 h-20 object-contain mb-4" />
           <h2 className="text-3xl font-bold mb-2 bg-gradient-to-br from-[hsl(var(--text-primary))] to-[hsl(var(--text-secondary))] bg-clip-text text-transparent">
             {step === 1 ? 'Forgot Password' : 'Reset Password'}
           </h2>

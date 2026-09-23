@@ -1,4 +1,4 @@
-import { CheckCircle2, ShieldCheck, Zap, Repeat } from 'lucide-react';
+﻿import { CheckCircle2, ShieldCheck, Zap, Repeat } from 'lucide-react';
 
 const features = [
   {
@@ -33,7 +33,7 @@ export default function FeaturesSection() {
             Everything you need to succeed online
           </p>
           <p className="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
-            MashEasy provides all the tools required to build, manage, and scale your online business effectively.
+            MASH ECO provides all the tools required to build, manage, and scale your online business effectively.
           </p>
         </div>
 

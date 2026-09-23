@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -12,9 +12,9 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img src="/MEasy.png" alt="MashEasy" className="w-10 h-10 object-contain" />
+            <img src="/MEasy.png" alt="MASH ECO" className="w-10 h-10 object-contain" />
             <span className="text-xl font-bold text-black">
-              MashEasy
+              masheco
             </span>
           </Link>
 

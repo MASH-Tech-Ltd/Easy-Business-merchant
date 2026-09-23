@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -384,7 +384,7 @@ export default function DashboardLayout({
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-lg overflow-hidden">
-              <img src="/MEasy.png" alt="MashEasy" className="w-full h-full object-contain" />
+              <img src="/MEasy.png" alt="MASH ECO" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col">
               <h1 className="text-base font-bold text-gray-900 tracking-tight leading-tight">
@@ -472,7 +472,7 @@ export default function DashboardLayout({
         <div className="lg:hidden h-14 px-4 border-b border-gray-100 flex items-center justify-center bg-white flex-shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-md overflow-hidden">
-              <img src="/MEasy.png" alt="MashEasy" className="w-full h-full object-contain" />
+              <img src="/MEasy.png" alt="MASH ECO" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col items-center">
               <h1 className="text-sm font-bold text-gray-900 tracking-tight leading-none">

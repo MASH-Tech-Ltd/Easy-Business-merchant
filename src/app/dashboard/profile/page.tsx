@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -230,7 +230,7 @@ export default function ProfilePage() {
             <div className="text-white text-center md:text-left">
               <h1 className="text-4xl font-extrabold tracking-tight">{formData.storeName || 'Your Store'}</h1>
               <p className="text-indigo-200 mt-2 flex items-center justify-center md:justify-start gap-2 text-sm font-medium">
-                <Store className="w-4 h-4" /> MashEasy Merchant Dashboard
+                <Store className="w-4 h-4" /> MASH ECO Merchant Dashboard
               </p>
             </div>
           </div>
@@ -303,7 +303,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">Store Identity</h2>
-                  <p className="text-xs text-gray-500 font-medium">Public details for your MashEasy shop</p>
+                  <p className="text-xs text-gray-500 font-medium">Public details for your MASH ECO shop</p>
                 </div>
               </div>
               <div className="p-6 space-y-5">
@@ -313,7 +313,7 @@ export default function ProfilePage() {
                     name="storeName"
                     value={formData.storeName}
                     onChange={handleChange}
-                    placeholder="E.g. TechHaven MashEasy"
+                    placeholder="E.g. TechHaven MASH ECO"
                   />
                   <Input 
                     label="Tax / Registration ID" 
@@ -335,7 +335,7 @@ export default function ProfilePage() {
                   name="details"
                   value={formData.details}
                   onChange={handleChange}
-                  placeholder="Tell customers about your MashEasy specialties..."
+                  placeholder="Tell customers about your MASH ECO specialties..."
                   rows={4}
                 />
                 
@@ -410,7 +410,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">Operations & Policies</h2>
-                  <p className="text-xs text-gray-500 font-medium">Support info and MashEasy rules</p>
+                  <p className="text-xs text-gray-500 font-medium">Support info and MASH ECO rules</p>
                 </div>
               </div>
               <div className="p-6 space-y-8">
@@ -437,7 +437,7 @@ export default function ProfilePage() {
 
                 <div className="space-y-5">
                   <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2 border-b border-gray-100 pb-2">
-                    <Shield className="w-4 h-4 text-gray-400"/> MashEasy Policies
+                    <Shield className="w-4 h-4 text-gray-400"/> MASH ECO Policies
                   </h3>
                   <Select
                     label="Default Warranty"

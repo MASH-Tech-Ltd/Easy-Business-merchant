@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 const footerNavigation = {
   platform: [
@@ -34,8 +34,8 @@ export default function Footer() {
         <div className="xl:grid xl:grid-cols-3 xl:gap-8 mb-12">
           <div className="space-y-8 xl:col-span-1">
             <div className="flex items-center gap-2">
-              <img src="/MEasy.png" alt="MashEasy" className="w-10 h-10 object-contain" />
-              <span className="text-xl font-bold text-white">MashEasy</span>
+              <img src="/MEasy.png" alt="MASH ECO" className="w-10 h-10 object-contain" />
+              <span className="text-xl font-bold text-white">MASH ECO</span>
             </div>
             <p className="text-gray-400 text-sm max-w-xs">
               Making e-commerce simple, accessible, and powerful for businesses of all sizes.

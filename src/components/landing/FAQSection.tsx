@@ -1,12 +1,12 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 const faqs = [
   {
-    question: "What is MashEasy?",
-    answer: "MashEasy is a comprehensive multi-tenant e-commerce platform specifically optimized for electronics merchants to launch, manage, and scale their online business."
+    question: "What is masheco?",
+    answer: "MASH ECO is a comprehensive multi-tenant e-commerce platform specifically optimized for electronics merchants to launch, manage, and scale their online business."
   },
   {
     question: "How many products can I upload?",

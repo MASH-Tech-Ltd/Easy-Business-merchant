@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+﻿import { ReactNode } from 'react';
 import Link from 'next/link';
 
 export const contentMap: Record<string, ReactNode> = {
@@ -7,7 +7,7 @@ export const contentMap: Record<string, ReactNode> = {
       <div>
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Empowering Merchants Everywhere</h2>
         <p className="mb-4">
-          MashEasy was founded with a singular vision: to dismantle the technical barriers of e-commerce and empower entrepreneurs to build, scale, and manage their online businesses effortlessly. In today's digital-first economy, setting up a store shouldn't require a degree in computer science or a massive upfront investment in web development.
+          MASH ECO was founded with a singular vision: to dismantle the technical barriers of e-commerce and empower entrepreneurs to build, scale, and manage their online businesses effortlessly. In today's digital-first economy, setting up a store shouldn't require a degree in computer science or a massive upfront investment in web development.
         </p>
         <p>
           We provide a comprehensive, multi-tenant SaaS platform tailored specifically for modern merchants. From inventory management to courier automation, our suite of tools is designed to handle the heavy lifting, letting you focus on what matters most—delivering exceptional products to your customers.
@@ -42,7 +42,7 @@ export const contentMap: Record<string, ReactNode> = {
       <div>
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Build the Future of E-Commerce With Us</h2>
         <p>
-          At MashEasy, our team is our greatest asset. We are a group of passionate engineers, designers, and e-commerce enthusiasts dedicated to building the most intuitive merchant dashboard in the industry. We value innovation, transparency, and a relentless drive to solve complex problems for our users.
+          At MASH ECO, our team is our greatest asset. We are a group of passionate engineers, designers, and e-commerce enthusiasts dedicated to building the most intuitive merchant dashboard in the industry. We value innovation, transparency, and a relentless drive to solve complex problems for our users.
         </p>
       </div>
 
@@ -123,7 +123,7 @@ export const contentMap: Record<string, ReactNode> = {
           </div>
         </div>
       </div>
-      <p className="mt-8 text-sm italic">Don't see a perfect fit? Send your resume to <a href="mailto:careers@masheasy.com" className="text-[hsl(var(--accent-primary))] font-medium">careers@masheasy.com</a> and we'll keep you in mind.</p>
+      <p className="mt-8 text-sm italic">Don't see a perfect fit? Send your resume to <a href="mailto:careers@MASH ECO.com" className="text-[hsl(var(--accent-primary))] font-medium">careers@MASH ECO.com</a> and we'll keep you in mind.</p>
     </div>
   ),
   'contact': (
@@ -173,7 +173,7 @@ export const contentMap: Record<string, ReactNode> = {
       <div className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200 text-center">
         <div>
           <h4 className="font-bold text-gray-900 mb-1">Email</h4>
-          <p className="text-sm text-gray-600">support@masheasy.com</p>
+          <p className="text-sm text-gray-600">support@MASH ECO.com</p>
         </div>
         <div>
           <h4 className="font-bold text-gray-900 mb-1">Phone</h4>
@@ -190,7 +190,7 @@ export const contentMap: Record<string, ReactNode> = {
     <div className="space-y-6 text-left text-gray-700">
       <p className="text-sm text-gray-500 font-medium">Effective Date: {new Date().toLocaleDateString()}</p>
       
-      <p>Mash-Tech Ltd. ("MashEasy", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our platform or use our merchant dashboard services.</p>
+      <p>Mash-Tech Ltd. ("MASH ECO", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our platform or use our merchant dashboard services.</p>
 
       <h2 className="text-2xl font-bold text-gray-900 pt-4">1. Information We Collect</h2>
       <ul className="list-disc pl-6 space-y-2">
@@ -202,7 +202,7 @@ export const contentMap: Record<string, ReactNode> = {
       <h2 className="text-2xl font-bold text-gray-900 pt-4">2. How We Use Your Information</h2>
       <p>We use the collected information for various purposes, including:</p>
       <ul className="list-disc pl-6 space-y-2">
-        <li>To provide, operate, and maintain the MashEasy platform.</li>
+        <li>To provide, operate, and maintain the MASH ECO platform.</li>
         <li>To process transactions and send related information, including confirmations and invoices.</li>
         <li>To manage your custom domain settings and subscriptions.</li>
         <li>To monitor and analyze trends for our built-in analytics dashboard.</li>
@@ -221,10 +221,10 @@ export const contentMap: Record<string, ReactNode> = {
       <p className="text-sm text-gray-500 font-medium">Effective Date: {new Date().toLocaleDateString()}</p>
       
       <h2 className="text-2xl font-bold text-gray-900">1. Agreement to Terms</h2>
-      <p>By accessing or using the MashEasy platform, APIs, and merchant dashboard, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the service.</p>
+      <p>By accessing or using the MASH ECO platform, APIs, and merchant dashboard, you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the service.</p>
 
       <h2 className="text-2xl font-bold text-gray-900 pt-4">2. Description of Service</h2>
-      <p>MashEasy provides a multi-tenant SaaS e-commerce solution that allows merchants to create online storefronts, manage products, process orders, and utilize automated courier integrations. We reserve the right to modify, suspend, or discontinue any part of the service at any time.</p>
+      <p>MASH ECO provides a multi-tenant SaaS e-commerce solution that allows merchants to create online storefronts, manage products, process orders, and utilize automated courier integrations. We reserve the right to modify, suspend, or discontinue any part of the service at any time.</p>
 
       <h2 className="text-2xl font-bold text-gray-900 pt-4">3. Merchant Responsibilities</h2>
       <ul className="list-disc pl-6 space-y-2">
@@ -244,7 +244,7 @@ export const contentMap: Record<string, ReactNode> = {
   'cookie-policy': (
     <div className="space-y-6 text-left text-gray-700">
       <h2 className="text-2xl font-bold text-gray-900">Cookie Policy</h2>
-      <p>This Cookie Policy explains how MashEasy uses cookies and similar technologies to recognize you when you visit our platform.</p>
+      <p>This Cookie Policy explains how MASH ECO uses cookies and similar technologies to recognize you when you visit our platform.</p>
       
       <h3 className="text-xl font-bold text-gray-900 pt-2">What are cookies?</h3>
       <p>Cookies are small data files that are placed on your computer or mobile device when you visit a website. They are widely used to make websites work, or work more efficiently, as well as to provide reporting information.</p>
@@ -262,7 +262,7 @@ export const contentMap: Record<string, ReactNode> = {
     <div className="space-y-8 text-left text-gray-700">
       <div className="bg-[hsl(var(--accent-primary))]/5 border border-[hsl(var(--accent-primary))]/20 p-6 rounded-xl">
         <h2 className="text-2xl font-bold text-[hsl(var(--accent-primary))] mb-2">Platform Documentation</h2>
-        <p>Welcome to the MashEasy help center. Here you'll find comprehensive guides and tutorials to help you get the most out of your merchant dashboard.</p>
+        <p>Welcome to the MASH ECO help center. Here you'll find comprehensive guides and tutorials to help you get the most out of your merchant dashboard.</p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -274,7 +274,7 @@ export const contentMap: Record<string, ReactNode> = {
         
         <div className="border border-gray-200 p-6 rounded-xl hover:border-[hsl(var(--accent-primary))]/50 transition-colors cursor-pointer group">
           <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[hsl(var(--accent-primary))] transition-colors">Custom Domains</h3>
-          <p className="text-sm text-gray-600 mb-4">Step-by-step instructions for mapping your own custom domain to your MashEasy storefront.</p>
+          <p className="text-sm text-gray-600 mb-4">Step-by-step instructions for mapping your own custom domain to your MASH ECO storefront.</p>
           <span className="text-[hsl(var(--accent-primary))] text-sm font-medium">Read Guide &rarr;</span>
         </div>
         
@@ -375,7 +375,7 @@ export const contentMap: Record<string, ReactNode> = {
     <div className="space-y-8 text-left max-w-4xl mx-auto">
       <div className="text-center mb-8">
         <p className="text-lg text-gray-600">
-          See MashEasy in action. Schedule a 30-minute personalized walkthrough with one of our e-commerce experts and discover how we can help scale your business.
+          See MASH ECO in action. Schedule a 30-minute personalized walkthrough with one of our e-commerce experts and discover how we can help scale your business.
         </p>
       </div>
 

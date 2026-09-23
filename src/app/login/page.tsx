@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -54,9 +54,9 @@ export default function LoginPage() {
       
       <div className="glass-panel w-full max-w-[440px] p-10">
         <div className="text-center mb-8 flex flex-col items-center">
-          <img src="/MEasy.png" alt="MashEasy" className="w-20 h-20 object-contain mb-4" />
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-br from-[hsl(var(--text-primary))] to-[hsl(var(--text-secondary))] bg-clip-text text-transparent">Welcome to MashEasy</h2>
-          <p className="text-[hsl(var(--text-secondary))] text-[0.95rem]">Sign in to manage your MashEasy merchant store</p>
+          <img src="/MEasy.png" alt="MASH ECO" className="w-20 h-20 object-contain mb-4" />
+          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-br from-[hsl(var(--text-primary))] to-[hsl(var(--text-secondary))] bg-clip-text text-transparent">Welcome to masheco</h2>
+          <p className="text-[hsl(var(--text-secondary))] text-[0.95rem]">Sign in to manage your MASH ECO merchant store</p>
         </div>
         
         {error && (
