@@ -40,7 +40,7 @@ async function getPublicPackages(): Promise<IPackage[]> {
   try {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
     const res = await fetch(`${apiUrl}/packages/public-packages`, {
-      next: { revalidate: 3600 }, // ISR: revalidate every 1 hour
+      cache: 'no-store', // Always fetch fresh — package pricing changes must reflect immediately
     });
 
     if (!res.ok) {
