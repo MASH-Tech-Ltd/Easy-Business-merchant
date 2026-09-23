@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -26,10 +26,10 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/login" className="text-sm font-medium text-gray-700 hover:text-[hsl(var(--accent-primary))] transition-colors">
+            <Link href="/login" prefetch={false} className="text-sm font-medium text-gray-700 hover:text-[hsl(var(--accent-primary))] transition-colors">
               Merchant Login
             </Link>
-            <Link href="/register" className="btn-primary py-2 px-5 shadow-lg shadow-[hsl(var(--accent-primary))]/20 hover:shadow-[hsl(var(--accent-primary))]/40">
+            <Link href="/register" prefetch={false} className="btn-primary py-2 px-5 shadow-lg shadow-[hsl(var(--accent-primary))]/20 hover:shadow-[hsl(var(--accent-primary))]/40">
               Become a Merchant
             </Link>
           </div>
@@ -54,10 +54,10 @@ export default function Navbar() {
             <Link href="/landing/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-gray-700 hover:text-[hsl(var(--accent-primary))]">Contact</Link>
           </div>
           <div className="pt-4 border-t border-gray-100 flex flex-col space-y-4">
-            <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-gray-700 hover:text-[hsl(var(--accent-primary))]">
+            <Link href="/login" prefetch={false} onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-gray-700 hover:text-[hsl(var(--accent-primary))]">
               Merchant Login
             </Link>
-            <Link href="/register" onClick={() => setIsMobileMenuOpen(false)} className="w-full btn-primary py-3 px-5 text-center">
+            <Link href="/register" prefetch={false} onClick={() => setIsMobileMenuOpen(false)} className="w-full btn-primary py-3 px-5 text-center">
               Become a Merchant
             </Link>
           </div>

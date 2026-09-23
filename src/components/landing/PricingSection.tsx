@@ -188,6 +188,7 @@ export default function PricingSection({ packages }: PricingSectionProps) {
                   {/* CTA */}
                   <Link
                     href={href}
+                    prefetch={false}
                     className={`mt-auto w-full text-center py-3 px-6 rounded-xl font-semibold text-sm transition-all duration-200 ${
                       featured
                         ? 'bg-[hsl(var(--accent-primary))] text-white hover:opacity-90 shadow-lg shadow-[hsl(var(--accent-primary))]/30'
