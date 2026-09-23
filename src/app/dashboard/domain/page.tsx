@@ -10,6 +10,22 @@ export default function DomainManagementPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [customDomain, setCustomDomain] = useState('');
+  const [showRetry, setShowRetry] = useState(false);
+
+  useEffect(() => {
+    if (store?.domainStatus === 'pending' && store?.updatedAt) {
+      const timeDiff = Date.now() - new Date(store.updatedAt).getTime();
+      const twoMinutes = 2 * 60 * 1000;
+      if (timeDiff >= twoMinutes) {
+        setShowRetry(true);
+      } else {
+        const timer = setTimeout(() => setShowRetry(true), twoMinutes - timeDiff);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      setShowRetry(false);
+    }
+  }, [store]);
 
   useEffect(() => {
     fetchStoreInfo();
@@ -126,17 +142,32 @@ export default function DomainManagementPage() {
                 </div>
 
                 {store?.customDomain && (
-                  <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl shadow-sm">
+                  <div className={`flex items-center justify-between p-4 border rounded-xl shadow-sm ${store.domainStatus === 'active' ? 'bg-green-50 border-green-200' : store.domainStatus === 'failed' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
-                        <Clock className="w-5 h-5" />
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${store.domainStatus === 'active' ? 'bg-green-100 text-green-600' : store.domainStatus === 'failed' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'}`}>
+                        {store.domainStatus === 'active' ? <CheckCircle2 className="w-5 h-5" /> : store.domainStatus === 'failed' ? <AlertCircle className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
                       </div>
                       <div>
-                        <p className="font-bold text-amber-900">{store.customDomain}</p>
-                        <p className="text-xs text-amber-700/70">Verifying DNS Records (Auto-provisioning SSL)</p>
+                        <p className={`font-bold ${store.domainStatus === 'active' ? 'text-green-900' : store.domainStatus === 'failed' ? 'text-red-900' : 'text-amber-900'}`}>{store.customDomain}</p>
+                        <p className={`text-xs ${store.domainStatus === 'active' ? 'text-green-700/70' : store.domainStatus === 'failed' ? 'text-red-700/70' : 'text-amber-700/70'}`}>
+                          {store.domainStatus === 'active' ? 'SSL Active and Connected' : store.domainStatus === 'failed' ? 'Verification Failed. Please check DNS.' : 'Verifying DNS Records (Auto-provisioning SSL)'}
+                        </p>
                       </div>
                     </div>
-                    <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-full border border-amber-200">Connecting</span>
+                    <div className="flex items-center gap-2">
+                      {store.domainStatus === 'pending' && showRetry && (
+                        <button 
+                          onClick={handleSave} 
+                          disabled={saving}
+                          className="px-3 py-1 bg-white hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-full border border-gray-200 transition-colors shadow-sm disabled:opacity-50"
+                        >
+                          {saving ? 'Retrying...' : 'Retry'}
+                        </button>
+                      )}
+                      <span className={`px-3 py-1 text-xs font-bold rounded-full border ${store.domainStatus === 'active' ? 'bg-green-100 text-green-800 border-green-200' : store.domainStatus === 'failed' ? 'bg-red-100 text-red-800 border-red-200' : 'bg-amber-100 text-amber-800 border-amber-200'}`}>
+                        {store.domainStatus === 'active' ? 'Connected' : store.domainStatus === 'failed' ? 'Failed' : 'Connecting'}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -198,10 +229,12 @@ export default function DomainManagementPage() {
                 </>
               ) : (
                 <>
-                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm mb-4">
+                    <p className="font-bold text-gray-800 mb-2">Step 1: Add Root CNAME (or CNAME Flattening)</p>
+                    <p className="text-gray-600 text-xs mb-3">Add a new CNAME record for your root domain. If your DNS provider does not support root CNAMEs, use an ALIAS or ANAME record instead.</p>
                     <div className="flex justify-between mb-1">
                       <span className="font-bold text-gray-700">Type</span>
-                      <span className="text-gray-900">CNAME (or ALIAS)</span>
+                      <span className="text-gray-900">CNAME (or ALIAS/ANAME)</span>
                     </div>
                     <div className="flex justify-between mb-1">
                       <span className="font-bold text-gray-700">Name</span>
@@ -209,11 +242,13 @@ export default function DomainManagementPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-bold text-gray-700">Value</span>
-                      <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">cname.masheasy.com</span>
+                      <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">merchant.masheco.com</span>
                     </div>
                   </div>
                   
                   <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
+                    <p className="font-bold text-gray-800 mb-2">Step 2: Update WWW Record</p>
+                    <p className="text-gray-600 text-xs mb-3">Add or update the CNAME record for 'www' to point to our servers.</p>
                     <div className="flex justify-between mb-1">
                       <span className="font-bold text-gray-700">Type</span>
                       <span className="text-gray-900">CNAME</span>
@@ -224,7 +259,7 @@ export default function DomainManagementPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-bold text-gray-700">Value</span>
-                      <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">cname.masheasy.com</span>
+                      <span className="text-gray-900 font-mono bg-white px-2 py-0.5 border rounded">merchant.masheco.com</span>
                     </div>
                   </div>
                 </>
