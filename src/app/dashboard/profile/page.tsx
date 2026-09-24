@@ -101,6 +101,10 @@ export default function ProfilePage() {
   };
 
   const handleImageChange = (file: File | null) => {
+    if (file && file.size > 10 * 1024 * 1024) {
+      toast.error('Avatar image size must be less than 10MB');
+      return;
+    }
     setImageFile(file);
     if (file) {
       const url = URL.createObjectURL(file);
@@ -113,6 +117,13 @@ export default function ProfilePage() {
   const handleStoreLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Store Logo size must be less than 10MB');
+        if (storeLogoInputRef.current) {
+          storeLogoInputRef.current.value = '';
+        }
+        return;
+      }
       setStoreLogo(file);
       const reader = new FileReader();
       reader.onloadend = () => {
