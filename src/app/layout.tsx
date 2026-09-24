@@ -6,10 +6,12 @@ import { Toaster } from 'react-hot-toast';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
+  applicationName: 'MASH ECO',
   title: process.env.NEXT_PUBLIC_PLATFORM_NAME ? `${process.env.NEXT_PUBLIC_PLATFORM_NAME} | Merchant Hub` : 'Merchant Dashboard | Multi-Tenant SaaS',
   description: 'Premium merchant dashboard for managing your SaaS store.',
   icons: {
-    icon: '/MEasy.png'
+    icon: '/MEasy.png',
+    apple: '/MEasy.png',
   }
 };
 

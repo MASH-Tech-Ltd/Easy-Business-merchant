@@ -11,17 +11,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .join(' ');
 
   return {
-    title: `${title} | MashEasy`,
-    description: `Read about MashEasy's ${title}. Launch, manage, and scale your electronics online business with our multi-tenant e-commerce platform.`,
+    title: `${title} | MASH ECO`,
+    description: `Read about MashEco's ${title}. Launch, manage, and scale your online business with our multi-tenant e-commerce platform.`,
+    icons: {
+      icon: '/MEasy.png',
+      apple: '/MEasy.png',
+    },
     openGraph: {
-      title: `${title} | MashEasy`,
-      description: `Read about MashEasy's ${title}. Launch, manage, and scale your electronics online business.`,
-      url: `https://www.masheasy.com/landing/${slug}`,
-      siteName: 'MashEasy',
+      title: `${title} | MASH ECO`,
+      description: `Read about MashEco's ${title}. Launch, manage, and scale your online business.`,
+      url: `https://www.masheco.com/landing/${slug}`,
+      siteName: 'MASH ECO',
       type: 'website',
     },
     alternates: {
-      canonical: `https://www.masheasy.com/landing/${slug}`,
+      canonical: `https://www.masheco.com/landing/${slug}`,
     }
   };
 }

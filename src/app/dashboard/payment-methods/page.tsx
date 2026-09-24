@@ -14,11 +14,13 @@ interface ManualPaymentMethod {
   isActive: boolean;
 }
 
+let globalStoreCache: any = null;
+
 export default function PaymentMethodsPage() {
-  const [store, setStore] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [store, setStore] = useState<any>(globalStoreCache);
+  const [loading, setLoading] = useState(!globalStoreCache);
   const [saving, setSaving] = useState(false);
-  const [methods, setMethods] = useState<ManualPaymentMethod[]>([]);
+  const [methods, setMethods] = useState<ManualPaymentMethod[]>(globalStoreCache?.settings?.manualPaymentMethods || []);
 
   useEffect(() => {
     fetchStoreInfo();
@@ -28,12 +30,13 @@ export default function PaymentMethodsPage() {
     try {
       const res = await api.get('/tenants/my-store');
       if (res.data?.data) {
+        globalStoreCache = res.data.data;
         setStore(res.data.data);
         const settings = res.data.data.settings || {};
         if (settings.manualPaymentMethods) {
           setMethods(settings.manualPaymentMethods);
-        } else {
-          // Add a default empty method if none exist
+        } else if (!globalStoreCache) {
+          // Add a default empty method if none exist and no cache yet
           handleAddMethod();
         }
       }
@@ -104,18 +107,10 @@ export default function PaymentMethodsPage() {
 
   return (
     <div className="p-6 w-full max-w-[1000px] mx-auto min-h-[calc(100vh-64px)]">
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2 mb-2">
-            <Banknote className="w-6 h-6 text-[#5022C3]" /> Manual Payment Methods
-          </h1>
-          <p className="text-gray-500">
-            Configure mobile banking and manual payment options for your customers. These details will be shown to customers after they place an order.
-          </p>
-        </div>
+      <div className="mb-6 flex justify-end">
         <button
           onClick={handleAddMethod}
-          className="bg-white border-2 border-[#5022C3] text-[#5022C3] hover:bg-purple-50 px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2"
+          className="bg-white border-2 border-[#5022C3] text-[#5022C3] hover:bg-purple-50 px-4 py-2 rounded-xl font-bold transition-all flex items-center gap-2 shadow-sm"
         >
           <Plus className="w-5 h-5" /> Add Method
         </button>

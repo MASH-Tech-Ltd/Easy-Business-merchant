@@ -7,12 +7,16 @@ import Footer from '@/components/landing/Footer';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'MASH ECO | Electronics Multi-Tenant E-Commerce Platform',
-  description: 'Launch your electronics e-commerce store with MASH ECO. We offer authentic seller verification, courier automation, advanced fraud checks, and premium themes.',
+  title: 'MASH ECO | E-Commerce Platform',
+  description: 'Launch your business e-commerce store with MASH ECO. We offer authentic seller verification, courier automation, advanced fraud checks, and premium themes.',
+  icons: {
+    icon: '/MEasy.png',
+    apple: '/MEasy.png',
+  },
   openGraph: {
-    title: 'MASH ECO - Premium Electronics E-Commerce Platform',
-    description: 'Scale your electronics business online with zero coding. Unlimited products, custom domains, and built-in addons.',
-    url: 'https://www.MASH ECO.com',
+    title: 'MASH ECO - Premium Business E-Commerce Platform',
+    description: 'Scale your business online with zero coding. Unlimited products, custom domains, and built-in addons.',
+    url: 'https://www.masheco.com',
     siteName: 'MASH ECO',
     images: [
       {
@@ -27,12 +31,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MASH ECO - E-Commerce for Electronics',
-    description: 'Launch and scale your electronics store today. Zero coding required.',
+    title: 'MASH ECO - E-Commerce Platform',
+    description: 'Launch and scale your store today. Zero coding required.',
     images: ['https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'],
   },
   alternates: {
-    canonical: 'https://www.MASH ECO.com',
+    canonical: 'https://www.masheco.com',
   },
 };
 
@@ -72,7 +76,14 @@ export default async function LandingPage() {
       price: pkg.price.toString(),
       priceCurrency: 'BDT',
     })),
-    description: 'A comprehensive multi-tenant e-commerce platform specifically optimized for electronics merchants.',
+    description: 'A comprehensive multi-tenant e-commerce platform specifically optimized for merchants.',
+  };
+
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'MASH ECO',
+    url: 'https://www.masheco.com/',
   };
 
   return (
@@ -80,6 +91,10 @@ export default async function LandingPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
       />
       <Navbar />
       

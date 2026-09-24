@@ -17,7 +17,7 @@ export default function HeroSection() {
           </span>
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-base sm:text-xl text-gray-600 mb-8 sm:mb-10">
-          Your one-stop shop to take your electronics business online. Setup your multi-tenant e-commerce store with just a few clicks. No coding required.
+          Your one-stop shop to take your business online. Setup your business e-commerce store with just a few clicks. No coding required.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

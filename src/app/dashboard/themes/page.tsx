@@ -24,15 +24,23 @@ const availableThemes = [
   { id: 'design-05', name: 'Design 05 (Premium)', color: '#ffffff', textColor: '#000000', accent: '#000000' },
 ];
 
+// Global cache for instant UI rendering during client navigation
+let globalThemeCache: any = null;
+
 export default function ThemesPage() {
-  const [activeTheme, setActiveTheme] = useState('design-01');
-  const [savedTheme, setSavedTheme] = useState('design-01');
-  const [primaryColor, setPrimaryColor] = useState('#5022C3');
-  const [buttonColors, setButtonColors] = useState({ addToCart: '', buyNow: '' });
-  const [fontFamily, setFontFamily] = useState('Inter');
-  const [language, setLanguage] = useState('en');
-  const [currencySymbol, setCurrencySymbol] = useState('৳');
-  const [footer, setFooter] = useState({
+  const [activeTheme, setActiveTheme] = useState(globalThemeCache?.activeTheme || 'design-01');
+  const [savedTheme, setSavedTheme] = useState(globalThemeCache?.savedTheme || 'design-01');
+  const [primaryColor, setPrimaryColor] = useState(globalThemeCache?.primaryColor || '#5022C3');
+  const [buttonColors, setButtonColors] = useState(globalThemeCache?.buttonColors || { addToCart: '', buyNow: '' });
+  const [fontFamily, setFontFamily] = useState(globalThemeCache?.fontFamily || 'Inter');
+  const [language, setLanguage] = useState(globalThemeCache?.language || 'en');
+  const [currencySymbol, setCurrencySymbol] = useState(globalThemeCache?.currencySymbol || '৳');
+  const [footer, setFooter] = useState<{
+    socialLinks: { facebook: string; youtube: string; tiktok: string };
+    contactInfo: { email: string; phone: string; address: string };
+    policies: { aboutUs: string; privacyPolicy: string; termsAndConditions: string; returnPolicy: string };
+    copyrightText: string;
+  }>(globalThemeCache?.footer || {
     socialLinks: { facebook: '', youtube: '', tiktok: '' },
     contactInfo: { email: '', phone: '', address: '' },
     policies: { aboutUs: '', privacyPolicy: '', termsAndConditions: '', returnPolicy: '' },
@@ -45,7 +53,7 @@ export default function ThemesPage() {
     buttonText: string;
     buttonLink: string;
     image: any;
-  }>({
+  }>(globalThemeCache?.banner || {
     title: '',
     subtitle: '',
     description: '',
@@ -54,17 +62,17 @@ export default function ThemesPage() {
     image: null
   });
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
-  const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(null);
+  const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(globalThemeCache?.bannerPreviewUrl || null);
   
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!globalThemeCache);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('template');
   const [activePolicyTab, setActivePolicyTab] = useState<string>('aboutUs');
 
   // Shipping zones state
   interface ShippingZone { name: string; cost: number; division: string; districts: string[]; }
-  const [defaultShippingCost, setDefaultShippingCost] = useState(120);
-  const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
+  const [defaultShippingCost, setDefaultShippingCost] = useState(globalThemeCache?.defaultShippingCost ?? 120);
+  const [shippingZones, setShippingZones] = useState<ShippingZone[]>(globalThemeCache?.shippingZones || []);
   const [newZone, setNewZone] = useState<ShippingZone>({ name: '', cost: 0, division: '', districts: [] });
   const [newZoneDistrictsList, setNewZoneDistrictsList] = useState<string[]>([]);
 
@@ -73,12 +81,14 @@ export default function ThemesPage() {
   }, []);
 
   const fetchTheme = async () => {
+    if (!globalThemeCache) setLoading(true);
     try {
       const res = await api.get('/themes/my-theme');
       const themeData = res.data.data;
       if (themeData) {
+        let dbTheme = 'design-01';
         if (themeData.themeId) {
-          const dbTheme = themeData.themeId === 'light' ? 'design-01' : themeData.themeId;
+          dbTheme = themeData.themeId === 'light' ? 'design-01' : themeData.themeId;
           setActiveTheme(dbTheme);
           setSavedTheme(dbTheme);
         }
@@ -94,40 +104,62 @@ export default function ThemesPage() {
         if (themeData.currencySymbol) setCurrencySymbol(themeData.currencySymbol);
         if (Array.isArray(themeData.shippingZones)) setShippingZones(themeData.shippingZones);
         if (themeData.defaultShippingCost !== undefined) setDefaultShippingCost(themeData.defaultShippingCost);
-        if (themeData.footer) {
-          setFooter({
+        
+        const newFooter = {
             socialLinks: {
-              facebook: themeData.footer.socialLinks?.facebook || '',
-              youtube: themeData.footer.socialLinks?.youtube || '',
-              tiktok: themeData.footer.socialLinks?.tiktok || '',
+              facebook: themeData.footer?.socialLinks?.facebook || '',
+              youtube: themeData.footer?.socialLinks?.youtube || '',
+              tiktok: themeData.footer?.socialLinks?.tiktok || '',
             },
             contactInfo: {
-              email: themeData.footer.contactInfo?.email || '',
-              phone: themeData.footer.contactInfo?.phone || '',
-              address: themeData.footer.contactInfo?.address || '',
+              email: themeData.footer?.contactInfo?.email || '',
+              phone: themeData.footer?.contactInfo?.phone || '',
+              address: themeData.footer?.contactInfo?.address || '',
             },
             policies: {
-              aboutUs: themeData.footer.policies?.aboutUs || '',
-              privacyPolicy: themeData.footer.policies?.privacyPolicy || '',
-              termsAndConditions: themeData.footer.policies?.termsAndConditions || '',
-              returnPolicy: themeData.footer.policies?.returnPolicy || '',
+              aboutUs: themeData.footer?.policies?.aboutUs || '',
+              privacyPolicy: themeData.footer?.policies?.privacyPolicy || '',
+              termsAndConditions: themeData.footer?.policies?.termsAndConditions || '',
+              returnPolicy: themeData.footer?.policies?.returnPolicy || '',
             },
-            copyrightText: themeData.footer.copyrightText || '',
-          });
+            copyrightText: themeData.footer?.copyrightText || '',
+        };
+        setFooter(newFooter);
+
+        const newBanner = {
+            title: themeData.banner?.title || '',
+            subtitle: themeData.banner?.subtitle || '',
+            description: themeData.banner?.description || '',
+            buttonText: themeData.banner?.buttonText || '',
+            buttonLink: themeData.banner?.buttonLink || '',
+            image: themeData.banner?.image || null
+        };
+        setBanner(newBanner);
+        
+        let newBannerUrl = null;
+        if (themeData.banner?.image?.secure_url) {
+          newBannerUrl = themeData.banner.image.secure_url;
+          setBannerPreviewUrl(newBannerUrl);
         }
-        if (themeData.banner) {
-          setBanner({
-            title: themeData.banner.title || '',
-            subtitle: themeData.banner.subtitle || '',
-            description: themeData.banner.description || '',
-            buttonText: themeData.banner.buttonText || '',
-            buttonLink: themeData.banner.buttonLink || '',
-            image: themeData.banner.image || null
-          });
-          if (themeData.banner.image?.secure_url) {
-            setBannerPreviewUrl(themeData.banner.image.secure_url);
-          }
-        }
+
+        // Save to global cache
+        globalThemeCache = {
+          activeTheme: dbTheme,
+          savedTheme: dbTheme,
+          primaryColor: themeData.primaryColor || '#5022C3',
+          buttonColors: {
+            addToCart: themeData.buttonColors?.addToCart || '',
+            buyNow: themeData.buttonColors?.buyNow || ''
+          },
+          fontFamily: themeData.fontFamily || 'Inter',
+          language: themeData.language || 'en',
+          currencySymbol: themeData.currencySymbol || '৳',
+          footer: newFooter,
+          banner: newBanner,
+          bannerPreviewUrl: newBannerUrl,
+          defaultShippingCost: themeData.defaultShippingCost ?? 120,
+          shippingZones: Array.isArray(themeData.shippingZones) ? themeData.shippingZones : []
+        };
       }
     } catch (error) {
       console.error('Error fetching theme', error);
@@ -171,7 +203,7 @@ export default function ThemesPage() {
   };
 
   const updateFooter = (section: 'socialLinks' | 'contactInfo' | 'policies', field: string, value: string) => {
-    setFooter(prev => ({
+    setFooter((prev: any) => ({
       ...prev,
       [section]: {
         ...prev[section],

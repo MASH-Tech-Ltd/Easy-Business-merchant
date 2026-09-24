@@ -14,7 +14,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <img src="/MEasy.png" alt="MASH ECO" className="w-10 h-10 object-contain" />
             <span className="text-xl font-bold text-black">
-              masheco
+              MASH ECO
             </span>
           </Link>
 

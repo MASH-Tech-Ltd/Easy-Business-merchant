@@ -5,9 +5,11 @@ import { Key, Save, Mail, CreditCard, Eye, EyeOff, ShieldCheck } from 'lucide-re
 import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
 
+let globalStoreCache: any = null;
+
 export default function ApiKeysPage() {
-  const [store, setStore] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [store, setStore] = useState<any>(globalStoreCache);
+  const [loading, setLoading] = useState(!globalStoreCache);
   const [saving, setSaving] = useState(false);
   
   // Key Visibility States
@@ -16,9 +18,9 @@ export default function ApiKeysPage() {
   const [showStripeSecret, setShowStripeSecret] = useState(false);
 
   // Form States
-  const [sendgridKey, setSendgridKey] = useState('');
-  const [stripePublishableKey, setStripePublishableKey] = useState('');
-  const [stripeSecretKey, setStripeSecretKey] = useState('');
+  const [sendgridKey, setSendgridKey] = useState(globalStoreCache?.settings?.sendgridApiKey || '');
+  const [stripePublishableKey, setStripePublishableKey] = useState(globalStoreCache?.settings?.stripePublishableKey || '');
+  const [stripeSecretKey, setStripeSecretKey] = useState(globalStoreCache?.settings?.stripeSecretKey || '');
 
   useEffect(() => {
     fetchStoreInfo();
@@ -28,6 +30,7 @@ export default function ApiKeysPage() {
     try {
       const res = await api.get('/tenants/my-store');
       if (res.data?.data) {
+        globalStoreCache = res.data.data;
         setStore(res.data.data);
         const settings = res.data.data.settings || {};
         setSendgridKey(settings.sendgridApiKey || '');
@@ -74,16 +77,7 @@ export default function ApiKeysPage() {
 
   return (
     <div className="p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)]">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2 mb-2">
-          <Key className="w-6 h-6 text-[#5022C3]" /> API Keys & Integrations
-        </h1>
-        <p className="text-gray-500">
-          Manage your third-party integrations securely. These keys allow your store to send emails and process payments.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
         <div className="lg:col-span-2 space-y-6">
           <form onSubmit={handleSave} className="space-y-6">
             

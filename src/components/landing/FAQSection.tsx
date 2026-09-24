@@ -3,22 +3,22 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
-const faqs = [
+const faqs: { question: string; answer: React.ReactNode }[] = [
   {
     question: "What is masheco?",
-    answer: "MASH ECO is a comprehensive multi-tenant e-commerce platform specifically optimized for electronics merchants to launch, manage, and scale their online business."
+    answer: "MASH ECO is a comprehensive multi-tenant e-commerce platform specifically optimized for merchants to launch, manage, and scale their online business."
   },
   {
     question: "How many products can I upload?",
-    answer: "Our plans are designed to scale with you: Free Plan (50 products), Basic (100 products), Premium (200 products), and Enterprise (up to 500 products)."
+    answer: "Our plans are designed to scale perfectly with your business. Depending on the tier you choose, you can easily upload and manage anywhere from 1 up to 1500 products. You always have the flexibility to upgrade your plan at any time as your inventory grows."
   },
   {
     question: "What addons are available for my store?",
-    answer: "We offer powerful addons through our dashboard including Abandoned Checkout recovery (9.99), Fraud Check (19.99), SMS Notifications (14.99), and Courier Automation (39.99)."
+    answer: "We offer a suite of powerful addons built directly into your dashboard to help automate and secure your business. You can instantly enable tools like Abandoned Checkout Recovery to boost sales, automated Fraud Checks for secure payments, instant SMS Notifications for your customers, and full Courier Automation for seamless shipping."
   },
   {
     question: "Do you offer yearly billing?",
-    answer: "Yes! All of our packages (Basic, Premium, Enterprise) have discounted yearly billing options available in your dashboard."
+    answer: "Yes! All of our packages (Basic, Standard, Premium) have discounted yearly billing options available in your dashboard."
   },
   {
     question: "Can I track my store's performance?",
@@ -68,9 +68,9 @@ export default function FAQSection() {
               <div 
                 className={`px-4 sm:px-6 overflow-hidden transition-all duration-300 ease-in-out ${openIndex === index ? 'max-h-96 pb-4 sm:pb-5 opacity-100' : 'max-h-0 opacity-0'}`}
               >
-                <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+                <div className="text-gray-600 leading-relaxed text-sm sm:text-base">
                   {faq.answer}
-                </p>
+                </div>
               </div>
             </div>
           ))}

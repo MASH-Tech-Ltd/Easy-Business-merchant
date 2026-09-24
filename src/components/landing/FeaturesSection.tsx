@@ -8,7 +8,7 @@ const features = [
   },
   {
     name: 'Advanced Fraud Check',
-    description: 'Protect your electronics store with advanced fraud detection for your orders.',
+    description: 'Protect your store with advanced fraud detection for your orders.',
     icon: ShieldCheck,
   },
   {

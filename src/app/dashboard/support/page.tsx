@@ -7,9 +7,11 @@ import toast from 'react-hot-toast';
 import { api } from '@/utils/api';
 import { io } from 'socket.io-client';
 
+let globalTicketsCache: any[] = [];
+
 export default function SupportPage() {
-  const [tickets, setTickets] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [tickets, setTickets] = useState<any[]>(globalTicketsCache);
+  const [loading, setLoading] = useState(globalTicketsCache.length === 0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTicket, setNewTicket] = useState({ subject: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
@@ -47,6 +49,7 @@ export default function SupportPage() {
   const fetchTickets = async () => {
     try {
       const res = await api.get('/support/my-tickets');
+      globalTicketsCache = res.data.data;
       setTickets(res.data.data);
     } catch (error) {
       toast.error('Failed to load tickets');
@@ -87,14 +90,7 @@ export default function SupportPage() {
 
   return (
     <div className="p-6 w-full max-w-[1800px] mx-auto min-h-screen">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <LifeBuoy className="w-6 h-6 text-[#5022C3]" />
-            Support
-          </h1>
-          <p className="text-gray-500 mt-1">Contact the super admin for assistance with your store.</p>
-        </div>
+      <div className="flex justify-end mb-6">
         <button
           onClick={() => setIsModalOpen(true)}
           className="bg-[#5022C3] text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 hover:bg-purple-700 transition-colors font-medium text-sm shadow-sm shadow-purple-200 w-full sm:w-auto"

@@ -3,7 +3,7 @@ import Link from 'next/link';
 const footerNavigation = {
   platform: [
     { name: 'About Us', href: '/landing/about-us' },
-    { name: 'Careers', href: '/landing/careers' },
+    // { name: 'Careers', href: '/landing/careers' },
     { name: 'Blog', href: '/landing/blog' },
     { name: 'Contact', href: '/landing/contact' },
   ],
@@ -11,7 +11,7 @@ const footerNavigation = {
     { name: 'Become a Partner', href: '/register' },
     { name: 'Merchant Login', href: '/login' },
     { name: 'Documentation', href: '/landing/documentation' },
-    { name: 'API Reference', href: '/landing/api-reference' },
+    // { name: 'API Reference', href: '/landing/api-reference' },
   ],
   legal: [
     { name: 'Privacy Policy', href: '/landing/privacy-policy' },
@@ -90,10 +90,12 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-gray-800 pt-6 sm:pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-          <p className="text-sm sm:text-base text-gray-400">
-            &copy; {new Date().getFullYear()} MashTech . All rights reserved.
+          <p className="text-sm text-gray-400">
+            &copy; {new Date().getFullYear()} Mash Eco. All rights reserved.
           </p>
-          <div className="flex space-x-6 text-sm text-gray-400">
+          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-400">
+            <span className="font-medium">A product of <span className="text-white">Mash Tech</span></span>
+            <span className="hidden sm:inline-block text-gray-600">•</span>
             <span>Made with ❤️ for merchants</span>
           </div>
         </div>

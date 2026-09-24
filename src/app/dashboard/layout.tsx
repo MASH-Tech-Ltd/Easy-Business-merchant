@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -7,15 +7,17 @@ import {
   LayoutDashboard, ShoppingBag, Package, ListTree, Users, Truck,
   Store, BarChart2, Palette, Paintbrush, LayoutTemplate, Smartphone, 
   Star, Tag, BadgeCheck, RefreshCw, Boxes, UserCog, CreditCard,
-  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, Menu, X, Banknote
+  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, Menu, X, Banknote, Bell
 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { api } from '@/utils/api';
 import NotificationBell from '@/components/NotificationBell';
 
-const Badge = ({ children, type = 'NEW' }: { children: React.ReactNode, type?: 'NEW' | 'BETA' }) => (
+const Badge = ({ children, type = 'NEW' }: { children: React.ReactNode, type?: 'NEW' | 'BETA' | 'COUNT' | 'OPEN' }) => (
   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ml-auto ${
-    type === 'BETA' ? 'bg-purple-100 text-purple-700' : 'bg-[#5022C3] text-white'
+    type === 'BETA' ? 'bg-purple-100 text-purple-700' : 
+    type === 'COUNT' ? 'bg-red-500 text-white rounded-full px-2' :
+    'bg-[#5022C3] text-white'
   }`}>
     {children}
   </span>
@@ -144,6 +146,15 @@ export default function DashboardLayout({
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
   const [openTicketsCount, setOpenTicketsCount] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  useEffect(() => {
+    const handleNotificationUpdate = (e: any) => {
+      setUnreadNotifications(e.detail);
+    };
+    window.addEventListener('notificationCountUpdate', handleNotificationUpdate);
+    return () => window.removeEventListener('notificationCountUpdate', handleNotificationUpdate);
+  }, []);
   
   // Close sidebar when route changes on mobile
   useEffect(() => {
@@ -292,6 +303,13 @@ export default function DashboardLayout({
         { name: 'Courier', path: '/dashboard/courier-automation', icon: Truck, badge: 'BETA' },
         { name: 'Fraud Check', path: '/dashboard/fraud-check', icon: ShieldCheck, badge: 'BETA' },
         { name: 'Checkout Leads', path: '/dashboard/checkout-leads', icon: Users, badge: 'BETA' },
+        { 
+          name: 'Notifications', 
+          path: '/dashboard/notifications', 
+          icon: Bell, 
+          badge: unreadNotifications > 0 ? (unreadNotifications > 99 ? '99+' : String(unreadNotifications)) : undefined, 
+          badgeType: 'COUNT' 
+        },
       ]
     },
     {
@@ -500,6 +518,12 @@ export default function DashboardLayout({
                   pathname === '/dashboard/products' ? 'Products Management' : 
                   pathname === '/dashboard/categories' ? 'Categories Management' : 
                   pathname === '/dashboard/customers' ? 'Customers Management' : 
+                  pathname === '/dashboard/notifications' ? 'Notifications' : 
+                  pathname === '/dashboard/payment-methods' ? 'Payment Methods' : 
+                  pathname === '/dashboard/api-keys' ? 'API Keys & Integrations' : 
+                  pathname === '/dashboard/domain' ? 'Domain Management' : 
+                  pathname === '/dashboard/analytics' ? 'Analytics' : 
+                  pathname === '/dashboard/support' ? 'Support' : 
                   'Dashboard'}
                </h2>
                {pathname !== '/dashboard' && (
@@ -510,6 +534,12 @@ export default function DashboardLayout({
                   pathname === '/dashboard/customers' ? 'Manage your customer relationships' : 
                   pathname === '/dashboard/courier-automation' ? 'Automate courier integration and shipments' : 
                   pathname === '/dashboard/fraud-check' ? 'Monitor orders for fraud detection' : 
+                  pathname === '/dashboard/notifications' ? "Stay updated with your store's activity (auto-clears after 30 days)" : 
+                  pathname === '/dashboard/payment-methods' ? 'Configure mobile banking and manual payment options for your customers' : 
+                  pathname === '/dashboard/api-keys' ? 'Manage your third-party integrations securely. These keys allow your store to send emails and process payments.' : 
+                  pathname === '/dashboard/domain' ? 'Enter your custom domain below and configure your DNS. Our system will automatically verify the records and issue a free SSL certificate.' : 
+                  pathname === '/dashboard/analytics' ? "Track your store's performance" : 
+                  pathname === '/dashboard/support' ? 'Contact the super admin for assistance with your store.' : 
                   ''}
                </p>
              )}

@@ -1,5 +1,6 @@
-﻿import { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import Link from 'next/link';
+import ContactForm from '@/components/landing/ContactForm';
 
 export const contentMap: Record<string, ReactNode> = {
   'about-us': (
@@ -123,7 +124,7 @@ export const contentMap: Record<string, ReactNode> = {
           </div>
         </div>
       </div>
-      <p className="mt-8 text-sm italic">Don't see a perfect fit? Send your resume to <a href="mailto:careers@MASH ECO.com" className="text-[hsl(var(--accent-primary))] font-medium">careers@MASH ECO.com</a> and we'll keep you in mind.</p>
+      <p className="mt-8 text-sm italic">Don't see a perfect fit? Send your resume to <a href="mailto:info@masheco.com" className="text-[hsl(var(--accent-primary))] font-medium">info@masheco.com</a> and we'll keep you in mind.</p>
     </div>
   ),
   'contact': (
@@ -134,54 +135,20 @@ export const contentMap: Record<string, ReactNode> = {
         </p>
       </div>
 
-      <div className="bg-white p-8 rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100">
-        <form className="space-y-5">
-          <div className="grid grid-cols-2 gap-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-              <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all" placeholder="Jane" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-              <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all" placeholder="Doe" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-            <input type="email" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all" placeholder="jane@yourstore.com" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
-            <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all text-gray-700">
-              <option>General Inquiry</option>
-              <option>Sales & Subscriptions</option>
-              <option>Technical Support</option>
-              <option>API Integration</option>
-              <option>Partnerships</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-            <textarea rows={5} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all" placeholder="How can we help you grow your business?"></textarea>
-          </div>
-          <button type="button" className="w-full py-4 bg-[hsl(var(--accent-primary))] hover:bg-[hsl(var(--accent-hover))] text-white font-bold rounded-lg shadow-lg shadow-[hsl(var(--accent-primary))]/30 transition-all transform hover:-translate-y-0.5">
-            Send Message
-          </button>
-        </form>
-      </div>
+      <ContactForm />
 
       <div className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200 text-center">
         <div>
           <h4 className="font-bold text-gray-900 mb-1">Email</h4>
-          <p className="text-sm text-gray-600">support@MASH ECO.com</p>
+          <p className="text-sm text-gray-600">support@masheco.com</p>
         </div>
         <div>
           <h4 className="font-bold text-gray-900 mb-1">Phone</h4>
-          <p className="text-sm text-gray-600">+1 (800) 123-4567</p>
+          <p className="text-sm text-gray-600">(+880) 1880840849</p>
         </div>
         <div>
-          <h4 className="font-bold text-gray-900 mb-1">HQ</h4>
-          <p className="text-sm text-gray-600">123 Commerce St, NY</p>
+          <h4 className="font-bold text-gray-900 mb-1">Address</h4>
+          <p className="text-sm text-gray-600">1704, National University, Gazipur</p>
         </div>
       </div>
     </div>
@@ -190,7 +157,7 @@ export const contentMap: Record<string, ReactNode> = {
     <div className="space-y-6 text-left text-gray-700">
       <p className="text-sm text-gray-500 font-medium">Effective Date: {new Date().toLocaleDateString()}</p>
       
-      <p>Mash-Tech Ltd. ("MASH ECO", "we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our platform or use our merchant dashboard services.</p>
+      <p>Mash Eco ("we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our platform or use our merchant dashboard services.</p>
 
       <h2 className="text-2xl font-bold text-gray-900 pt-4">1. Information We Collect</h2>
       <ul className="list-disc pl-6 space-y-2">
@@ -238,7 +205,7 @@ export const contentMap: Record<string, ReactNode> = {
       <p>Certain features (e.g., custom domains, advanced analytics, premium themes) require a paid subscription. Subscription fees are billed in advance on a recurring basis. You may cancel your subscription at any time via the billing dashboard.</p>
 
       <h2 className="text-2xl font-bold text-gray-900 pt-4">5. Limitation of Liability</h2>
-      <p>In no event shall Mash-Tech Ltd., nor its directors, employees, or partners, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your use of the platform.</p>
+      <p>In no event shall Mash Eco, nor its directors, employees, or partners, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from your use of the platform.</p>
     </div>
   ),
   'cookie-policy': (
@@ -399,7 +366,7 @@ export const contentMap: Record<string, ReactNode> = {
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">Business Name *</label>
-              <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all" required placeholder="Acme Electronics" />
+              <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all" required placeholder="Acme Store" />
             </div>
           </div>
 

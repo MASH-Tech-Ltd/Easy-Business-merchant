@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AlertCircle, Check, Star, Zap, ShieldCheck, Clock, Crown } from 'lucide-react';
+import { AlertCircle, Check, Star, Zap, ShieldCheck, Clock, Crown, ThumbsUp } from 'lucide-react';
 import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
 
@@ -16,6 +16,7 @@ interface Package {
   description?: string;
   isActive: boolean;
   isPopular?: boolean;
+  isRecommended?: boolean;
 }
 
 interface Subscription {
@@ -27,11 +28,16 @@ interface Subscription {
   isTrial?: boolean;
 }
 
+let globalPackagesCache: Package[] = [];
+let globalSubscriptionCache: Subscription | null = null;
+let globalExpiredSubscriptionCache: Subscription | null = null;
+let globalSubscriptionLoaded = false;
+
 export default function SubscriptionPage() {
-  const [packages, setPackages] = useState<Package[]>([]);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [expiredSubscription, setExpiredSubscription] = useState<Subscription | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [packages, setPackages] = useState<Package[]>(globalPackagesCache);
+  const [subscription, setSubscription] = useState<Subscription | null>(globalSubscriptionCache);
+  const [expiredSubscription, setExpiredSubscription] = useState<Subscription | null>(globalExpiredSubscriptionCache);
+  const [loading, setLoading] = useState(!globalSubscriptionLoaded);
   const [submitting, setSubmitting] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [confirmModal, setConfirmModal] = useState<(Package & { isRenewal?: boolean }) | null>(null);
@@ -50,17 +56,23 @@ export default function SubscriptionPage() {
       ]);
       
       const activePackages = (packagesRes.data.data || []).filter((p: Package) => p.isActive);
+      globalPackagesCache = activePackages;
       setPackages(activePackages);
 
       const sub: Subscription | null = subRes.data.data;
       if (sub && sub.status === 'expired') {
         // No active subscription — this is the last expired one
+        globalExpiredSubscriptionCache = sub;
+        globalSubscriptionCache = null;
         setExpiredSubscription(sub);
         setSubscription(null);
       } else {
+        globalSubscriptionCache = sub;
+        globalExpiredSubscriptionCache = null;
         setSubscription(sub);
         setExpiredSubscription(null);
       }
+      globalSubscriptionLoaded = true;
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load subscription data');
@@ -208,6 +220,7 @@ export default function SubscriptionPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-7xl mx-auto px-4 items-start">
           {displayedPackages.sort((a,b) => a.price - b.price).map((pkg, index) => {
             const isPopular = pkg.isPopular || pkg.name.toLowerCase().includes('standard'); 
+            const isRecommended = pkg.isRecommended;
             const isCurrentActive = activePackageId === pkg._id && subscription?.status === 'active';
             const isCurrentPending = activePackageId === pkg._id && subscription?.status === 'pending';
             
@@ -225,11 +238,13 @@ export default function SubscriptionPage() {
                   <div className="absolute inset-0 bg-gradient-to-b from-[#5022C3]/5 to-transparent pointer-events-none" />
                 )}
 
-                {isPopular && (
-                  <div className="bg-[#5022C3] text-white text-[10px] font-bold uppercase tracking-widest py-1.5 text-center flex items-center justify-center gap-1.5">
-                    <Star className="w-3 h-3 fill-current" /> Most Popular
-                  </div>
-                )}
+                <div className="flex flex-col w-full">
+                  {isPopular && (
+                    <div className="bg-[#5022C3] text-white text-[10px] font-bold uppercase tracking-widest py-1.5 text-center flex items-center justify-center gap-1.5">
+                      <Star className="w-3 h-3 fill-current" /> Most Popular
+                    </div>
+                  )}
+                </div>
                 
                 {isCurrentActive && (
                   <div className="absolute top-5 right-5 bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-green-200 z-20">
@@ -238,26 +253,33 @@ export default function SubscriptionPage() {
                 )}
                 
                 <div className="p-6 pb-4 relative">
-                  <h3 className="text-xl font-extrabold text-gray-900 mb-1">{pkg.name}</h3>
+                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <h3 className="text-xl font-extrabold text-gray-900">{pkg.name}</h3>
+                    {isRecommended && (
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                        <ThumbsUp className="w-3 h-3 fill-current" /> Recommended
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-baseline gap-1 mb-2">
                     <span className="text-4xl font-black text-gray-900 tracking-tight">৳{pkg.price}</span>
                     <span className="text-xs text-gray-500 font-bold uppercase">/{pkg.billingCycle === 'yearly' ? 'yr' : 'mo'}</span>
                   </div>
                   <div className="mb-2 space-y-1">
                     {pkg.tagline && (
-                      <p className="text-sm font-bold text-gray-900 leading-snug">
+                      <p className="text-[13px] font-bold text-gray-900 leading-snug">
                         {pkg.tagline}
                       </p>
                     )}
-                    <p className="text-xs text-gray-500 font-medium leading-relaxed">
+                    <p className="text-[12px] text-gray-500 font-medium leading-relaxed">
                       {pkg.description || `Perfect for growing businesses that need ${pkg.name.toLowerCase()} features and customization.`}
                     </p>
                   </div>
                 </div>
                 
-                <div className="px-6 pb-5 flex-1 flex flex-col relative bg-gray-50/50">
+                <div className="px-6 pb-6 flex-1 flex flex-col relative bg-gray-50/50">
                   <div className="h-px w-full bg-gray-200 mb-4"></div>
-                  <ul className="space-y-2 mb-5 flex-1">
+                  <ul className="space-y-2 mb-6 flex-1">
                     {pkg.features && pkg.features.map((feature, idx) => {
                       if (feature.startsWith('Key Features:')) return null;
                       
@@ -271,7 +293,7 @@ export default function SubscriptionPage() {
                           <div className={`mt-0.5 w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${isPopular ? 'bg-[#5022C3] text-white' : 'bg-purple-100 text-[#5022C3]'}`}>
                             <Check className="w-2.5 h-2.5" strokeWidth={3} />
                           </div>
-                          <span className="text-[13px] text-gray-700 font-medium leading-tight">
+                          <span className="text-sm text-gray-600 font-normal leading-relaxed">
                             {hasBoldPrefix ? (
                               <>
                                 <strong className="text-gray-900 font-bold">{cleanFeature.substring(0, colonIndex + 1)}</strong>

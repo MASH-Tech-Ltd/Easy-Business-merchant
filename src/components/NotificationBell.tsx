@@ -29,6 +29,21 @@ export default function NotificationBell({ userId }: { userId?: string }) {
   }, []);
 
   useEffect(() => {
+    const handleSingleRead = (e: any) => {
+      setNotifications(prev => prev.map(n => n._id === e.detail ? { ...n, read: true } : n));
+    };
+    const handleAllRead = () => {
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    };
+    window.addEventListener('notificationMarkedRead', handleSingleRead);
+    window.addEventListener('notificationAllMarkedRead', handleAllRead);
+    return () => {
+      window.removeEventListener('notificationMarkedRead', handleSingleRead);
+      window.removeEventListener('notificationAllMarkedRead', handleAllRead);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!userId) return;
 
     const newSocket = io(process.env.NEXT_PUBLIC_WS_URL || "");
@@ -116,6 +131,10 @@ export default function NotificationBell({ userId }: { userId?: string }) {
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('notificationCountUpdate', { detail: unreadCount }));
+  }, [unreadCount]);
 
   return (
     <div className="relative" ref={dropdownRef}>

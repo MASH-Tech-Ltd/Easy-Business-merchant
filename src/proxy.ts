@@ -16,8 +16,8 @@ export function proxy(req: NextRequest) {
 
   // 2. If someone accesses www.masheco.com/login (or dashboard), redirect to the merchant domain
   if (!isMerchant && (url.pathname.startsWith('/login') || url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/register'))) {
-    // If it's localhost, don't redirect to avoid infinite loops during local dev
-    if (hostname.includes('localhost')) {
+    // If we are in development mode or it's localhost, don't redirect to avoid infinite loops during local dev
+    if (process.env.NODE_ENV === 'development' || hostname.includes('localhost')) {
       return NextResponse.next();
     }
     

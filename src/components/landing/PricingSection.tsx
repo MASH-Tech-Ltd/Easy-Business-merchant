@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Check } from 'lucide-react';
+import { Check, ThumbsUp } from 'lucide-react';
 import { useState } from 'react';
 
 export interface IPackage {
@@ -15,6 +15,7 @@ export interface IPackage {
   description?: string;
   isActive: boolean;
   isPopular?: boolean;
+  isRecommended?: boolean;
 }
 
 interface PricingSectionProps {
@@ -112,6 +113,7 @@ export default function PricingSection({ packages }: PricingSectionProps) {
           >
             {visiblePackages.map((pkg) => {
               const featured = !!pkg.isPopular;
+              const recommended = !!pkg.isRecommended;
               const features = pkg.features ?? [];
               const formattedPrice = `৳${pkg.price.toLocaleString()}`;
               const nameLower = pkg.name.toLowerCase();
@@ -135,9 +137,9 @@ export default function PricingSection({ packages }: PricingSectionProps) {
                       : 'border-gray-200 shadow-sm hover:shadow-md'
                   }`}
                 >
-                  {/* Popular badge */}
+                  {/* Badges */}
                   {featured && (
-                    <div className="absolute top-0 inset-x-0 flex justify-center -translate-y-1/2">
+                    <div className="absolute top-0 inset-x-0 flex justify-center -translate-y-1/2 gap-2 z-20">
                       <span className="bg-[hsl(var(--accent-primary))] text-white text-xs font-bold uppercase tracking-wider py-1 px-4 rounded-full shadow">
                         Most Popular
                       </span>
@@ -146,7 +148,14 @@ export default function PricingSection({ packages }: PricingSectionProps) {
 
                   {/* Name & description */}
                   <div className="mb-3 sm:mb-5">
-                    <h3 className="text-lg sm:text-2xl font-bold text-gray-900">{pkg.name}</h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-lg sm:text-2xl font-bold text-gray-900">{pkg.name}</h3>
+                      {recommended && (
+                        <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                          <ThumbsUp className="w-3 h-3 fill-current" /> Recommended
+                        </span>
+                      )}
+                    </div>
                     {(pkg.description || pkg.tagline) && (
                       <p className="mt-2 text-sm text-gray-500">
                         {pkg.description || pkg.tagline}

@@ -5,12 +5,18 @@ import { Globe, CheckCircle2, ShieldCheck, AlertCircle, ArrowRight, Clock, LifeB
 import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
 
+let globalStoreCache: any = null;
+
 export default function DomainManagementPage() {
-  const [store, setStore] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [store, setStore] = useState<any>(globalStoreCache);
+  const [loading, setLoading] = useState(!globalStoreCache);
   const [saving, setSaving] = useState(false);
-  const [customDomain, setCustomDomain] = useState('');
+  const [customDomain, setCustomDomain] = useState(globalStoreCache?.customDomain || '');
   const [showRetry, setShowRetry] = useState(false);
+  const [isEditingSlug, setIsEditingSlug] = useState(false);
+  const [newSlug, setNewSlug] = useState('');
+  const [savingSlug, setSavingSlug] = useState(false);
+  const [errorSlug, setErrorSlug] = useState('');
 
   useEffect(() => {
     if (store?.domainStatus === 'pending' && store?.updatedAt) {
@@ -46,6 +52,7 @@ export default function DomainManagementPage() {
     try {
       const res = await api.get('/tenants/my-store');
       if (res.data?.data) {
+        globalStoreCache = res.data.data;
         setStore(res.data.data);
         setCustomDomain(res.data.data.customDomain || '');
       }
@@ -72,6 +79,34 @@ export default function DomainManagementPage() {
     }
   };
 
+  const handleEditSlugClick = () => {
+    setNewSlug(store?.slug || '');
+    setErrorSlug('');
+    setIsEditingSlug(true);
+  };
+
+  const handleSaveSlug = async () => {
+    setErrorSlug('');
+    if (!newSlug || newSlug === store?.slug) {
+      setIsEditingSlug(false);
+      return;
+    }
+    setSavingSlug(true);
+    try {
+      const res = await api.patch('/tenants/update-slug', { slug: newSlug });
+      toast.success(res.data?.message || 'Subdomain updated successfully');
+      setStore({ ...store, slug: res.data?.data?.slug || newSlug });
+      setIsEditingSlug(false);
+    } catch (error: any) {
+      console.error('Error updating subdomain', error);
+      const msg = error.response?.data?.message || 'Failed to update subdomain';
+      setErrorSlug(msg);
+      toast.error(msg);
+    } finally {
+      setSavingSlug(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -82,16 +117,7 @@ export default function DomainManagementPage() {
 
   return (
     <div className="p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)]">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2 mb-2">
-          <Globe className="w-6 h-6 text-[#5022C3]" /> Domain Management
-        </h1>
-        <p className="text-gray-500">
-          Enter your custom domain below and configure your DNS. Our system will automatically verify the records and issue a free SSL certificate.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
             <h2 className="text-lg font-bold text-gray-900 mb-6">Custom Domain Settings</h2>
@@ -109,17 +135,31 @@ export default function DomainManagementPage() {
                       placeholder="e.g. www.mystore.com"
                       value={customDomain}
                       onChange={(e) => setCustomDomain(e.target.value)}
-                      className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5022C3] focus:border-transparent transition-all"
+                      className={`w-full pl-11 pr-4 py-3 bg-gray-50 border rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5022C3] focus:border-transparent transition-all ${
+                        customDomain && !/^www\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/.test(customDomain)
+                          ? 'border-red-400'
+                          : 'border-gray-200'
+                      }`}
                     />
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <button
-                      type="submit"
-                      disabled={saving}
-                      className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-purple-500/20 transition-all flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-70 w-full sm:w-auto"
-                    >
-                      {saving ? 'Saving...' : 'Save Domain'}
-                    </button>
+                    {/^www\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/.test(customDomain) ? (
+                      <button
+                        type="submit"
+                        disabled={saving}
+                        className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-6 py-3 rounded-xl font-bold shadow-md shadow-purple-500/20 transition-all flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-70 w-full sm:w-auto"
+                      >
+                        {saving ? 'Connecting...' : 'Connect Domain'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="bg-gray-200 text-gray-400 px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap opacity-70 w-full sm:w-auto cursor-not-allowed"
+                      >
+                        Connect Domain
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => toast('Support team will contact you shortly!', { icon: '👋' })}
@@ -131,7 +171,10 @@ export default function DomainManagementPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-3 flex items-center gap-1.5">
-                  <AlertCircle className="w-4 h-4 text-amber-500" /> Enter your domain exactly as you want it to appear. Do not include http:// or https://
+                  <AlertCircle className={`w-4 h-4 ${customDomain && !/^www\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/.test(customDomain) ? 'text-red-500' : 'text-amber-500'}`} /> 
+                  <span className={customDomain && !/^www\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/.test(customDomain) ? 'text-red-500 font-medium' : ''}>
+                    Domain must be exactly in the format: www.yourstore.com (no http:// or https://)
+                  </span>
                 </p>
               </div>
             </form>
@@ -139,17 +182,68 @@ export default function DomainManagementPage() {
             <div className="mt-8 pt-8 border-t border-gray-100">
               <h3 className="text-md font-bold text-gray-900 mb-4">Current Active Domains</h3>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-xl">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-xl gap-4">
+                  <div className="flex items-center gap-3 w-full">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
                       <CheckCircle2 className="w-5 h-5" />
                     </div>
-                    <div>
-                      <p className="font-bold text-gray-900">{store?.slug}.{process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000'}</p>
-                      <p className="text-xs text-gray-500">System Domain (Default)</p>
+                    <div className="flex-1">
+                      {isEditingSlug ? (
+                        <div className="flex items-center gap-2 max-w-sm">
+                          <input
+                            type="text"
+                            value={newSlug}
+                            onChange={(e) => {
+                              setNewSlug(e.target.value);
+                              setErrorSlug('');
+                            }}
+                            className={`w-full px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5022C3] focus:border-transparent ${errorSlug ? 'border-red-500' : 'border-gray-300'}`}
+                            placeholder="my-store-name"
+                          />
+                          <span className="text-gray-500 font-medium">.{process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000'}</span>
+                        </div>
+                      ) : (
+                        <p className="font-bold text-gray-900">{store?.slug}.{process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000'}</p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-0.5">System Domain (Default)</p>
+                      {isEditingSlug && errorSlug && (
+                        <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1 font-medium animate-in fade-in slide-in-from-top-1">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          {errorSlug}
+                        </p>
+                      )}
                     </div>
                   </div>
-                  <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Connected</span>
+                  <div className="flex items-center gap-3 sm:ml-auto whitespace-nowrap">
+                    {isEditingSlug ? (
+                      <>
+                        <button
+                          onClick={() => setIsEditingSlug(false)}
+                          disabled={savingSlug}
+                          className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleSaveSlug}
+                          disabled={savingSlug || !newSlug}
+                          className="px-4 py-1.5 bg-[#5022C3] hover:bg-[#401a9c] text-white text-sm font-medium rounded-lg shadow-sm transition-colors disabled:opacity-70"
+                        >
+                          {savingSlug ? 'Saving...' : 'Save'}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={handleEditSlugClick}
+                          className="px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg shadow-sm transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Connected</span>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 {store?.customDomain && (
