@@ -63,6 +63,7 @@ export default function ThemesPage() {
   });
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
   const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(globalThemeCache?.bannerPreviewUrl || null);
+  const [bannerErrors, setBannerErrors] = useState<Record<string, string>>({});
   
   const [loading, setLoading] = useState(!globalThemeCache);
   const [saving, setSaving] = useState(false);
@@ -169,6 +170,30 @@ export default function ThemesPage() {
   };
 
   const handleSaveTheme = async () => {
+    // Frontend Validation for Banner
+    const hasBannerContent = banner.title || banner.subtitle || banner.description || banner.buttonText || banner.buttonLink || bannerImageFile || bannerPreviewUrl;
+    
+    if (hasBannerContent) {
+      let isValid = true;
+      const errors: Record<string, string> = {};
+
+      if (!banner.title) { errors.title = 'Title is required'; isValid = false; }
+      if (!banner.subtitle) { errors.subtitle = 'Subtitle is required'; isValid = false; }
+      if (!banner.description) { errors.description = 'Description is required'; isValid = false; }
+      if (!banner.buttonText) { errors.buttonText = 'Button text is required'; isValid = false; }
+      if (!banner.buttonLink) { errors.buttonLink = 'Button link is required'; isValid = false; }
+      if (!bannerImageFile && !bannerPreviewUrl) { errors.image = 'Banner image is required'; isValid = false; }
+
+      setBannerErrors(errors);
+
+      if (!isValid) {
+        toast.error('Please fix the errors in the Banner Settings.');
+        return;
+      }
+    } else {
+      setBannerErrors({});
+    }
+
     setSaving(true);
     try {
       const formData = new FormData();
@@ -194,9 +219,10 @@ export default function ThemesPage() {
       });
       setSavedTheme(activeTheme);
       toast.success('Settings saved successfully!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving theme', error);
-      toast.error('Failed to save settings');
+      const errorMessage = error.response?.data?.message || 'Failed to save settings';
+      toast.error(errorMessage);
     } finally {
       setSaving(false);
     }
@@ -479,8 +505,13 @@ export default function ThemesPage() {
                 <div className="space-y-6">
                   <h4 className="font-bold text-gray-800 border-b border-gray-100 pb-2">Banner Image</h4>
                   <ImageUpload 
+                    error={bannerErrors.image}
                     previewUrl={bannerPreviewUrl}
                     onChange={(file) => {
+                      if (file && file.size > 10 * 1024 * 1024) {
+                        toast.error('Banner image size must be less than 10MB');
+                        return;
+                      }
                       setBannerImageFile(file);
                       if (file) {
                         setBannerPreviewUrl(URL.createObjectURL(file));
@@ -497,6 +528,7 @@ export default function ThemesPage() {
                     <Input 
                       label="Title"
                       type="text" 
+                      error={bannerErrors.title}
                       value={banner.title} 
                       onChange={(e) => setBanner(prev => ({ ...prev, title: e.target.value }))}
                       placeholder="e.g. Summer Sale 2026"
@@ -504,6 +536,7 @@ export default function ThemesPage() {
                     <Input 
                       label="Subtitle"
                       type="text" 
+                      error={bannerErrors.subtitle}
                       value={banner.subtitle} 
                       onChange={(e) => setBanner(prev => ({ ...prev, subtitle: e.target.value }))}
                       placeholder="e.g. Up to 50% off on all electronics"
@@ -514,13 +547,15 @@ export default function ThemesPage() {
                         value={banner.description}
                         onChange={(e) => setBanner(prev => ({ ...prev, description: e.target.value }))}
                         placeholder="e.g. Discover premium products curated for every lifestyle and budget."
-                        className="w-full min-h-[100px] px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all resize-none text-sm shadow-sm"
+                        className={`w-full min-h-[100px] px-4 py-3 rounded-xl border ${bannerErrors.description ? 'border-red-300 bg-red-50/30' : 'border-gray-200'} focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all resize-none text-sm shadow-sm`}
                       />
+                      {bannerErrors.description && <p className="mt-1 text-xs text-red-500">{bannerErrors.description}</p>}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <Input 
                         label="Button Text"
                         type="text" 
+                        error={bannerErrors.buttonText}
                         value={banner.buttonText} 
                         onChange={(e) => setBanner(prev => ({ ...prev, buttonText: e.target.value }))}
                         placeholder="e.g. Shop Now"
@@ -528,6 +563,7 @@ export default function ThemesPage() {
                       <Input 
                         label="Button Link"
                         type="text" 
+                        error={bannerErrors.buttonLink}
                         value={banner.buttonLink} 
                         onChange={(e) => setBanner(prev => ({ ...prev, buttonLink: e.target.value }))}
                         placeholder="e.g. /categories"
