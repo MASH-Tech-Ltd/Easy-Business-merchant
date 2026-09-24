@@ -6,6 +6,8 @@ import FAQSection from '@/components/landing/FAQSection';
 import Footer from '@/components/landing/Footer';
 import { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'MASH ECO | E-Commerce Platform',
   description: 'Launch your business e-commerce store with MASH ECO. We offer authentic seller verification, courier automation, advanced fraud checks, and premium themes.',
