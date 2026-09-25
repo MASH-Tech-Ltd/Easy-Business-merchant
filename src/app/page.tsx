@@ -9,15 +9,23 @@ import { Metadata } from 'next';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'MASH ECO | E-Commerce Platform',
-  description: 'Launch your business e-commerce store with MASH ECO. We offer authentic seller verification, courier automation, advanced fraud checks, and premium themes.',
+  title: 'MASH ECO | Launch Your E-Commerce Store – Zero Coding Required',
+  description: 'MASH ECO (MashEco / Mash Eco) — Bangladesh\'s leading multi-tenant SaaS e-commerce platform. Create your branded online store in minutes with seller verification, courier automation, fraud protection, and beautiful premium themes.',
+  keywords: [
+    'MASH ECO', 'MashEco', 'Mash Eco', 'mashe co', 'masheco bangladesh',
+    'mash eco ecommerce', 'mash eco store', 'mash eco merchant',
+    'ecommerce SaaS Bangladesh', 'multi-tenant ecommerce platform',
+    'online store builder Bangladesh', 'sell online Bangladesh',
+    'ecommerce platform', 'merchant dashboard Bangladesh',
+    'MASH TECH', 'mash tech ltd', 'courier automation ecommerce',
+  ],
   icons: {
     icon: '/MEasy.png',
     apple: '/MEasy.png',
   },
   openGraph: {
-    title: 'MASH ECO - Premium Business E-Commerce Platform',
-    description: 'Scale your business online with zero coding. Unlimited products, custom domains, and built-in addons.',
+    title: 'MASH ECO — Premium Multi-Tenant E-Commerce Platform',
+    description: 'Scale your business online with MASH ECO. Seller verification, courier automation, fraud detection, and premium themes — all in one platform.',
     url: 'https://www.masheco.com',
     siteName: 'MASH ECO',
     images: [
@@ -25,7 +33,7 @@ export const metadata: Metadata = {
         url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
         width: 1200,
         height: 630,
-        alt: 'MASH ECO Dashboard Preview',
+        alt: 'MASH ECO - E-Commerce Platform Dashboard',
       },
     ],
     locale: 'en_US',
@@ -33,9 +41,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'MASH ECO - E-Commerce Platform',
-    description: 'Launch and scale your store today. Zero coding required.',
+    title: 'MASH ECO - E-Commerce Platform for Bangladesh',
+    description: 'Launch and scale your store today with MASH ECO. Zero coding required.',
     images: ['https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80'],
+    site: '@masheco',
   },
   alternates: {
     canonical: 'https://www.masheco.com',
@@ -85,7 +94,31 @@ export default async function LandingPage() {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'MASH ECO',
+    alternateName: ['MashEco', 'Mash Eco', 'mashe co', 'MASH TECH'],
     url: 'https://www.masheco.com/',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://www.masheco.com/search?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
+  };
+
+  const organizationJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'MASH ECO',
+    alternateName: ['MashEco', 'Mash Eco', 'mashe co', 'MASH TECH LTD'],
+    url: 'https://www.masheco.com',
+    logo: 'https://www.masheco.com/MEasy.png',
+    description: 'MASH ECO is a multi-tenant SaaS e-commerce platform for merchants in Bangladesh.',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      availableLanguage: ['English', 'Bengali'],
+    },
+    sameAs: [
+      'https://www.masheco.com',
+    ],
   };
 
   return (
@@ -97,6 +130,10 @@ export default async function LandingPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
       <Navbar />
       
