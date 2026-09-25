@@ -71,7 +71,7 @@ export default function PaymentMethodsPage() {
     const newMethods = methods.filter(m => m.id !== id);
     setMethods(newMethods);
     try {
-      await api.patch('/tenants/update-store', { 'settings.manualPaymentMethods': newMethods });
+      await api.patch('/tenants/update-store', { manualPaymentMethods: newMethods });
       toast.success('Payment method removed successfully');
       fetchStoreInfo();
     } catch (error: any) {
@@ -133,7 +133,7 @@ export default function PaymentMethodsPage() {
       setErrors({});
 
       const payload = {
-        'settings.manualPaymentMethods': methods
+        manualPaymentMethods: methods
       };
       
       await api.patch('/tenants/update-store', payload);
