@@ -21,6 +21,7 @@ export default function PaymentMethodsPage() {
   const [loading, setLoading] = useState(!globalStoreCache);
   const [saving, setSaving] = useState(false);
   const [methods, setMethods] = useState<ManualPaymentMethod[]>(globalStoreCache?.settings?.manualPaymentMethods || []);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchStoreInfo();
@@ -34,7 +35,11 @@ export default function PaymentMethodsPage() {
         setStore(res.data.data);
         const settings = res.data.data.settings || {};
         if (settings.manualPaymentMethods) {
-          setMethods(settings.manualPaymentMethods);
+          const safeMethods = settings.manualPaymentMethods.map((m: any) => ({
+            ...m,
+            id: m.id || m._id || Math.random().toString(36).substring(7)
+          }));
+          setMethods(safeMethods);
         } else if (!globalStoreCache) {
           // Add a default empty method if none exist and no cache yet
           handleAddMethod();
@@ -62,12 +67,28 @@ export default function PaymentMethodsPage() {
     ]);
   };
 
-  const handleRemoveMethod = (id: string) => {
-    setMethods(methods.filter(m => m.id !== id));
+  const handleRemoveMethod = async (id: string) => {
+    const newMethods = methods.filter(m => m.id !== id);
+    setMethods(newMethods);
+    try {
+      await api.patch('/tenants/update-store', { 'settings.manualPaymentMethods': newMethods });
+      toast.success('Payment method removed successfully');
+      fetchStoreInfo();
+    } catch (error: any) {
+      console.error('Error removing payment method', error);
+      toast.error('Failed to remove payment method');
+    }
   };
 
   const handleChange = (id: string, field: keyof ManualPaymentMethod, value: any) => {
     setMethods(methods.map(m => m.id === id ? { ...m, [field]: value } : m));
+    if (errors[id]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[id];
+        return newErrors;
+      });
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -75,12 +96,41 @@ export default function PaymentMethodsPage() {
     setSaving(true);
     try {
       // Validate
-      const invalid = methods.some(m => !m.provider || !m.number || !m.type);
-      if (invalid) {
-        toast.error('Please fill in all required fields (Provider, Type, Number)');
+      const newErrors: Record<string, string> = {};
+      let hasError = false;
+
+      methods.forEach(m => {
+        if (!m.provider || !m.number || !m.type) {
+          newErrors[m.id] = 'Please fill in all required fields (Provider, Type, Number)';
+          hasError = true;
+          return;
+        }
+
+        const mobileBankingProviders = ['bKash', 'Nagad', 'Rocket', 'Upay'];
+        const bdPhoneRegex = /^01[3-9]\d{8}$/;
+        
+        if (mobileBankingProviders.includes(m.provider) && !bdPhoneRegex.test(m.number.trim())) {
+          newErrors[m.id] = `Invalid ${m.provider} number. Please enter a valid 11-digit BD phone number (e.g. 017XXXXXXXX)`;
+          hasError = true;
+          return;
+        }
+
+        const bankProviders = ['Bank Transfer', 'Other'];
+        const bankRegex = /^\d+$/; 
+        
+        if (bankProviders.includes(m.provider) && !bankRegex.test(m.number.trim())) {
+          newErrors[m.id] = 'Account numbers should only contain digits.';
+          hasError = true;
+        }
+      });
+
+      if (hasError) {
+        setErrors(newErrors);
         setSaving(false);
         return;
       }
+
+      setErrors({});
 
       const payload = {
         'settings.manualPaymentMethods': methods
@@ -136,8 +186,8 @@ export default function PaymentMethodsPage() {
           <div className="space-y-4">
             {methods.map((method, index) => (
               <div key={method.id} className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] relative group transition-all hover:border-purple-200">
-                <div className="absolute top-4 right-4 flex items-center gap-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                <div className="absolute top-4 right-4 flex items-center gap-3 z-10">
+                  <label className="flex items-center gap-2 cursor-pointer z-10">
                     <span className="text-sm font-medium text-gray-600">Active</span>
                     <input
                       type="checkbox"
@@ -149,7 +199,7 @@ export default function PaymentMethodsPage() {
                   <button
                     type="button"
                     onClick={() => handleRemoveMethod(method.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50"
+                    className="text-gray-400 hover:text-red-500 transition-colors p-2 rounded-lg hover:bg-red-50 relative z-10"
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -199,8 +249,11 @@ export default function PaymentMethodsPage() {
                       placeholder="e.g. 017XXXXXXXX"
                       value={method.number}
                       onChange={(e) => handleChange(method.id, 'number', e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5022C3] focus:border-transparent transition-all"
+                      className={`w-full px-4 py-3 bg-gray-50 border ${errors[method.id] ? 'border-red-500 focus:ring-red-500' : 'border-gray-200 focus:ring-[#5022C3]'} rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:border-transparent transition-all`}
                     />
+                    {errors[method.id] && (
+                      <p className="mt-2 text-sm text-red-500 font-medium">{errors[method.id]}</p>
+                    )}
                   </div>
                 </div>
 
@@ -219,18 +272,16 @@ export default function PaymentMethodsPage() {
           </div>
         )}
 
-        {methods.length > 0 && (
-          <div className="flex justify-center sm:justify-end w-full pt-4">
-            <button
-              type="submit"
-              disabled={saving}
-              className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-10 py-3.5 rounded-xl font-bold shadow-md shadow-purple-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 w-full sm:w-auto text-lg"
-            >
-              <Save className="w-6 h-6" />
-              {saving ? 'Saving...' : 'Save Payment Methods'}
-            </button>
-          </div>
-        )}
+        <div className="flex justify-center sm:justify-end w-full pt-4">
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-10 py-3.5 rounded-xl font-bold shadow-md shadow-purple-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 w-full sm:w-auto text-lg"
+          >
+            <Save className="w-6 h-6" />
+            {saving ? 'Saving...' : 'Save Payment Methods'}
+          </button>
+        </div>
       </form>
     </div>
   );
