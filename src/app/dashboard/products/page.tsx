@@ -152,9 +152,17 @@ export default function ProductsPage() {
               <option value="discountedPrice-desc">Price: High to Low</option>
               <option value="salesCount-desc">Best Selling</option>
             </select>
-            <Link href="/dashboard/products/new" className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
-              <Plus className="w-5 h-5" /> Add Product
-            </Link>
+            {categories.length === 0 ? (
+              <button 
+                onClick={() => toast.error('Please create a category first before adding products.')}
+                className="bg-[#5022C3] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap opacity-50 cursor-not-allowed">
+                <Plus className="w-5 h-5" /> Add Product
+              </button>
+            ) : (
+              <Link href="/dashboard/products/new" className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
+                <Plus className="w-5 h-5" /> Add Product
+              </Link>
+            )}
           </div>
         </div>
 
@@ -173,7 +181,11 @@ export default function ProductsPage() {
               <h3 className="text-lg font-medium text-gray-900 mb-1">No products found</h3>
               <p className="text-gray-500 text-sm mb-4">You haven't added any products or none match your search.</p>
               {!search && (
-                <Link href="/dashboard/products/new" className="text-[#5022C3] font-bold text-sm hover:underline">Add your first product</Link>
+                categories.length === 0 ? (
+                  <Link href="/dashboard/categories" className="text-red-500 font-bold text-sm hover:underline">Create a category first</Link>
+                ) : (
+                  <Link href="/dashboard/products/new" className="text-[#5022C3] font-bold text-sm hover:underline">Add your first product</Link>
+                )
               )}
             </div>
           ) : (
@@ -256,7 +268,11 @@ export default function ProductsPage() {
                     <h3 className="text-lg font-medium text-gray-900 mb-1">No products found</h3>
                     <p className="text-gray-500 text-sm mb-4">You haven't added any products or none match your search.</p>
                     {!search && (
-                      <Link href="/dashboard/products/new" className="text-[#5022C3] font-bold text-sm hover:underline">Add your first product</Link>
+                      categories.length === 0 ? (
+                        <Link href="/dashboard/categories" className="text-red-500 font-bold text-sm hover:underline">Create a category first</Link>
+                      ) : (
+                        <Link href="/dashboard/products/new" className="text-[#5022C3] font-bold text-sm hover:underline">Add your first product</Link>
+                      )
                     )}
                   </td>
                 </tr>
