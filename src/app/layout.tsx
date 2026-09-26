@@ -64,12 +64,27 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // WebSite schema — tells Google to display "MASH ECO" as the site name
+  // in search results instead of the raw domain "masheco.com"
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'MASH ECO',
+    alternateName: ['MashEco', 'Mash Eco', 'MASH TECH'],
+    url: 'https://www.masheco.com/',
+  };
+
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} h-full antialiased`}>
       <body suppressHydrationWarning className="min-h-full flex flex-col font-sans">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+        />
         <Toaster position="top-right" />
         {children}
       </body>
     </html>
   );
 }
+
