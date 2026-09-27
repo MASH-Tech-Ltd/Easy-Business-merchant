@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Check, ThumbsUp } from 'lucide-react';
-import { useState } from 'react';
+import Link from "next/link";
+import { Check, ThumbsUp, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 export interface IPackage {
   _id: string;
   name: string;
   price: number;
-  billingCycle: 'monthly' | 'yearly';
+  billingCycle: "monthly" | "yearly";
   productLimit: number;
   features?: string[];
   tagline?: string;
@@ -22,12 +22,54 @@ interface PricingSectionProps {
   packages: IPackage[];
 }
 
-export default function PricingSection({ packages }: PricingSectionProps) {
-  const hasYearly = packages.some((p) => p.billingCycle === 'yearly');
-  const hasMonthly = packages.some((p) => p.billingCycle === 'monthly');
+export default function PricingSection({
+  packages: initialPackages = [],
+}: PricingSectionProps) {
+  const [packages, setPackages] = useState<IPackage[]>(initialPackages);
+  const [loading, setLoading] = useState<boolean>(initialPackages.length === 0);
+
+  useEffect(() => {
+    if (initialPackages.length === 0) {
+      setLoading(true);
+      const apiUrl =
+        process.env.NEXT_PUBLIC_API_URL ||
+        (typeof window !== "undefined" && window.location.hostname.includes("masheco.com")
+          ? "https://backapi.masheco.com/api/v1"
+          : "http://localhost:8000/api/v1");
+      fetch(`${apiUrl}/packages/public-packages`)
+        .then((res) => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.json();
+        })
+        .then((json) => {
+          if (
+            json.success &&
+            Array.isArray(json.data) &&
+            json.data.length > 0
+          ) {
+            setPackages(json.data);
+          }
+        })
+        .catch((err) => {
+          console.error(
+            "[PricingSection] Client-side fallback fetch failed:",
+            err,
+          );
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setPackages(initialPackages);
+      setLoading(false);
+    }
+  }, [initialPackages]);
+
+  const hasYearly = packages.some((p) => p.billingCycle === "yearly");
+  const hasMonthly = packages.some((p) => p.billingCycle === "monthly");
   const showToggle = hasYearly && hasMonthly;
 
-  const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
+  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
 
   const visiblePackages = showToggle
     ? packages.filter((p) => p.billingCycle === billing)
@@ -47,7 +89,8 @@ export default function PricingSection({ packages }: PricingSectionProps) {
             Simple, transparent pricing
           </p>
           <p className="mt-4 max-w-2xl text-base sm:text-xl text-gray-500 mx-auto">
-            Choose the plan that fits your business. No hidden fees, cancel anytime.
+            Choose the plan that fits your business. No hidden fees, cancel
+            anytime.
           </p>
         </div>
 
@@ -56,7 +99,7 @@ export default function PricingSection({ packages }: PricingSectionProps) {
           <div className="flex items-center justify-center gap-4 mb-14">
             <span
               className={`text-sm font-semibold transition-colors ${
-                billing === 'monthly' ? 'text-gray-900' : 'text-gray-400'
+                billing === "monthly" ? "text-gray-900" : "text-gray-400"
               }`}
             >
               Monthly
@@ -66,26 +109,28 @@ export default function PricingSection({ packages }: PricingSectionProps) {
             <button
               id="billing-toggle"
               role="switch"
-              aria-checked={billing === 'yearly'}
-              onClick={() => setBilling((b) => (b === 'monthly' ? 'yearly' : 'monthly'))}
+              aria-checked={billing === "yearly"}
+              onClick={() =>
+                setBilling((b) => (b === "monthly" ? "yearly" : "monthly"))
+              }
               className="relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--accent-primary))] focus-visible:ring-offset-2"
               style={{
                 backgroundColor:
-                  billing === 'yearly'
-                    ? 'hsl(var(--accent-primary))'
-                    : '#d1d5db',
+                  billing === "yearly"
+                    ? "hsl(var(--accent-primary))"
+                    : "#d1d5db",
               }}
             >
               <span
                 className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-300 ${
-                  billing === 'yearly' ? 'translate-x-8' : 'translate-x-1'
+                  billing === "yearly" ? "translate-x-8" : "translate-x-1"
                 }`}
               />
             </button>
 
             <span
               className={`text-sm font-semibold transition-colors ${
-                billing === 'yearly' ? 'text-gray-900' : 'text-gray-400'
+                billing === "yearly" ? "text-gray-900" : "text-gray-400"
               }`}
             >
               Yearly
@@ -99,16 +144,18 @@ export default function PricingSection({ packages }: PricingSectionProps) {
         {/* Cards */}
         {visiblePackages.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            <p className="text-lg">Pricing plans coming soon. Contact us for details.</p>
+            <p className="text-lg">
+              Pricing plans coming soon. Contact us for details.
+            </p>
           </div>
         ) : (
           <div
             className={`grid grid-cols-1 gap-8 lg:gap-10 items-start ${
               visiblePackages.length === 1
-                ? 'max-w-sm mx-auto'
+                ? "max-w-sm mx-auto"
                 : visiblePackages.length === 2
-                ? 'md:grid-cols-2 max-w-3xl mx-auto'
-                : 'md:grid-cols-3'
+                  ? "md:grid-cols-2 max-w-3xl mx-auto"
+                  : "md:grid-cols-3"
             }`}
           >
             {visiblePackages.map((pkg) => {
@@ -117,24 +164,24 @@ export default function PricingSection({ packages }: PricingSectionProps) {
               const features = pkg.features ?? [];
               const formattedPrice = `৳${pkg.price.toLocaleString()}`;
               const nameLower = pkg.name.toLowerCase();
-              const isEnterprise = nameLower.includes('enterprise');
-              const href = isEnterprise ? '/landing/contact' : '/register';
+              const isEnterprise = nameLower.includes("enterprise");
+              const href = isEnterprise ? "/landing/contact" : "/register";
 
               const ctaText = isEnterprise
-                ? 'Talk to Our Team →'
+                ? "Talk to Our Team →"
                 : featured
-                ? 'Get Your Store Live →'
-                : nameLower.includes('basic') || nameLower.includes('starter')
-                ? 'Start Free Trial →'
-                : 'Start Building Today →';
+                  ? "Get Your Store Live →"
+                  : nameLower.includes("basic") || nameLower.includes("starter")
+                    ? "Start Free Trial →"
+                    : "Start Building Today →";
 
               return (
                 <div
                   key={pkg._id}
                   className={`bg-white rounded-2xl sm:rounded-3xl p-5 md:p-8 relative flex flex-col h-full border transition-all duration-300 ${
                     featured
-                      ? 'border-[hsl(var(--accent-primary))] shadow-2xl shadow-[hsl(var(--accent-primary))]/10 lg:scale-105 z-10'
-                      : 'border-gray-200 shadow-sm hover:shadow-md'
+                      ? "border-[hsl(var(--accent-primary))] shadow-2xl shadow-[hsl(var(--accent-primary))]/10 lg:scale-105 z-10"
+                      : "border-gray-200 shadow-sm hover:shadow-md"
                   }`}
                 >
                   {/* Badges */}
@@ -149,10 +196,13 @@ export default function PricingSection({ packages }: PricingSectionProps) {
                   {/* Name & description */}
                   <div className="mb-3 sm:mb-5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-lg sm:text-2xl font-bold text-gray-900">{pkg.name}</h3>
+                      <h3 className="text-lg sm:text-2xl font-bold text-gray-900">
+                        {pkg.name}
+                      </h3>
                       {recommended && (
                         <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                          <ThumbsUp className="w-3 h-3 fill-current" /> Recommended
+                          <ThumbsUp className="w-3 h-3 fill-current" />{" "}
+                          Recommended
                         </span>
                       )}
                     </div>
@@ -165,9 +215,11 @@ export default function PricingSection({ packages }: PricingSectionProps) {
 
                   {/* Price */}
                   <div className="mb-3 sm:mb-4">
-                    <span className="text-3xl sm:text-5xl font-extrabold text-gray-900">{formattedPrice}</span>
+                    <span className="text-3xl sm:text-5xl font-extrabold text-gray-900">
+                      {formattedPrice}
+                    </span>
                     <span className="ml-1 text-gray-500 font-medium text-base">
-                      /{billing === 'yearly' ? 'yr' : 'mo'}
+                      /{billing === "yearly" ? "yr" : "mo"}
                     </span>
                   </div>
 
@@ -185,8 +237,8 @@ export default function PricingSection({ packages }: PricingSectionProps) {
                         <Check
                           className={`h-5 w-5 flex-shrink-0 mt-0.5 ${
                             featured
-                              ? 'text-[hsl(var(--accent-primary))]'
-                              : 'text-green-500'
+                              ? "text-[hsl(var(--accent-primary))]"
+                              : "text-green-500"
                           }`}
                         />
                         <span className="text-sm text-gray-700">{feature}</span>
@@ -200,8 +252,8 @@ export default function PricingSection({ packages }: PricingSectionProps) {
                     prefetch={false}
                     className={`mt-auto w-full text-center py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl font-semibold text-sm transition-all duration-200 ${
                       featured
-                        ? 'bg-[hsl(var(--accent-primary))] text-white hover:opacity-90 shadow-lg shadow-[hsl(var(--accent-primary))]/30'
-                        : 'bg-gray-900 text-white hover:bg-gray-700'
+                        ? "bg-[hsl(var(--accent-primary))] text-white hover:opacity-90 shadow-lg shadow-[hsl(var(--accent-primary))]/30"
+                        : "bg-gray-900 text-white hover:bg-gray-700"
                     }`}
                   >
                     {ctaText}
