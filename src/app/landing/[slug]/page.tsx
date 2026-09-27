@@ -12,7 +12,7 @@ const pageDescriptions: Record<string, string> = {
   'privacy-policy': 'Read the MASH ECO Privacy Policy. We are committed to protecting your data and ensuring secure, transparent use of your personal information.',
   'terms-of-service': 'Review the MASH ECO Terms of Service. Understand your rights and responsibilities as a merchant on our platform.',
   'cookie-policy': 'Read the MASH ECO Cookie Policy. Learn how we use cookies to improve your experience on our platform.',
-  'careers': 'Join the MASH ECO team. We are hiring passionate engineers, designers, and e-commerce enthusiasts. View open positions and apply today.',
+  // 'careers': 'Join the MASH ECO team. We are hiring passionate engineers, designers, and e-commerce enthusiasts. View open positions and apply today.',
   'enterprise': 'Enterprise-grade e-commerce solutions from MASH ECO. Custom plans, dedicated support, and advanced features for large-scale merchants.',
 };
 
@@ -58,20 +58,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
+import { notFound } from 'next/navigation';
+
 export default async function LandingContentPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+  
+  if (!contentMap[slug]) {
+    notFound();
+  }
   
   const title = slug
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 
-  const content = contentMap[slug] || (
-    <div className="mt-12 p-8 bg-gray-50 rounded-2xl border border-gray-100 shadow-sm inline-block">
-      <p className="text-gray-500 mb-4">Detailed content for <strong>{title}</strong> is coming soon.</p>
-      <p className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-2">Content pending</p>
-    </div>
-  );
+  const content = contentMap[slug];
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

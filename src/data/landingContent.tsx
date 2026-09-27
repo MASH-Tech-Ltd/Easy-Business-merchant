@@ -38,6 +38,7 @@ export const contentMap: Record<string, ReactNode> = {
       </div>
     </div>
   ),
+  /*
   'careers': (
     <div className="space-y-8 text-left text-gray-700 leading-relaxed">
       <div>
@@ -127,6 +128,7 @@ export const contentMap: Record<string, ReactNode> = {
       <p className="mt-8 text-sm italic">Don't see a perfect fit? Send your resume to <a href="mailto:info@masheco.com" className="text-[hsl(var(--accent-primary))] font-medium">info@masheco.com</a> and we'll keep you in mind.</p>
     </div>
   ),
+  */
   'contact': (
     <div className="space-y-8 text-left max-w-4xl mx-auto">
       <div className="text-center mb-8">
