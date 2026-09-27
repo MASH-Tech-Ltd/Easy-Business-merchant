@@ -98,12 +98,12 @@ export default function RegisterPage() {
               />
             </div>
             <span className="text-2xl font-bold text-white tracking-tight">
-              masheco
+              MASH ECO
             </span>
           </div>
 
           <h1 className="text-4xl xl:text-5xl font-extrabold text-white mb-6 leading-[1.15]">
-            Start your journey with MashEco today.
+            Start your journey with MASH ECO today.
           </h1>
           <p className="text-lg text-gray-300 mb-12 leading-relaxed max-w-md">
             Create your store in seconds and unlock the most powerful tools to
@@ -184,7 +184,7 @@ export default function RegisterPage() {
             className="w-8 h-8 object-contain"
           />
           <span className="text-xl font-bold text-gray-900 tracking-tight">
-            masheco
+            MASH ECO
           </span>
         </div>
 
@@ -194,7 +194,7 @@ export default function RegisterPage() {
               Create your store
             </h2>
             <p className="text-gray-500 text-sm">
-              Fill in your details below to get started on masheco.
+              Fill in your details below to get started on MASH ECO.
             </p>
           </div>
 
@@ -228,7 +228,7 @@ export default function RegisterPage() {
                 type="text"
                 id="name"
                 className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.name ? "border-red-400 bg-red-50/30" : "border-gray-200 bg-white"} text-gray-900 text-sm focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-400`}
-                placeholder="e.g. Awesome Electronics"
+                placeholder="e.g. My Awesome Store"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required

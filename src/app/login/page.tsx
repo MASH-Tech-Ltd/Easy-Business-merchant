@@ -119,7 +119,7 @@ export default function LoginPage() {
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1498049794561-7780e7231661?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80"
-            alt="Electronics setup"
+            alt="E-commerce setup"
             className="w-full h-full object-cover opacity-40 mix-blend-overlay"
           />
           <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--accent-primary))]/90 to-gray-900/90 mix-blend-multiply"></div>
@@ -136,16 +136,16 @@ export default function LoginPage() {
               />
             </div>
             <span className="text-2xl font-bold text-white tracking-tight">
-              masheco
+              MASH ECO
             </span>
           </div>
 
           <h1 className="text-4xl xl:text-5xl font-extrabold text-white mb-6 leading-[1.15]">
-            Manage your electronics business effortlessly.
+            Manage your business effortlessly.
           </h1>
           <p className="text-lg text-gray-300 mb-12 leading-relaxed max-w-md">
-            Join the premier multi-tenant platform designed specifically for
-            electronics merchants. Scale your sales, manage inventory, and grow
+            Join the premier all-in-one platform designed specifically for
+            online merchants. Scale your sales, manage inventory, and grow
             your brand.
           </p>
 
@@ -171,7 +171,7 @@ export default function LoginPage() {
                   Built for Rising Businesses
                 </span>
                 <span className="text-xs text-gray-400">
-                  Everything you need to scale your electronics brand.
+                  Everything you need to scale your online brand.
                 </span>
               </div>
             </div>
@@ -188,7 +188,7 @@ export default function LoginPage() {
             className="w-8 h-8 object-contain"
           />
           <span className="text-xl font-bold text-gray-900 tracking-tight">
-            masheco
+            MASH ECO
           </span>
         </div>
 
