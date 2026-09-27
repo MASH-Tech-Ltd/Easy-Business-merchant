@@ -8,6 +8,11 @@ export function proxy(req: NextRequest) {
   // Check if the current request is for the merchant subdomain
   const isMerchant = hostname.startsWith('merchant.');
 
+  // Ignore Next.js prefetch requests (_rsc) to prevent cross-subdomain CORS preflight errors
+  if (url.searchParams.has('_rsc')) {
+    return NextResponse.next();
+  }
+
   // 1. If someone accesses merchant.masheco.com/ directly, redirect to login
   if (isMerchant && url.pathname === '/') {
     url.pathname = '/login';
