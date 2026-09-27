@@ -42,12 +42,9 @@ export default function PricingSection({
           return res.json();
         })
         .then((json) => {
-          if (
-            json.success &&
-            Array.isArray(json.data) &&
-            json.data.length > 0
-          ) {
-            setPackages(json.data);
+          const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
+          if (list.length > 0) {
+            setPackages(list);
           }
         })
         .catch((err) => {
