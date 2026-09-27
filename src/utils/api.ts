@@ -27,7 +27,16 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const url = originalRequest?.url || '';
+
+    // Ignore auto-logout and refresh-token for auth action endpoints (validation errors like wrong password or wrong OTP code)
+    const isAuthAction = 
+      url.includes('/auth/login') || 
+      url.includes('/auth/change-password') || 
+      url.includes('/auth/2fa') ||
+      url.includes('/auth/refresh-token');
+
+    if (error.response?.status === 401 && !isAuthAction && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {
           failedQueue.push({ resolve, reject });
@@ -57,7 +66,7 @@ api.interceptors.response.use(
       }
     }
 
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !isAuthAction && originalRequest._retry) {
       if (typeof window !== 'undefined') {
         sessionStorage.removeItem('merchantUser');
         window.location.href = '/login';

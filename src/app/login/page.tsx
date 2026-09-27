@@ -14,6 +14,10 @@ export default function LoginPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
 
+  const [is2FARequired, setIs2FARequired] = useState(false);
+  const [twoFactorToken, setTwoFactorToken] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -26,13 +30,6 @@ export default function LoginPage() {
       errors.email = "Please provide a valid email address";
     if (!password) {
       errors.password = "Password is required";
-    } else if (
-      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-        password,
-      )
-    ) {
-      errors.password =
-        "Password must be at least 8 characters and contain uppercase, lowercase, number, and special character";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -62,11 +59,50 @@ export default function LoginPage() {
         throw new Error(data.message || "Login failed");
       }
 
+      if (data.data?.requires2FA) {
+        setIs2FARequired(true);
+        setTwoFactorToken(data.data.twoFactorToken);
+        setTwoFactorCode("");
+        setLoading(false);
+        return;
+      }
+
       const user = data.data.user;
       if (user && user.role !== "tenant_admin") {
         throw new Error("Access denied. Merchant account required.");
       }
 
+      sessionStorage.setItem("merchantUser", JSON.stringify(user));
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify2FA = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!twoFactorCode.trim()) {
+      setError("Please enter your 6-digit authenticator or recovery code");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/auth/2fa/verify-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ twoFactorToken, code: twoFactorCode.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || "Invalid 2FA code. Please try again.");
+      }
+      const user = data.data.user;
+      if (user && user.role !== "tenant_admin") {
+        throw new Error("Access denied. Merchant account required.");
+      }
       sessionStorage.setItem("merchantUser", JSON.stringify(user));
       router.push("/dashboard");
     } catch (err: any) {
@@ -159,10 +195,12 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <div className="mb-10 text-center lg:text-left">
             <h2 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
-              Welcome back
+              {is2FARequired ? "Two-Factor Verification" : "Welcome back"}
             </h2>
             <p className="text-gray-500 text-sm">
-              Please enter your details to sign in to your dashboard.
+              {is2FARequired 
+                ? "Enter your 6-digit Authenticator code or recovery code to continue." 
+                : "Please enter your details to sign in to your dashboard."}
             </p>
           </div>
 
@@ -184,85 +222,135 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="email"
-                className="text-sm font-semibold text-gray-700"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.email ? "border-red-400 bg-red-50/30" : "border-gray-200 bg-white"} text-gray-900 text-sm focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-400`}
-                placeholder="admin@mystore.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-              {fieldErrors.email && (
-                <span className="text-xs text-red-500 font-medium">
-                  {fieldErrors.email}
-                </span>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex justify-between items-center">
+          {!is2FARequired ? (
+            <form onSubmit={handleLogin} className="flex flex-col gap-5">
+              <div className="flex flex-col gap-1.5">
                 <label
-                  htmlFor="password"
+                  htmlFor="email"
                   className="text-sm font-semibold text-gray-700"
                 >
-                  Password
+                  Email
                 </label>
-                <Link
-                  href="/forgot"
-                  className="text-xs text-[hsl(var(--accent-primary))] font-semibold hover:text-[hsl(var(--accent-primary))]/80 transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"}
-                  id="password"
-                  className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.password ? "border-red-400 bg-red-50/30" : "border-gray-200 bg-white"} text-gray-900 text-sm focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-400 pr-10`}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  type="email"
+                  id="email"
+                  className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.email ? "border-red-400 bg-red-50/30" : "border-gray-200 bg-white"} text-gray-900 text-sm focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-400`}
+                  placeholder="admin@mystore.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
+                {fieldErrors.email && (
+                  <span className="text-xs text-red-500 font-medium">
+                    {fieldErrors.email}
+                  </span>
+                )}
               </div>
-              {fieldErrors.password && (
-                <span className="text-xs text-red-500 font-medium">
-                  {fieldErrors.password}
-                </span>
-              )}
-            </div>
 
-            <button
-              type="submit"
-              className="mt-2 w-full bg-[hsl(var(--accent-primary))] text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-[hsl(var(--accent-primary))]/25 hover:shadow-[hsl(var(--accent-primary))]/40 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
-              disabled={loading}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <span>Signing in...</span>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label
+                    htmlFor="password"
+                    className="text-sm font-semibold text-gray-700"
+                  >
+                    Password
+                  </label>
+                  <Link
+                    href="/forgot"
+                    className="text-xs text-[hsl(var(--accent-primary))] font-semibold hover:text-[hsl(var(--accent-primary))]/80 transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
                 </div>
-              ) : (
-                "Sign in to Dashboard"
-              )}
-            </button>
-          </form>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.password ? "border-red-400 bg-red-50/30" : "border-gray-200 bg-white"} text-gray-900 text-sm focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-400 pr-10`}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {fieldErrors.password && (
+                  <span className="text-xs text-red-500 font-medium">
+                    {fieldErrors.password}
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="mt-2 w-full bg-[hsl(var(--accent-primary))] text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-[hsl(var(--accent-primary))]/25 hover:shadow-[hsl(var(--accent-primary))]/40 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Signing in...</span>
+                  </div>
+                ) : (
+                  "Sign in to Dashboard"
+                )}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleVerify2FA} className="flex flex-col gap-5">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-gray-700">
+                  2FA Authenticator Code
+                </label>
+                <input
+                  type="text"
+                  id="totpCode"
+                  name="totpCode"
+                  autoComplete="one-time-code"
+                  autoFocus
+                  maxLength={8}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 text-center tracking-widest font-mono text-xl font-bold focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-300"
+                  placeholder="000000"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value)}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="mt-2 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-emerald-600/25 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>Verifying Code...</span>
+                  </div>
+                ) : (
+                  "Verify & Sign In"
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIs2FARequired(false);
+                  setTwoFactorCode("");
+                  setTwoFactorToken("");
+                }}
+                className="text-xs text-gray-500 hover:text-gray-800 text-center py-1 transition-colors"
+              >
+                ← Back to standard login
+              </button>
+            </form>
+          )}
 
           <div className="mt-8 pt-6 border-t border-gray-100">
             <p className="text-center text-sm text-gray-500">

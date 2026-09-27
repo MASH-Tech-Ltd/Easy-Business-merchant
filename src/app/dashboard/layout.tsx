@@ -323,6 +323,7 @@ export default function DashboardLayout({
       title: 'Settings',
       items: [
         { name: 'Profile', path: '/dashboard/profile', icon: UserCog },
+        { name: 'Security & 2FA', path: '/dashboard/security', icon: ShieldCheck },
         { name: 'Domain', path: '/dashboard/domain', icon: Globe },
         { name: 'API Keys', path: '/dashboard/api-keys', icon: Key, badge: 'BETA' },
         { name: 'Payment Methods', path: '/dashboard/payment-methods', icon: Banknote },
@@ -518,6 +519,14 @@ export default function DashboardLayout({
                   pathname === '/dashboard/products' ? 'Products Management' : 
                   pathname === '/dashboard/categories' ? 'Categories Management' : 
                   pathname === '/dashboard/customers' ? 'Customers Management' : 
+                  pathname === '/dashboard/security' ? 'Security Settings' : 
+                  pathname === '/dashboard/profile' ? 'Merchant Profile' : 
+                  pathname === '/dashboard/courier-automation' ? 'Courier Automation' : 
+                  pathname === '/dashboard/fraud-check' ? 'Fraud Check & Risk Analysis' : 
+                  pathname === '/dashboard/checkout-leads' ? 'Checkout Leads' : 
+                  pathname === '/dashboard/themes' ? 'Store Themes & Branding' : 
+                  pathname === '/dashboard/subscription' ? 'Subscription & Plan' : 
+                  pathname === '/dashboard/subscription/addons' ? 'Subscription Add-ons' : 
                   pathname === '/dashboard/notifications' ? 'Notifications' : 
                   pathname === '/dashboard/payment-methods' ? 'Payment Methods' : 
                   pathname === '/dashboard/api-keys' ? 'API Keys & Integrations' : 
@@ -532,8 +541,14 @@ export default function DashboardLayout({
                   pathname === '/dashboard/products' ? "Manage your store's inventory" : 
                   pathname === '/dashboard/categories' ? 'Organize your products into categories' : 
                   pathname === '/dashboard/customers' ? 'Manage your customer relationships' : 
+                  pathname === '/dashboard/security' ? 'Manage security settings and account password' :
+                  pathname === '/dashboard/profile' ? 'Manage your merchant profile and store settings' :
                   pathname === '/dashboard/courier-automation' ? 'Automate courier integration and shipments' : 
                   pathname === '/dashboard/fraud-check' ? 'Monitor orders for fraud detection' : 
+                  pathname === '/dashboard/checkout-leads' ? 'Track abandoned checkout leads and recovered sales' :
+                  pathname === '/dashboard/themes' ? 'Customize your storefront appearance' :
+                  pathname === '/dashboard/subscription' ? 'Manage your subscription plan and billing' :
+                  pathname === '/dashboard/subscription/addons' ? 'Browse and activate add-on services' :
                   pathname === '/dashboard/notifications' ? "Stay updated with your store's activity (auto-clears after 30 days)" : 
                   pathname === '/dashboard/payment-methods' ? 'Configure mobile banking and manual payment options for your customers' : 
                   pathname === '/dashboard/api-keys' ? 'Manage your third-party integrations securely. These keys allow your store to send emails and process payments.' : 
