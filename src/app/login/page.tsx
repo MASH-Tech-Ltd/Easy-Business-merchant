@@ -128,14 +128,14 @@ export default function LoginPage() {
 
         <div className="relative z-10 w-full max-w-xl">
           <div className="flex items-center gap-3 mb-12">
-            <div className="bg-white p-2 rounded-xl">
+            <div className="flex items-center justify-center">
               <img
-                src="/MEasy.png"
+                src="/masheco-logo.png"
                 alt="MASH ECO Logo"
-                className="w-8 h-8 object-contain"
+                className="w-14 h-14 object-contain"
               />
             </div>
-            <span className="text-2xl font-bold text-white tracking-tight">
+            <span className="text-3xl font-righteous text-white tracking-tight">
               MASH ECO
             </span>
           </div>
@@ -183,11 +183,11 @@ export default function LoginPage() {
       <div className="flex-1 flex flex-col justify-center items-center lg:items-start p-6 sm:p-12 lg:p-16 xl:p-24 relative">
         <div className="absolute top-6 left-6 lg:hidden flex items-center gap-2">
           <img
-            src="/MEasy.png"
+            src="/masheco-logo.png"
             alt="MASH ECO"
-            className="w-8 h-8 object-contain"
+            className="w-9 h-9 sm:w-13 sm:h-13 object-contain"
           />
-          <span className="text-xl font-bold text-gray-900 tracking-tight">
+          <span className="text-2xl sm:text-3xl font-righteous text-gray-900 tracking-tight">
             MASH ECO
           </span>
         </div>

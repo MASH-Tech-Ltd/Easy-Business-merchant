@@ -34,8 +34,8 @@ export default function Footer() {
         <div className="xl:grid xl:grid-cols-3 xl:gap-8 mb-8 sm:mb-12">
           <div className="space-y-6 sm:space-y-8 xl:col-span-1">
             <div className="flex items-center gap-2">
-              <img src="/MEasy.png" alt="MASH ECO" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
-              <span className="text-lg sm:text-xl font-bold text-white">MASH ECO</span>
+              <img src="/masheco-logo.png" alt="MASH ECO" className="w-10 h-10 sm:w-14 sm:h-14 object-contain" />
+              <span className="text-2xl sm:text-3xl font-righteous text-white tracking-tight">MASH ECO</span>
             </div>
             <p className="text-gray-400 text-sm max-w-xs">
               Making e-commerce simple, accessible, and powerful for businesses of all sizes.

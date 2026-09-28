@@ -4,6 +4,7 @@
   --color-background: #ffffff;
   --color-foreground: #171717;
   --font-sans: var(--font-inter);
+  --font-righteous: var(--font-righteous);
 }
 
 :root {

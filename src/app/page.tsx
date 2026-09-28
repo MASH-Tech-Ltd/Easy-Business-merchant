@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     "courier automation ecommerce",
   ],
   icons: {
-    icon: "/MEasy.png",
-    apple: "/MEasy.png",
+    icon: "/masheco-logo.png",
+    apple: "/masheco-logo.png",
   },
   openGraph: {
     title: "MASH ECO — Premium Multi-Tenant E-Commerce Platform",
@@ -164,7 +164,7 @@ export default async function LandingPage() {
     name: "MASH ECO",
     alternateName: ["MashEco", "Mash Eco", "mashe co", "MASH TECH LTD"],
     url: "https://www.masheco.com",
-    logo: "https://www.masheco.com/MEasy.png",
+    logo: "https://www.masheco.com/masheco-logo.png",
     description:
       "MASH ECO is a multi-tenant SaaS e-commerce platform for merchants in Bangladesh.",
     contactPoint: {

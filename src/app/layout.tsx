@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Righteous } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const righteous = Righteous({ weight: '400', subsets: ['latin'], variable: '--font-righteous' });
 
 export const metadata: Metadata = {
   applicationName: 'MASH ECO',
@@ -36,9 +37,9 @@ export const metadata: Metadata = {
     google: 'googlee9d71bb183a3b7f7',
   },
   icons: {
-    icon: '/MEasy.png',
-    apple: '/MEasy.png',
-    shortcut: '/MEasy.png',
+    icon: '/masheco-logo.png',
+    apple: '/masheco-logo.png',
+    shortcut: '/masheco-logo.png',
   },
   openGraph: {
     title: 'MASH ECO | Multi-Tenant E-Commerce Platform',
@@ -75,7 +76,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} h-full antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${righteous.variable} h-full antialiased`}>
       <body suppressHydrationWarning className="min-h-full flex flex-col font-sans">
         <script
           type="application/ld+json"

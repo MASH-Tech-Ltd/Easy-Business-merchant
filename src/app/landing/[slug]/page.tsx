@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       siteName: 'MASH ECO',
       images: [
         {
-          url: 'https://www.masheco.com/MEasy.png',
+          url: 'https://www.masheco.com/masheco-logo.png',
           width: 512,
           height: 512,
           alt: 'MASH ECO Logo',
