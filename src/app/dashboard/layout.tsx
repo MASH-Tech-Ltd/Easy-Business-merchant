@@ -401,15 +401,17 @@ export default function DashboardLayout({
         }`}
       >
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100 flex-shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-lg overflow-hidden">
-              <img src="/masheco-logo.png" alt="MASH ECO" className="w-full h-full object-contain" />
-            </div>
-            <div className="flex flex-col">
-              <h1 className="text-base font-bold text-gray-900 tracking-tight leading-tight">
-                {process.env.NEXT_PUBLIC_PLATFORM_NAME || 'Platform'}
+          <div className="flex flex-col justify-center">
+            <div className="flex items-center gap-2">
+              <img src="/masheco-logo.png" alt="MASH ECO" className="w-8 h-8 object-contain" />
+              <h1 className="text-2xl font-righteous text-gray-900 tracking-tight leading-none mt-0.5">
+                MASH ECO
               </h1>
-              <span className="text-xs font-medium text-gray-500">Merchant Hub</span>
+            </div>
+            <div className="pl-10 -mt-0.5">
+              <span className="text-[8px] font-bold text-gray-500 tracking-[0.25em] uppercase leading-none">
+                MERCHANT HUB
+              </span>
             </div>
           </div>
           <button 
@@ -488,17 +490,17 @@ export default function DashboardLayout({
         {banner}
         
         {/* Mobile Top Branding Bar */}
-        <div className="lg:hidden h-14 px-4 border-b border-gray-100 flex items-center justify-center bg-white flex-shrink-0">
+        <div className="lg:hidden h-14 px-4 border-b border-gray-100 flex flex-col items-center justify-center bg-white flex-shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 rounded-md overflow-hidden">
-              <img src="/masheco-logo.png" alt="MASH ECO" className="w-full h-full object-contain" />
-            </div>
-            <div className="flex flex-col items-center">
-              <h1 className="text-sm font-bold text-gray-900 tracking-tight leading-none">
-                {process.env.NEXT_PUBLIC_PLATFORM_NAME || 'Platform'}
-              </h1>
-              <span className="text-[10px] font-medium text-gray-500">Merchant Hub</span>
-            </div>
+            <img src="/masheco-logo.png" alt="MASH ECO" className="w-7 h-7 object-contain" />
+            <h1 className="text-xl font-righteous text-gray-900 tracking-tight leading-none mt-0.5">
+              MASH ECO
+            </h1>
+          </div>
+          <div className="pl-9 mt-0">
+            <span className="text-[8px] font-bold text-gray-500 tracking-[0.25em] uppercase leading-none">
+              MERCHANT HUB
+            </span>
           </div>
         </div>
 
