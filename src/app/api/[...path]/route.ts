@@ -16,6 +16,27 @@ async function handleProxy(req: NextRequest) {
     const headers = new Headers(req.headers);
     headers.delete("host"); // Let fetch set the correct host header
 
+    // Extract real client IP from incoming request headers (Cloudflare / proxy headers)
+    const cfIp = req.headers.get("cf-connecting-ip");
+    const forwarded = req.headers.get("x-forwarded-for");
+    const realIp = req.headers.get("x-real-ip");
+
+    let clientIp: string | null = null;
+    if (cfIp) {
+      clientIp = cfIp.trim();
+    } else if (forwarded) {
+      const first = forwarded.split(",")[0]?.trim();
+      if (first && first !== "127.0.0.1" && first !== "::1") {
+        clientIp = first;
+      }
+    } else if (realIp) {
+      clientIp = realIp.trim();
+    }
+
+    if (clientIp && clientIp !== "127.0.0.1" && clientIp !== "::1") {
+      headers.set("x-tenant-client-ip", clientIp);
+    }
+
     // Attach the auth tokens from cookies if present
     const accessToken = req.cookies.get("accessToken")?.value;
     if (accessToken && !headers.has("Authorization")) {
