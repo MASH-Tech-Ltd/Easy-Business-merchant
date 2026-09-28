@@ -7,7 +7,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, ListTree, Users, Truck,
   Store, BarChart2, Palette, Paintbrush, LayoutTemplate, Smartphone, 
   Star, Tag, BadgeCheck, RefreshCw, Boxes, UserCog, CreditCard,
-  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, Menu, X, Banknote, Bell
+  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, Menu, X, Banknote, Bell, Activity
 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { api } from '@/utils/api';
@@ -316,6 +316,7 @@ export default function DashboardLayout({
       title: 'Shop & Growth',
       items: [
         { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart2 },
+        { name: 'Tracking & Pixels', path: '/dashboard/pixels', icon: Activity },
         { name: 'Themes', path: '/dashboard/themes', icon: Palette },
       ]
     },
@@ -534,6 +535,7 @@ export default function DashboardLayout({
                   pathname === '/dashboard/api-keys' ? 'API Keys & Integrations' : 
                   pathname === '/dashboard/domain' ? 'Domain Management' : 
                   pathname === '/dashboard/analytics' ? 'Analytics' : 
+                  pathname === '/dashboard/pixels' ? 'Marketing & Tracking' : 
                   pathname === '/dashboard/support' ? 'Support' : 
                   'Dashboard'}
                </h2>
@@ -556,6 +558,7 @@ export default function DashboardLayout({
                   pathname === '/dashboard/api-keys' ? 'Manage your third-party integrations securely. These keys allow your store to send emails and process payments.' : 
                   pathname === '/dashboard/domain' ? 'Enter your custom domain below and configure your DNS. Our system will automatically verify the records and issue a free SSL certificate.' : 
                   pathname === '/dashboard/analytics' ? "Track your store's performance" : 
+                  pathname === '/dashboard/pixels' ? 'Configure analytics and marketing tracking IDs for your store' : 
                   pathname === '/dashboard/support' ? 'Contact the super admin for assistance with your store.' : 
                   ''}
                </p>
