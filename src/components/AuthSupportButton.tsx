@@ -4,12 +4,11 @@ import Link from 'next/link';
 import { Headphones, HelpCircle } from 'lucide-react';
 
 export default function AuthSupportButton() {
-  const supportUrl = process.env.NEXT_PUBLIC_LANDING_URL || '/landing/contact';
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
       <Link
-        href={supportUrl}
+        href="https://www.masheco.com/landing/contact"
         target="_self"
         rel="noopener noreferrer"
         className="group flex items-center gap-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white font-medium px-4 py-3 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200"
