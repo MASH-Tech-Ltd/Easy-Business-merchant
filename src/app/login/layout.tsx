@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import AuthSupportButton from '@/components/AuthSupportButton';
 
 export const metadata: Metadata = {
   title: 'Merchant Login | MASH ECO',
@@ -9,6 +10,13 @@ export const metadata: Metadata = {
   },
 };
 
+
+
 export default function LoginLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      <AuthSupportButton />
+    </>
+  );
 }

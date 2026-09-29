@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import AuthSupportButton from '@/components/AuthSupportButton';
 
 export const metadata: Metadata = {
   title: 'Become a Merchant | MASH ECO',
@@ -22,6 +23,12 @@ export const metadata: Metadata = {
   },
 };
 
+
 export default function RegisterLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      {children}
+      <AuthSupportButton />
+    </>
+  );
 }
