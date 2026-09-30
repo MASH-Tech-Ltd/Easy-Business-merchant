@@ -32,23 +32,23 @@ export default function HeroSection() {
 
         <div className="mt-20 flex justify-center">
           <div className="glass-panel p-2 w-full max-w-5xl rounded-2xl md:rounded-3xl shadow-2xl relative">
-            <div className="flex absolute -top-4 -left-2 sm:-top-6 sm:-left-6 bg-white p-2 sm:p-4 rounded-lg sm:rounded-xl shadow-lg border border-gray-100 items-center gap-2 sm:gap-3 animate-bounce" style={{animationDuration: '3s'}}>
-              <div className="bg-green-100 p-1.5 sm:p-2 rounded-md sm:rounded-lg text-green-600">
-                <ShoppingCart className="w-4 h-4 sm:w-6 sm:h-6" />
+            <div className="flex absolute -top-4 -left-2 sm:-top-8 sm:-left-8 bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 items-center gap-3 sm:gap-4 animate-bounce" style={{animationDuration: '3s'}}>
+              <div className="bg-green-100 p-2 sm:p-3 rounded-lg text-green-600">
+                <ShoppingCart className="w-5 h-5 sm:w-7 sm:h-7" />
               </div>
               <div>
-                <p className="text-[10px] sm:text-xs text-gray-500 font-medium">New Order</p>
-                <p className="text-xs sm:text-sm font-bold text-gray-900">$120.00</p>
+                <p className="text-xs sm:text-sm text-gray-500 font-medium">New Order</p>
+                <p className="text-sm sm:text-lg font-bold text-gray-900">৳ 12350.00</p>
               </div>
             </div>
             
-            <div className="flex absolute -bottom-4 -right-2 sm:-bottom-6 sm:-right-6 bg-white p-2 sm:p-4 rounded-lg sm:rounded-xl shadow-lg border border-gray-100 items-center gap-2 sm:gap-3 animate-bounce" style={{animationDuration: '4s', animationDelay: '1s'}}>
-              <div className="bg-blue-100 p-1.5 sm:p-2 rounded-md sm:rounded-lg text-blue-600">
-                <BarChart3 className="w-4 h-4 sm:w-6 sm:h-6" />
+            <div className="flex absolute -bottom-4 -right-2 sm:-bottom-8 sm:-right-8 bg-white p-3 sm:p-5 rounded-xl sm:rounded-2xl shadow-xl border border-gray-100 items-center gap-3 sm:gap-4 animate-bounce" style={{animationDuration: '4s', animationDelay: '1s'}}>
+              <div className="bg-blue-100 p-2 sm:p-3 rounded-lg text-blue-600">
+                <BarChart3 className="w-5 h-5 sm:w-7 sm:h-7" />
               </div>
               <div>
-                <p className="text-[10px] sm:text-xs text-gray-500 font-medium">Weekly Sales</p>
-                <p className="text-xs sm:text-sm font-bold text-gray-900">+45.2%</p>
+                <p className="text-xs sm:text-sm text-gray-500 font-medium">Weekly Sales</p>
+                <p className="text-sm sm:text-lg font-bold text-gray-900">+45.2%</p>
               </div>
             </div>
 

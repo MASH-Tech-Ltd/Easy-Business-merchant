@@ -51,6 +51,7 @@ export default function OrdersPage() {
   
   // Filters
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
   const router = useRouter();
@@ -98,16 +99,23 @@ export default function OrdersPage() {
   }, []);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
     fetchOrders();
     window.addEventListener('dashboard:refresh', fetchOrders);
     return () => window.removeEventListener('dashboard:refresh', fetchOrders);
-  }, [page, statusFilter, search]);
+  }, [page, statusFilter, debouncedSearch]);
 
   const fetchOrders = async () => {
     if (globalOrdersCache.length === 0) setLoading(true);
     try {
       const response = await api.get('/orders/my-orders', {
-        params: { page, limit, status: statusFilter, search }
+        params: { page, limit, status: statusFilter, search: debouncedSearch }
       });
       const newOrders = response.data.data || [];
       const newTotalPages = response.data.meta?.totalPages || 1;
@@ -234,10 +242,12 @@ export default function OrdersPage() {
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
               type="text"
-              placeholder="Search by customer name or phone..."
+              placeholder="Search by ID, customer name or phone..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && fetchOrders()}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
             />
           </div>
