@@ -32,6 +32,7 @@ interface Order {
   paymentStatus: string;
   isDeliveryChargePaid?: boolean;
   consignmentId?: string;
+  courierProvider?: string;
 }
 
 let globalOrdersCache: Order[] = [];
@@ -63,7 +64,8 @@ export default function OrdersPage() {
   
   const [courierModal, setCourierModal] = useState<{show: boolean, orderId: string, configuredProviders: string[]} | null>(null);
   const [checkingCourier, setCheckingCourier] = useState<string | null>(null);
-
+  const [forwardedInfoModal, setForwardedInfoModal] = useState<{show: boolean, order: Order} | null>(null);
+  const [trackingIframeUrl, setTrackingIframeUrl] = useState<string | null>(null);
   const [storeName, setStoreName] = useState('Your Store');
   const [storeLogo, setStoreLogo] = useState('');
 
@@ -172,14 +174,18 @@ export default function OrdersPage() {
     }
   };
 
-  const handleCourierCheck = async (orderId: string) => {
-    setCheckingCourier(orderId);
+  const handleCourierCheck = async (order: Order) => {
+    if (order.consignmentId) {
+      setForwardedInfoModal({ show: true, order });
+      return;
+    }
+    setCheckingCourier(order._id);
     try {
       const response = await api.get('/courier/check-addon');
       if (response.data?.data?.allowed) {
         setCourierModal({
           show: true,
-          orderId,
+          orderId: order._id,
           configuredProviders: response.data.data.configuredProviders || []
         });
       }
@@ -311,8 +317,8 @@ export default function OrdersPage() {
                     )}
                   </button>
                   <button 
-                    onClick={() => handleCourierCheck(order._id)}
-                    disabled={checkingCourier === order._id || !!order.consignmentId}
+                    onClick={() => handleCourierCheck(order)}
+                    disabled={checkingCourier === order._id}
                     className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors tooltip ${
                       order.consignmentId 
                         ? 'bg-green-100 text-green-600'
@@ -425,8 +431,8 @@ export default function OrdersPage() {
                           )}
                         </button>
                         <button 
-                          onClick={() => handleCourierCheck(order._id)}
-                          disabled={checkingCourier === order._id || !!order.consignmentId}
+                          onClick={() => handleCourierCheck(order)}
+                          disabled={checkingCourier === order._id}
                           className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors tooltip ${
                             order.consignmentId 
                               ? 'bg-green-100 text-green-600'
@@ -813,13 +819,101 @@ export default function OrdersPage() {
         </div>
       )}
 
-      {courierModal && courierModal.show && (
+      {/* Courier Modal */}
+      {courierModal?.show && (
         <CourierModal
           orderId={courierModal.orderId}
-          configuredProviders={(courierModal as any).configuredProviders || []}
+          configuredProviders={courierModal.configuredProviders}
           onClose={() => setCourierModal(null)}
           onForward={handleForwardOrder}
         />
+      )}
+
+      {/* Forwarded Info Modal */}
+      {forwardedInfoModal?.show && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl text-center">
+            <div className="p-8">
+              <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-5">
+                <Truck className="w-8 h-8" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Order Forwarded</h2>
+              <p className="text-sm text-gray-500 mb-4">
+                This order has already been successfully forwarded to the courier.
+              </p>
+              <div className="bg-gray-50 rounded-xl p-4 text-left border border-gray-100">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Provider</span>
+                  <span className="text-sm font-bold text-gray-900 capitalize">{forwardedInfoModal.order.courierProvider || 'Unknown'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Consignment ID</span>
+                  <span className="text-sm font-mono text-[#5022C3] bg-purple-50 px-2 py-0.5 rounded">{forwardedInfoModal.order.consignmentId}</span>
+                </div>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100 bg-gray-50 flex gap-3">
+              <button 
+                onClick={() => setForwardedInfoModal(null)}
+                className="flex-1 py-3 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                Close
+              </button>
+              <button 
+                onClick={() => {
+                  const provider = forwardedInfoModal.order.courierProvider?.toLowerCase() || '';
+                  const cid = forwardedInfoModal.order.consignmentId;
+                  if (!cid) return;
+                  
+                  let url = '';
+                  if (provider === 'pathao') {
+                    url = `https://merchant.pathao.com/tracking?consignment_id=${cid}`;
+                  } else if (provider === 'steadfast') {
+                    url = `https://steadfast.com.bd/t/${cid}`;
+                  } else {
+                    url = `https://www.google.com/search?q=${provider}+tracking+${cid}&igu=1`;
+                  }
+                  
+                  setTrackingIframeUrl(url);
+                }}
+                className="flex-1 py-3 text-sm font-bold bg-[#5022C3] text-white hover:bg-[#401b9c] rounded-xl transition-colors shadow-md flex items-center justify-center gap-2"
+              >
+                Track Order
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tracking Iframe Modal */}
+      {trackingIframeUrl && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] sm:p-4 font-sans">
+          <div className="bg-white sm:rounded-2xl w-full h-full sm:h-[90vh] sm:max-w-5xl flex flex-col overflow-hidden shadow-2xl relative">
+            <div className="p-4 border-b flex justify-between items-center bg-gray-50 shrink-0">
+              <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <Truck className="w-5 h-5 text-[#5022C3]" />
+                Live Tracking
+              </h2>
+              <button 
+                onClick={() => setTrackingIframeUrl(null)}
+                className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500 hover:text-gray-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 w-full bg-gray-100 relative">
+              <iframe 
+                src={trackingIframeUrl} 
+                className="w-full h-full border-0"
+                title="Order Tracking"
+                allow="fullscreen"
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

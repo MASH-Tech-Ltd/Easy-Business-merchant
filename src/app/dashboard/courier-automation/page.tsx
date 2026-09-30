@@ -32,17 +32,17 @@ export default function CourierAutomation() {
     {
       id: "pathao",
       name: "Pathao",
-      icon: "https://pathao.com/bn/wp-content/uploads/sites/6/2019/02/Pathao-Courier-Logo.png",
+      icon: "/Courier_images/pathao_courier.png",
     },
     {
       id: "steadfast",
       name: "Steadfast",
-      icon: "https://steadfast.com.bd/assets/images/logo.png",
+      icon: "/Courier_images/steadfast_courier.jpg",
     },
     {
       id: "redx",
       name: "REDX",
-      icon: "https://redx.com.bd/wp-content/uploads/2021/04/redx-logo.svg",
+      icon: "/Courier_images/redx-logo.png",
     },
   ];
 
@@ -188,9 +188,13 @@ export default function CourierAutomation() {
               }`}
             >
               <div className="w-10 h-10 bg-white rounded-lg border border-gray-100 flex items-center justify-center p-1 flex-shrink-0">
-                <div className="font-bold text-xs text-gray-500">
-                  {provider.name}
-                </div>
+                {provider.icon ? (
+                  <img src={provider.icon} alt={provider.name} className="w-full h-full object-contain" />
+                ) : (
+                  <div className="font-bold text-xs text-gray-500">
+                    {provider.name}
+                  </div>
+                )}
               </div>
               <span
                 className={`font-semibold ${activeProvider === provider.id ? "text-[#5022C3]" : "text-gray-700"}`}

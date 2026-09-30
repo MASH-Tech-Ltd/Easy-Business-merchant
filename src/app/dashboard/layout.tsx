@@ -524,7 +524,7 @@ export default function DashboardLayout({
                   pathname === '/dashboard/customers' ? 'Customers Management' : 
                   pathname === '/dashboard/security' ? 'Security Settings' : 
                   pathname === '/dashboard/profile' ? 'Merchant Profile' : 
-                  pathname === '/dashboard/courier-automation' ? 'Courier Automation' : 
+                  pathname === '/dashboard/courier-automation' ? 'Courier' : 
                   pathname === '/dashboard/fraud-check' ? 'Fraud Check & Risk Analysis' : 
                   pathname === '/dashboard/checkout-leads' ? 'Checkout Leads' : 
                   pathname === '/dashboard/themes' ? 'Store Themes & Branding' : 
