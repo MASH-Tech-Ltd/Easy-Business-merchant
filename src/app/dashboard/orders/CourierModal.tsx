@@ -3,13 +3,14 @@ import { X, Truck, Loader2 } from 'lucide-react';
 
 interface CourierModalProps {
   orderId: string;
-  configuredProvider: string;
+  configuredProviders: string[];
   onClose: () => void;
   onForward: (orderId: string, providerId: string) => Promise<void>;
 }
 
-export function CourierModal({ orderId, configuredProvider, onClose, onForward }: CourierModalProps) {
-  const [selectedProvider, setSelectedProvider] = useState(configuredProvider || 'pathao');
+export function CourierModal({ orderId, configuredProviders = [], onClose, onForward }: CourierModalProps) {
+  const defaultProvider = configuredProviders.length > 0 ? configuredProviders[0] : 'pathao';
+  const [selectedProvider, setSelectedProvider] = useState(defaultProvider);
   const [loading, setLoading] = useState(false);
 
   const providers = [
@@ -46,30 +47,39 @@ export function CourierModal({ orderId, configuredProvider, onClose, onForward }
           <p className="text-sm text-gray-600">Select a courier to forward Order #{orderId.substring(orderId.length - 6).toUpperCase()}</p>
           
           <div className="space-y-3 mt-4">
-            {providers.map((p) => (
-              <label 
-                key={p.id}
-                className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${selectedProvider === p.id ? 'border-[#5022C3] bg-purple-50' : 'border-gray-200 hover:border-gray-300'}`}
-              >
-                <input 
-                  type="radio" 
-                  name="provider" 
-                  value={p.id}
-                  checked={selectedProvider === p.id}
-                  onChange={() => setSelectedProvider(p.id)}
-                  className="w-4 h-4 text-[#5022C3] focus:ring-[#5022C3] border-gray-300"
-                />
-                <div className="w-10 h-10 bg-white border border-gray-100 rounded-lg flex items-center justify-center p-1">
-                  <div className="font-bold text-xs text-gray-500">{p.name}</div>
-                </div>
-                <div className="flex-1">
-                  <div className="font-semibold text-gray-900 text-sm">{p.name}</div>
-                  {configuredProvider === p.id && (
-                    <div className="text-[10px] text-green-600 font-medium">Configured & Ready</div>
-                  )}
-                </div>
-              </label>
-            ))}
+            {providers.map((p) => {
+              const isConfigured = configuredProviders.includes(p.id);
+              return (
+                <label 
+                  key={p.id}
+                  className={`flex items-center gap-3 p-3 border rounded-xl transition-colors ${
+                    !isConfigured ? 'opacity-50 cursor-not-allowed bg-gray-50' :
+                    selectedProvider === p.id ? 'border-[#5022C3] bg-purple-50 cursor-pointer' : 'border-gray-200 hover:border-gray-300 cursor-pointer'
+                  }`}
+                >
+                  <input 
+                    type="radio" 
+                    name="provider" 
+                    value={p.id}
+                    disabled={!isConfigured}
+                    checked={selectedProvider === p.id}
+                    onChange={() => isConfigured && setSelectedProvider(p.id)}
+                    className={`w-4 h-4 text-[#5022C3] focus:ring-[#5022C3] border-gray-300 ${!isConfigured ? 'cursor-not-allowed' : ''}`}
+                  />
+                  <div className="w-10 h-10 bg-white border border-gray-100 rounded-lg flex items-center justify-center p-1">
+                    <div className="font-bold text-xs text-gray-500">{p.name}</div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 text-sm">{p.name}</div>
+                    {isConfigured ? (
+                      <div className="text-[10px] text-green-600 font-medium">Configured & Ready</div>
+                    ) : (
+                      <div className="text-[10px] text-gray-500 font-medium">Not Configured</div>
+                    )}
+                  </div>
+                </label>
+              );
+            })}
           </div>
         </div>
 

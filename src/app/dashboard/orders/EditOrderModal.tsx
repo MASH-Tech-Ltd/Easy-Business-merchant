@@ -46,7 +46,7 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const subTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const totalPrice = subTotal + shippingCharge;
+  const totalPrice = isDeliveryChargePaid ? subTotal : subTotal + shippingCharge;
 
   const handleUpdateQuantity = (productId: string, delta: number) => {
     setItems(items.map(item => {

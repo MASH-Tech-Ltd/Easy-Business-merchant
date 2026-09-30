@@ -61,7 +61,7 @@ export default function OrdersPage() {
   const [fraudErrorModal, setFraudErrorModal] = useState<{show: boolean, message: string} | null>(null);
   const [fraudResultModal, setFraudResultModal] = useState<any>(null);
   
-  const [courierModal, setCourierModal] = useState<{show: boolean, orderId: string, configuredProvider: string} | null>(null);
+  const [courierModal, setCourierModal] = useState<{show: boolean, orderId: string, configuredProviders: string[]} | null>(null);
   const [checkingCourier, setCheckingCourier] = useState<string | null>(null);
 
   const [storeName, setStoreName] = useState('Your Store');
@@ -131,9 +131,10 @@ export default function OrdersPage() {
       setEditOrder(null);
       fetchOrders();
       toast.success('Order updated successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update order', error);
-      toast.error('Failed to update order');
+      const errorMessage = error.response?.data?.message || 'Failed to update order';
+      toast.error(errorMessage);
     }
   };
 
@@ -179,7 +180,7 @@ export default function OrdersPage() {
         setCourierModal({
           show: true,
           orderId,
-          configuredProvider: response.data.data.configuredProvider || 'pathao'
+          configuredProviders: response.data.data.configuredProviders || []
         });
       }
     } catch (error: any) {
@@ -815,7 +816,7 @@ export default function OrdersPage() {
       {courierModal && courierModal.show && (
         <CourierModal
           orderId={courierModal.orderId}
-          configuredProvider={courierModal.configuredProvider}
+          configuredProviders={(courierModal as any).configuredProviders || []}
           onClose={() => setCourierModal(null)}
           onForward={handleForwardOrder}
         />
