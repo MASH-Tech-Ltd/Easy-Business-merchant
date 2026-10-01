@@ -177,10 +177,7 @@ export default function DashboardLayout({
 
     fetchTicketsCount();
 
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || "", {
-      transports: ['websocket', 'polling'],
-      autoConnect: true,
-    });
+    const socket = io(process.env.NEXT_PUBLIC_WS_URL || "");
     socketInstance = socket;
 
     if (merchantUser?._id) {
