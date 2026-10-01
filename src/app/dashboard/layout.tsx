@@ -10,6 +10,7 @@ import {
   GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, Menu, X, Banknote, Bell, Activity
 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
+import { io } from 'socket.io-client';
 import { api } from '@/utils/api';
 import NotificationBell from '@/components/NotificationBell';
 
@@ -162,66 +163,74 @@ export default function DashboardLayout({
   }, [pathname]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      const fetchTicketsCount = async () => {
-        try {
-          const res = await api.get('/support/my-tickets');
-          const openTickets = res.data.data.filter((t: any) => t.status === 'OPEN' || t.status === 'PENDING');
-          setOpenTicketsCount(openTickets.length);
-        } catch (err) {}
-      };
+    if (!isAuthenticated) return;
 
-      fetchTicketsCount();
+    let socketInstance: any = null;
 
-      import('socket.io-client').then(({ io }) => {
-        const socket = io(process.env.NEXT_PUBLIC_WS_URL || "");
-        
-        if (merchantUser?._id) {
-          socket.emit('join_user_room', merchantUser._id);
+    const fetchTicketsCount = async () => {
+      try {
+        const res = await api.get('/support/my-tickets');
+        const openTickets = res.data.data.filter((t: any) => t.status === 'OPEN' || t.status === 'PENDING');
+        setOpenTicketsCount(openTickets.length);
+      } catch (err) {}
+    };
+
+    fetchTicketsCount();
+
+    const socket = io(process.env.NEXT_PUBLIC_WS_URL || "", {
+      transports: ['websocket', 'polling'],
+      autoConnect: true,
+    });
+    socketInstance = socket;
+
+    if (merchantUser?._id) {
+      socket.emit('join_user_room', merchantUser._id);
+    }
+
+    const tenantId = merchantUser?.tenantId || merchantUser?._id;
+    if (tenantId) {
+      socket.emit('join_tenant_room', tenantId);
+    }
+
+    socket.on('refresh_tickets', fetchTicketsCount);
+    socket.on('account_status_changed', async () => {
+      try {
+        const res = await api.get('/tenants/my-store');
+        if(res.data?.data?.status === 'suspended') {
+          setIsAccountFrozen(true);
+        } else {
+          setIsAccountFrozen(false);
         }
+      } catch(e){}
+    });
 
+    socket.on('refresh_subscriptions', () => {
+      window.dispatchEvent(new Event('dashboard:refresh'));
+    });
+
+    socket.on('new_order', (order: any) => {
+      playNotificationSound();
+      toast.success(`New order received from ${order.customerName || 'a customer'}!`, { duration: 4000 });
+      window.dispatchEvent(new Event('dashboard:refresh'));
+    });
+
+    return () => {
+      if (socketInstance) {
+        if (merchantUser?._id) {
+          socketInstance.emit('leave_user_room', merchantUser._id);
+        }
         const tenantId = merchantUser?.tenantId || merchantUser?._id;
         if (tenantId) {
-          socket.emit('join_tenant_room', tenantId);
+          socketInstance.emit('leave_tenant_room', tenantId);
         }
-
-        socket.on('refresh_tickets', fetchTicketsCount);
-        socket.on('account_status_changed', async () => {
-          try {
-            const res = await api.get('/tenants/my-store');
-            if(res.data?.data?.status === 'suspended') {
-              setIsAccountFrozen(true);
-            } else {
-              setIsAccountFrozen(false);
-            }
-          } catch(e){}
-        });
-
-        socket.on('refresh_subscriptions', () => {
-          window.dispatchEvent(new Event('dashboard:refresh'));
-        });
-
-        socket.on('new_order', (order: any) => {
-          playNotificationSound();
-          toast.success(`New order received from ${order.customerName || 'a customer'}!`, { duration: 4000 });
-          window.dispatchEvent(new Event('dashboard:refresh'));
-        });
-
-        return () => {
-          if (merchantUser?._id) {
-            socket.emit('leave_user_room', merchantUser._id);
-          }
-          if (tenantId) {
-            socket.emit('leave_tenant_room', tenantId);
-          }
-          socket.off('refresh_tickets');
-          socket.off('account_status_changed');
-          socket.off('refresh_subscriptions');
-          socket.off('new_order');
-          socket.close();
-        };
-      });
-    }
+        socketInstance.off('refresh_tickets');
+        socketInstance.off('account_status_changed');
+        socketInstance.off('refresh_subscriptions');
+        socketInstance.off('new_order');
+        socketInstance.disconnect();
+        socketInstance.close();
+      }
+    };
   }, [isAuthenticated, merchantUser?._id]);
 
   useEffect(() => {
@@ -590,7 +599,7 @@ export default function DashboardLayout({
                   console.error('Logout error', err);
                 }
                 sessionStorage.removeItem('merchantUser');
-                router.push('/login');
+                window.location.href = '/login';
               }}
               className="ml-4 p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
               title="Logout"
