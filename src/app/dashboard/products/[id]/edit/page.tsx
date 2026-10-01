@@ -415,7 +415,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 files={imageFiles}
                 previewUrls={previewUrls}
                 onChange={handleImageChange}
-                maxFiles={5}
+                maxFiles={4}
               />
             </Card>
 

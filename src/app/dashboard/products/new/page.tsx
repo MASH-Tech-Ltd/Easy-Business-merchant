@@ -402,7 +402,7 @@ export default function AddProductPage() {
                 files={imageFiles}
                 previewUrls={previewUrls}
                 onChange={handleImageChange}
-                maxFiles={5}
+                maxFiles={4}
               />
             </Card>
 

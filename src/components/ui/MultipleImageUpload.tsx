@@ -17,7 +17,7 @@ export function MultipleImageUpload({
   files,
   previewUrls,
   onChange,
-  maxFiles = 5,
+  maxFiles = 4,
 }: MultipleImageUploadProps) {
   const addFileInputRef = useRef<HTMLInputElement>(null);
   const replaceFileInputRef = useRef<HTMLInputElement>(null);
@@ -162,62 +162,62 @@ export function MultipleImageUpload({
         onChange={handleReplaceFileChange}
       />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 gap-3 mb-3">
         {previewUrls.map((url, index) => (
           <div
             key={`${url}-${index}`}
-            className={`relative aspect-video sm:aspect-square rounded-2xl border-2 overflow-hidden group bg-gray-900 shadow-sm transition-all duration-300 ${
-              index === 0 ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200 hover:border-gray-300'
+            className={`relative aspect-square rounded-xl border-2 overflow-hidden group bg-gray-900 shadow-sm transition-all duration-300 ${
+              index === 0 ? 'border-purple-500 ring-2 ring-purple-100' : 'border-gray-200 hover:border-gray-300'
             }`}
           >
             <img src={url} alt={`Banner ${index + 1}`} className="w-full h-full object-cover" />
 
             {/* Main Badge */}
             {index === 0 ? (
-              <div className="absolute top-2 left-2 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-md">
-                <Star className="w-3 h-3 fill-current" />
+              <div className="absolute top-1.5 left-1.5 z-10 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-md">
+                <Star className="w-2.5 h-2.5 fill-current" />
                 Main
               </div>
             ) : (
-              <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md text-white/90 text-[10px] font-semibold px-2 py-0.5 rounded-md">
+              <div className="absolute top-1.5 left-1.5 z-10 bg-black/60 backdrop-blur-md text-white/90 text-[9px] font-semibold px-1.5 py-0.5 rounded-md">
                 Slide {index + 1}
               </div>
             )}
 
             {/* Hover Action Overlay */}
-            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col justify-between p-3 z-20">
+            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col justify-between p-2 z-20">
               {/* Top actions */}
-              <div className="flex justify-end gap-1.5">
+              <div className="flex justify-end">
                 <button
                   type="button"
                   title="Delete image"
                   onClick={() => handleRemove(index)}
-                  className="bg-red-500/90 hover:bg-red-600 text-white p-2 rounded-xl transition-all hover:scale-105 shadow-md flex items-center justify-center"
+                  className="bg-red-500/90 hover:bg-red-600 text-white p-1 rounded-lg transition-all hover:scale-105 shadow-md flex items-center justify-center"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               {/* Bottom actions */}
-              <div className="flex items-center gap-1.5 justify-center">
+              <div className="flex items-center gap-1 justify-center flex-wrap">
                 {index !== 0 && (
                   <button
                     type="button"
                     title="Make this the main image"
                     onClick={() => handleMakeMain(index)}
-                    className="bg-white/95 hover:bg-white text-gray-900 text-xs font-bold px-2.5 py-1.5 rounded-xl transition-all hover:scale-105 shadow-md flex items-center gap-1"
+                    className="bg-white/95 hover:bg-white text-gray-900 text-[10px] font-bold px-2 py-1 rounded-lg transition-all hover:scale-105 shadow-md flex items-center gap-0.5"
                   >
-                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                    Make Main
+                    <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                    Main
                   </button>
                 )}
                 <button
                   type="button"
                   title="Replace / Update this image"
                   onClick={() => triggerReplace(index)}
-                  className="bg-white/95 hover:bg-white text-gray-900 text-xs font-bold px-2.5 py-1.5 rounded-xl transition-all hover:scale-105 shadow-md flex items-center gap-1"
+                  className="bg-white/95 hover:bg-white text-gray-900 text-[10px] font-bold px-2 py-1 rounded-lg transition-all hover:scale-105 shadow-md flex items-center gap-0.5"
                 >
-                  <RefreshCw className="w-3.5 h-3.5 text-indigo-600" />
+                  <RefreshCw className="w-3 h-3 text-indigo-600" />
                   Replace
                 </button>
               </div>
@@ -228,7 +228,7 @@ export function MultipleImageUpload({
         {/* Add Image Slot */}
         {previewUrls.length < maxFiles && (
           <div
-            className={`relative aspect-video sm:aspect-square border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 ${
+            className={`relative aspect-square border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 ${
               dragActive
                 ? 'border-[#5022C3] bg-purple-50/50 scale-[0.99]'
                 : error && previewUrls.length === 0
@@ -253,11 +253,11 @@ export function MultipleImageUpload({
                 }
               }}
             />
-            <div className="w-11 h-11 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center text-[#5022C3] mb-2 group-hover:scale-110 transition-transform">
-              <ImagePlus className="w-5 h-5" />
+            <div className="w-9 h-9 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center text-[#5022C3] mb-1 group-hover:scale-110 transition-transform">
+              <ImagePlus className="w-4 h-4" />
             </div>
-            <p className="text-xs font-bold text-gray-800 px-2">Add Image</p>
-            <p className="text-[11px] text-gray-400 mt-0.5">JPG, PNG, WebP</p>
+            <p className="text-xs font-bold text-gray-800 px-1">Add Image</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">JPG, PNG, WebP</p>
           </div>
         )}
       </div>
