@@ -16,6 +16,7 @@ const SocketContext = createContext<SocketContextType>({
 });
 
 let globalSocket: Socket | null = null;
+let currentJoinedUserId: string | null = null;
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(globalSocket);
@@ -31,6 +32,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         globalSocket.close();
         globalSocket = null;
       }
+      currentJoinedUserId = null;
       setSocket(null);
       setIsConnected(false);
       return;
@@ -40,6 +42,15 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       user = JSON.parse(storedUser);
     } catch (e) {}
+
+    if (currentJoinedUserId && currentJoinedUserId !== user?._id) {
+      if (globalSocket) {
+        globalSocket.disconnect();
+        globalSocket.close();
+        globalSocket = null;
+      }
+      currentJoinedUserId = null;
+    }
 
     if (!globalSocket) {
       const wsUrl = getWsUrl();
@@ -58,23 +69,31 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
     setSocket(currentSocket);
 
+    const joinRooms = () => {
+      if (!user?._id) return;
+      if (currentJoinedUserId !== user._id) {
+        currentJoinedUserId = user._id;
+        currentSocket.emit('join_user_room', user._id);
+        const tenantId = user?.tenantId || user?._id;
+        if (tenantId) {
+          currentSocket.emit('join_tenant_room', tenantId);
+        }
+      }
+    };
+
     const onConnect = () => {
       setIsConnected(true);
-      if (user?._id) {
-        currentSocket.emit('join_user_room', user._id);
-      }
-      const tenantId = user?.tenantId || user?._id;
-      if (tenantId) {
-        currentSocket.emit('join_tenant_room', tenantId);
-      }
+      joinRooms();
     };
 
     const onDisconnect = () => {
       setIsConnected(false);
+      currentJoinedUserId = null;
     };
 
     if (currentSocket.connected) {
-      onConnect();
+      setIsConnected(true);
+      joinRooms();
     }
 
     currentSocket.on('connect', onConnect);
