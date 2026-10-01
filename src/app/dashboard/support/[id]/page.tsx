@@ -4,19 +4,19 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Send, Clock, CircleDot, CheckCircle, Clock3 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { api, getWsUrl } from '@/utils/api';
-import { io, Socket } from 'socket.io-client';
+import { api } from '@/utils/api';
+import { useSocket } from '@/context/SocketContext';
 
 export default function SupportDetailsPage() {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
+  const { socket } = useSocket();
   
   const [ticket, setTicket] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [replyMessage, setReplyMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [typingUser, setTypingUser] = useState('');
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -24,20 +24,13 @@ export default function SupportDetailsPage() {
 
   useEffect(() => {
     fetchTicketDetails();
-
-    const newSocket = io(getWsUrl());
-    setSocket(newSocket);
-
-    return () => {
-      newSocket.close();
-    };
   }, [id]);
 
   useEffect(() => {
-    if (socket && ticket) {
+    if (socket && ticket?.ticketId) {
       socket.emit('join_ticket', ticket.ticketId);
 
-      socket.on('new_message', (message) => {
+      const handleNewMessage = (message: any) => {
         setTicket((prev: any) => {
           if (!prev) return prev;
           if (prev.messages.some((m: any) => m._id === message._id)) return prev;
@@ -46,41 +39,47 @@ export default function SupportDetailsPage() {
             messages: [...prev.messages, message]
           };
         });
-      });
+      };
 
-      socket.on('status_changed', (status) => {
+      const handleStatusChanged = (status: any) => {
         setTicket((prev: any) => ({
           ...prev,
           status
         }));
-      });
+      };
 
-      socket.on('ticket_deleted', () => {
+      const handleTicketDeleted = () => {
         toast.error('This ticket was deleted');
         router.push('/dashboard/support');
-      });
+      };
 
-      socket.on('typing_start', (data) => {
+      const handleTypingStart = (data: any) => {
         if (data.ticketId === ticket.ticketId) {
           setIsTyping(true);
           setTypingUser(data.senderName);
         }
-      });
+      };
 
-      socket.on('typing_end', (data) => {
+      const handleTypingEnd = (data: any) => {
         if (data.ticketId === ticket.ticketId) {
           setIsTyping(false);
           setTypingUser('');
         }
-      });
+      };
+
+      socket.on('new_message', handleNewMessage);
+      socket.on('status_changed', handleStatusChanged);
+      socket.on('ticket_deleted', handleTicketDeleted);
+      socket.on('typing_start', handleTypingStart);
+      socket.on('typing_end', handleTypingEnd);
 
       return () => {
         socket.emit('leave_ticket', ticket.ticketId);
-        socket.off('new_message');
-        socket.off('status_changed');
-        socket.off('ticket_deleted');
-        socket.off('typing_start');
-        socket.off('typing_end');
+        socket.off('new_message', handleNewMessage);
+        socket.off('status_changed', handleStatusChanged);
+        socket.off('ticket_deleted', handleTicketDeleted);
+        socket.off('typing_start', handleTypingStart);
+        socket.off('typing_end', handleTypingEnd);
       };
     }
   }, [socket, ticket?.ticketId]);

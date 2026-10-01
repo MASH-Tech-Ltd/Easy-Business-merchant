@@ -1,15 +1,15 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { Bell, Check } from 'lucide-react';
-import { io, Socket } from 'socket.io-client';
-import { api, getWsUrl } from '@/utils/api';
+import { api } from '@/utils/api';
+import { useSocket } from '@/context/SocketContext';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 export default function NotificationBell({ userId }: { userId?: string }) {
+  const { socket } = useSocket();
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -44,16 +44,9 @@ export default function NotificationBell({ userId }: { userId?: string }) {
   }, []);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!socket || !userId) return;
 
-    const newSocket = io(getWsUrl());
-    setSocket(newSocket);
-
-    newSocket.on('connect', () => {
-      newSocket.emit('join_user_room', userId);
-    });
-
-    newSocket.on('new_notification', (notification) => {
+    const handleNewNotification = (notification: any) => {
       setNotifications(prev => [notification, ...prev]);
       toast.custom((t) => (
         <div
@@ -83,13 +76,14 @@ export default function NotificationBell({ userId }: { userId?: string }) {
           </div>
         </div>
       ), { duration: 5000 });
-    });
+    };
+
+    socket.on('new_notification', handleNewNotification);
 
     return () => {
-      newSocket.emit('leave_user_room', userId);
-      newSocket.close();
+      socket.off('new_notification', handleNewNotification);
     };
-  }, [userId]);
+  }, [socket, userId]);
 
   const fetchNotifications = async () => {
     try {

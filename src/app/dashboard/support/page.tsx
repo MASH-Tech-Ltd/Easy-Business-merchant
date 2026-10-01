@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LifeBuoy, Plus, CircleDot, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { api, getWsUrl } from '@/utils/api';
-import { io } from 'socket.io-client';
+import { api } from '@/utils/api';
+import { useSocket } from '@/context/SocketContext';
 
 let globalTicketsCache: any[] = [];
 
@@ -16,35 +16,23 @@ export default function SupportPage() {
   const [newTicket, setNewTicket] = useState({ subject: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+  const { socket } = useSocket();
 
   useEffect(() => {
     fetchTickets();
-    
-    // Add socket connection for real-time list updates
-    const socket = io(getWsUrl());
-    const userStr = sessionStorage.getItem('user');
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        socket.emit('join_user_room', user._id);
-      } catch(err) {}
-    }
 
-    socket.on('refresh_tickets', () => {
+    if (!socket) return;
+
+    const handleRefresh = () => {
       fetchTickets();
-    });
+    };
+
+    socket.on('refresh_tickets', handleRefresh);
 
     return () => {
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr);
-          socket.emit('leave_user_room', user._id);
-        } catch(err) {}
-      }
-      socket.off('refresh_tickets');
-      socket.close();
+      socket.off('refresh_tickets', handleRefresh);
     };
-  }, []);
+  }, [socket]);
 
   const fetchTickets = async () => {
     try {

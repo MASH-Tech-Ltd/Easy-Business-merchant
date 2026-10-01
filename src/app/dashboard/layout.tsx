@@ -10,8 +10,8 @@ import {
   GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, Menu, X, Banknote, Bell, Activity
 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
-import { io } from 'socket.io-client';
-import { api, getWsUrl } from '@/utils/api';
+import { api } from '@/utils/api';
+import { useSocket } from '@/context/SocketContext';
 import NotificationBell from '@/components/NotificationBell';
 
 const Badge = ({ children, type = 'NEW' }: { children: React.ReactNode, type?: 'NEW' | 'BETA' | 'COUNT' | 'OPEN' }) => (
@@ -162,10 +162,10 @@ export default function DashboardLayout({
     setIsSidebarOpen(false);
   }, [pathname]);
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
+  const { socket } = useSocket();
 
-    let socketInstance: any = null;
+  useEffect(() => {
+    if (!isAuthenticated || !socket) return;
 
     const fetchTicketsCount = async () => {
       try {
@@ -177,58 +177,39 @@ export default function DashboardLayout({
 
     fetchTicketsCount();
 
-    const socket = io(getWsUrl());
-    socketInstance = socket;
-
-    if (merchantUser?._id) {
-      socket.emit('join_user_room', merchantUser._id);
-    }
-
-    const tenantId = merchantUser?.tenantId || merchantUser?._id;
-    if (tenantId) {
-      socket.emit('join_tenant_room', tenantId);
-    }
-
-    socket.on('refresh_tickets', fetchTicketsCount);
-    socket.on('account_status_changed', async () => {
+    const handleAccountStatus = async () => {
       try {
         const res = await api.get('/tenants/my-store');
-        if(res.data?.data?.status === 'suspended') {
+        if (res.data?.data?.status === 'suspended') {
           setIsAccountFrozen(true);
         } else {
           setIsAccountFrozen(false);
         }
-      } catch(e){}
-    });
+      } catch (e) {}
+    };
 
-    socket.on('refresh_subscriptions', () => {
+    const handleSubscriptions = () => {
       window.dispatchEvent(new Event('dashboard:refresh'));
-    });
+    };
 
-    socket.on('new_order', (order: any) => {
+    const handleNewOrder = (order: any) => {
       playNotificationSound();
       toast.success(`New order received from ${order.customerName || 'a customer'}!`, { duration: 4000 });
       window.dispatchEvent(new Event('dashboard:refresh'));
-    });
+    };
+
+    socket.on('refresh_tickets', fetchTicketsCount);
+    socket.on('account_status_changed', handleAccountStatus);
+    socket.on('refresh_subscriptions', handleSubscriptions);
+    socket.on('new_order', handleNewOrder);
 
     return () => {
-      if (socketInstance) {
-        if (merchantUser?._id) {
-          socketInstance.emit('leave_user_room', merchantUser._id);
-        }
-        const tenantId = merchantUser?.tenantId || merchantUser?._id;
-        if (tenantId) {
-          socketInstance.emit('leave_tenant_room', tenantId);
-        }
-        socketInstance.off('refresh_tickets');
-        socketInstance.off('account_status_changed');
-        socketInstance.off('refresh_subscriptions');
-        socketInstance.off('new_order');
-        socketInstance.disconnect();
-        socketInstance.close();
-      }
+      socket.off('refresh_tickets', fetchTicketsCount);
+      socket.off('account_status_changed', handleAccountStatus);
+      socket.off('refresh_subscriptions', handleSubscriptions);
+      socket.off('new_order', handleNewOrder);
     };
-  }, [isAuthenticated, merchantUser?._id]);
+  }, [isAuthenticated, socket]);
 
   useEffect(() => {
     const storedUser = sessionStorage.getItem('merchantUser');

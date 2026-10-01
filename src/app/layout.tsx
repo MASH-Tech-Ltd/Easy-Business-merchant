@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Righteous } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
+import { SocketProvider } from '@/context/SocketContext';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const righteous = Righteous({ weight: '400', subsets: ['latin'], variable: '--font-righteous' });
@@ -60,6 +61,7 @@ export const metadata: Metadata = {
   },
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -83,7 +85,9 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         <Toaster position="top-right" />
-        {children}
+        <SocketProvider>
+          {children}
+        </SocketProvider>
       </body>
     </html>
   );
