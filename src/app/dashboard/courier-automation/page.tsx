@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { api } from "@/utils/api";
+import { COURIER_PROVIDERS } from "@/config/couriers";
 
 export default function CourierAutomation() {
   const [activeProvider, setActiveProvider] = useState("pathao");
@@ -28,23 +29,7 @@ export default function CourierAutomation() {
   const [showUsername, setShowUsername] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const providers = [
-    {
-      id: "pathao",
-      name: "Pathao",
-      icon: "/Courier_images/pathao_courier.png",
-    },
-    {
-      id: "steadfast",
-      name: "Steadfast",
-      icon: "/Courier_images/steadfast_courier.jpg",
-    },
-    {
-      id: "redx",
-      name: "REDX",
-      icon: "/Courier_images/redx-logo.png",
-    },
-  ];
+  const providers = COURIER_PROVIDERS;
 
   const applyConfig = (pConfig: any) => {
     setClientId(pConfig?.clientId || "");

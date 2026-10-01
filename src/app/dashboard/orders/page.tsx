@@ -7,6 +7,7 @@ import { api } from '@/utils/api';
 import { toast } from 'react-hot-toast';
 import { EditOrderModal } from './EditOrderModal';
 import { CourierModal } from './CourierModal';
+import { getCourierTrackingUrl } from '@/config/couriers';
 
 interface OrderItem {
   productId: string;
@@ -875,15 +876,7 @@ export default function OrdersPage() {
                   const cid = forwardedInfoModal.order.consignmentId;
                   if (!cid) return;
                   
-                  let url = '';
-                  if (provider === 'pathao') {
-                    url = `https://merchant.pathao.com/tracking?consignment_id=${cid}`;
-                  } else if (provider === 'steadfast') {
-                    url = `https://steadfast.com.bd/t/${cid}`;
-                  } else {
-                    url = `https://www.google.com/search?q=${provider}+tracking+${cid}&igu=1`;
-                  }
-                  
+                  const url = getCourierTrackingUrl(provider, cid);
                   setTrackingIframeUrl(url);
                 }}
                 className="flex-1 py-3 text-sm font-bold bg-[#5022C3] text-white hover:bg-[#401b9c] rounded-xl transition-colors shadow-md flex items-center justify-center gap-2"

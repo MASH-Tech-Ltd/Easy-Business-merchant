@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { X, Truck, Loader2 } from 'lucide-react';
 
+import { COURIER_PROVIDERS } from '@/config/couriers';
+
 interface CourierModalProps {
   orderId: string;
   configuredProviders: string[];
@@ -13,11 +15,7 @@ export function CourierModal({ orderId, configuredProviders = [], onClose, onFor
   const [selectedProvider, setSelectedProvider] = useState(defaultProvider);
   const [loading, setLoading] = useState(false);
 
-  const providers = [
-    { id: 'pathao', name: 'Pathao', icon: 'https://pathao.com/bn/wp-content/uploads/sites/6/2019/02/Pathao-Courier-Logo.png' },
-    { id: 'steadfast', name: 'Steadfast', icon: 'https://steadfast.com.bd/assets/images/logo.png' },
-    { id: 'redx', name: 'REDX', icon: 'https://redx.com.bd/wp-content/uploads/2021/04/redx-logo.svg' }
-  ];
+  const providers = COURIER_PROVIDERS;
 
   const handleForward = async () => {
     setLoading(true);
@@ -66,8 +64,12 @@ export function CourierModal({ orderId, configuredProviders = [], onClose, onFor
                     onChange={() => isConfigured && setSelectedProvider(p.id)}
                     className={`w-4 h-4 text-[#5022C3] focus:ring-[#5022C3] border-gray-300 ${!isConfigured ? 'cursor-not-allowed' : ''}`}
                   />
-                  <div className="w-10 h-10 bg-white border border-gray-100 rounded-lg flex items-center justify-center p-1">
-                    <div className="font-bold text-xs text-gray-500">{p.name}</div>
+                  <div className="w-10 h-10 bg-white rounded-lg border border-gray-100 flex items-center justify-center p-1.5 flex-shrink-0">
+                    {p.icon ? (
+                      <img src={p.icon} alt={p.name} className="w-full h-full object-contain" />
+                    ) : (
+                      <div className="font-bold text-xs text-gray-500">{p.name}</div>
+                    )}
                   </div>
                   <div className="flex-1">
                     <div className="font-semibold text-gray-900 text-sm">{p.name}</div>

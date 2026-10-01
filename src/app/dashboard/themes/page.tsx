@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
 import { ImageUpload } from '@/components/ui/ImageUpload';
+import { MultipleImageUpload } from '@/components/ui/MultipleImageUpload';
 import { bdLocations } from '@/data/locations';
 
 const availableThemes = [
@@ -53,16 +54,19 @@ export default function ThemesPage() {
     buttonText: string;
     buttonLink: string;
     image: any;
+    images?: any[];
   }>(globalThemeCache?.banner || {
     title: '',
     subtitle: '',
     description: '',
     buttonText: '',
     buttonLink: '',
-    image: null
+    image: null,
+    images: []
   });
-  const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
-  const [bannerPreviewUrl, setBannerPreviewUrl] = useState<string | null>(globalThemeCache?.bannerPreviewUrl || null);
+  const [bannerImagesFiles, setBannerImagesFiles] = useState<File[]>([]);
+  const [bannerPreviewUrls, setBannerPreviewUrls] = useState<string[]>(globalThemeCache?.bannerPreviewUrls || []);
+  const [bannerExistingImages, setBannerExistingImages] = useState<{ public_id: string; secure_url: string }[]>(globalThemeCache?.bannerExistingImages || []);
   const [bannerErrors, setBannerErrors] = useState<Record<string, string>>({});
   
   const [loading, setLoading] = useState(!globalThemeCache);
@@ -133,15 +137,21 @@ export default function ThemesPage() {
             description: themeData.banner?.description || '',
             buttonText: themeData.banner?.buttonText || '',
             buttonLink: themeData.banner?.buttonLink || '',
-            image: themeData.banner?.image || null
+            image: themeData.banner?.image || null,
+            images: Array.isArray(themeData.banner?.images) ? themeData.banner.images : []
         };
         setBanner(newBanner);
         
-        let newBannerUrl = null;
-        if (themeData.banner?.image?.secure_url) {
-          newBannerUrl = themeData.banner.image.secure_url;
-          setBannerPreviewUrl(newBannerUrl);
+        let existingImgs: { public_id: string; secure_url: string }[] = [];
+        if (Array.isArray(themeData.banner?.images) && themeData.banner.images.length > 0) {
+          existingImgs = themeData.banner.images.filter((img: any) => img && (img.secure_url || img.public_id));
+        } else if (themeData.banner?.image?.secure_url) {
+          existingImgs = [themeData.banner.image];
         }
+        
+        setBannerExistingImages(existingImgs);
+        setBannerPreviewUrls(existingImgs.map(img => img.secure_url));
+        setBannerImagesFiles([]);
 
         // Save to global cache
         globalThemeCache = {
@@ -157,7 +167,8 @@ export default function ThemesPage() {
           currencySymbol: themeData.currencySymbol || '৳',
           footer: newFooter,
           banner: newBanner,
-          bannerPreviewUrl: newBannerUrl,
+          bannerPreviewUrls: existingImgs.map(img => img.secure_url),
+          bannerExistingImages: existingImgs,
           defaultShippingCost: themeData.defaultShippingCost ?? 120,
           shippingZones: Array.isArray(themeData.shippingZones) ? themeData.shippingZones : []
         };
@@ -171,7 +182,8 @@ export default function ThemesPage() {
 
   const handleSaveTheme = async () => {
     // Frontend Validation for Banner
-    const hasBannerContent = banner.title || banner.subtitle || banner.description || banner.buttonText || banner.buttonLink || bannerImageFile || bannerPreviewUrl;
+    const hasBannerImage = bannerImagesFiles.length > 0 || bannerPreviewUrls.length > 0;
+    const hasBannerContent = banner.title || banner.subtitle || banner.description || banner.buttonText || banner.buttonLink || hasBannerImage;
     
     if (hasBannerContent) {
       let isValid = true;
@@ -182,7 +194,7 @@ export default function ThemesPage() {
       if (!banner.description) { errors.description = 'Description is required'; isValid = false; }
       if (!banner.buttonText) { errors.buttonText = 'Button text is required'; isValid = false; }
       if (!banner.buttonLink) { errors.buttonLink = 'Button link is required'; isValid = false; }
-      if (!bannerImageFile && !bannerPreviewUrl) { errors.image = 'Banner image is required'; isValid = false; }
+      if (!hasBannerImage) { errors.image = 'At least 1 banner image is required'; isValid = false; }
 
       setBannerErrors(errors);
 
@@ -196,6 +208,18 @@ export default function ThemesPage() {
 
     setSaving(true);
     try {
+      const imageSlots = bannerPreviewUrls.map(url => {
+        if (url.startsWith('blob:')) {
+          return { isNew: true };
+        }
+        const existing = bannerExistingImages.find(img => img.secure_url === url);
+        return existing ? { public_id: existing.public_id, secure_url: existing.secure_url } : null;
+      }).filter(Boolean);
+
+      const retainedExistingImages = bannerPreviewUrls
+        .map(url => bannerExistingImages.find(img => img.secure_url === url))
+        .filter((img): img is { public_id: string; secure_url: string } => !!img);
+      
       const formData = new FormData();
       formData.append('data', JSON.stringify({
         themeId: activeTheme,
@@ -205,20 +229,30 @@ export default function ThemesPage() {
         language,
         currencySymbol,
         footer,
-        banner,
+        banner: {
+          title: banner.title,
+          subtitle: banner.subtitle,
+          description: banner.description,
+          buttonText: banner.buttonText,
+          buttonLink: banner.buttonLink,
+          imageSlots,
+          existingImages: retainedExistingImages
+        },
         shippingZones,
         defaultShippingCost
       }));
       
-      if (bannerImageFile) {
-        formData.append('bannerImage', bannerImageFile);
-      }
+      bannerImagesFiles.forEach(file => {
+        formData.append('bannerImages', file);
+      });
       
       await api.put('/themes/update', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       setSavedTheme(activeTheme);
       toast.success('Settings saved successfully!');
+      // Refetch to refresh cache & previews
+      await fetchTheme();
     } catch (error: any) {
       console.error('Error saving theme', error);
       const errorMessage = error.response?.data?.message || 'Failed to save settings';
@@ -503,23 +537,33 @@ export default function ThemesPage() {
             <div className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div className="space-y-6">
-                  <h4 className="font-bold text-gray-800 border-b border-gray-100 pb-2">Banner Image</h4>
-                  <ImageUpload 
+                  <div className="border-b border-gray-100 pb-2 flex items-center justify-between">
+                    <h4 className="font-bold text-gray-800">Banner Images (Max 3)</h4>
+                    <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full">
+                      {bannerPreviewUrls.length} / 3 Images
+                    </span>
+                  </div>
+                  <MultipleImageUpload 
+                    label="Upload Banner Images (Max 3 Images)"
+                    maxFiles={3}
                     error={bannerErrors.image}
-                    previewUrl={bannerPreviewUrl}
-                    onChange={(file) => {
-                      if (file && file.size > 10 * 1024 * 1024) {
-                        toast.error('Banner image size must be less than 10MB');
-                        return;
-                      }
-                      setBannerImageFile(file);
-                      if (file) {
-                        setBannerPreviewUrl(URL.createObjectURL(file));
-                      } else {
-                        setBannerPreviewUrl(null);
+                    files={bannerImagesFiles}
+                    previewUrls={bannerPreviewUrls}
+                    onChange={(newFiles, newUrls) => {
+                      setBannerImagesFiles(newFiles);
+                      setBannerPreviewUrls(newUrls);
+                      if (bannerErrors.image) {
+                        setBannerErrors(prev => {
+                          const next = { ...prev };
+                          delete next.image;
+                          return next;
+                        });
                       }
                     }}
                   />
+                  <p className="text-xs text-gray-500 font-medium">
+                    Upload up to 3 banner images. If multiple images are added, they will automatically display as an animated slider / carousel across all storefront themes.
+                  </p>
                 </div>
                 
                 <div className="space-y-6">
