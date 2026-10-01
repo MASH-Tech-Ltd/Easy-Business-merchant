@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { AlertCircle, Check, Star, Zap, ShieldCheck, Clock, Crown, ThumbsUp } from 'lucide-react';
 import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
+import { useSocket } from '@/context/SocketContext';
 
 interface Package {
   _id: string;
@@ -33,6 +34,8 @@ let globalSubscriptionCache: Subscription | null = null;
 let globalExpiredSubscriptionCache: Subscription | null = null;
 let globalSubscriptionLoaded = false;
 
+
+
 export default function SubscriptionPage() {
   const [packages, setPackages] = useState<Package[]>(globalPackagesCache);
   const [subscription, setSubscription] = useState<Subscription | null>(globalSubscriptionCache);
@@ -41,12 +44,29 @@ export default function SubscriptionPage() {
   const [submitting, setSubmitting] = useState(false);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [confirmModal, setConfirmModal] = useState<(Package & { isRenewal?: boolean }) | null>(null);
+  const { socket } = useSocket();
 
   useEffect(() => {
     fetchData();
     window.addEventListener('dashboard:refresh', fetchData);
     return () => window.removeEventListener('dashboard:refresh', fetchData);
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleRefresh = () => {
+      fetchData();
+    };
+
+    socket.on('refresh_subscriptions', handleRefresh);
+    socket.on('new_notification', handleRefresh);
+
+    return () => {
+      socket.off('refresh_subscriptions', handleRefresh);
+      socket.off('new_notification', handleRefresh);
+    };
+  }, [socket]);
 
   const fetchData = async () => {
     try {

@@ -6,6 +6,8 @@ import { toast } from 'react-hot-toast';
 import Link from 'next/link';
 import { ShieldCheck, Zap, Mail, BarChart, CheckCircle2, ChevronRight, Loader2, Sparkles } from 'lucide-react';
 
+import { useSocket } from '@/context/SocketContext';
+
 export default function AddonsPage() {
   const [addons, setAddons] = useState<any[]>([]);
   const [purchasedAddons, setPurchasedAddons] = useState<{id: string, status: string, used: number, limit: number}[]>([]);
@@ -13,40 +15,76 @@ export default function AddonsPage() {
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const { socket } = useSocket();
+
+  const fetchData = async () => {
+    try {
+      const [addonsRes, subRes] = await Promise.all([
+        api.get('/addons'),
+        api.get('/subscriptions/my-subscription')
+      ]);
+      
+      if (addonsRes.data?.data) {
+        setAddons(addonsRes.data.data.filter((a: any) => a.isActive));
+      }
+
+      if (subRes.data?.data) {
+        setHasActiveSubscription(subRes.data.data.status === 'active' && !subRes.data.data.isTrial);
+        setSubscriptionEndDate(subRes.data.data.endDate || null);
+        if (subRes.data.data.purchasedAddons) {
+          const pIds = subRes.data.data.purchasedAddons.map((pa: any) => ({
+            id: typeof pa.addonId === 'string' ? pa.addonId : pa.addonId?._id,
+            status: pa.status || 'active',
+            used: pa.used || 0,
+            limit: pa.limit || 0
+          }));
+          setPurchasedAddons(pIds);
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to load add-ons');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [addonsRes, subRes] = await Promise.all([
-          api.get('/addons'),
-          api.get('/subscriptions/my-subscription')
-        ]);
-        
-        if (addonsRes.data?.data) {
-          setAddons(addonsRes.data.data.filter((a: any) => a.isActive));
-        }
-
-        if (subRes.data?.data) {
-          setHasActiveSubscription(subRes.data.data.status === 'active' && !subRes.data.data.isTrial);
-          setSubscriptionEndDate(subRes.data.data.endDate || null);
-          if (subRes.data.data.purchasedAddons) {
-            const pIds = subRes.data.data.purchasedAddons.map((pa: any) => ({
-              id: typeof pa.addonId === 'string' ? pa.addonId : pa.addonId?._id,
-              status: pa.status || 'active',
-              used: pa.used || 0,
-              limit: pa.limit || 0
-            }));
-            setPurchasedAddons(pIds);
-          }
-        }
-      } catch (error) {
-        toast.error('Failed to load add-ons');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewNotification = (notification: any) => {
+      if (!notification) return;
+      const { type, relatedEntityId } = notification;
+
+      if (type === 'ADDON_APPROVED' || type === 'ADDON_REJECTED') {
+        const newStatus = type === 'ADDON_APPROVED' ? 'active' : 'rejected';
+        setPurchasedAddons((prev) =>
+          prev.map((pa) => {
+            if (!relatedEntityId || pa.id === relatedEntityId) {
+              return { ...pa, status: newStatus };
+            }
+            return pa;
+          })
+        );
+        fetchData();
+      }
+    };
+
+    const handleRefreshSubscriptions = () => {
+      fetchData();
+    };
+
+    socket.on('new_notification', handleNewNotification);
+    socket.on('refresh_subscriptions', handleRefreshSubscriptions);
+
+    return () => {
+      socket.off('new_notification', handleNewNotification);
+      socket.off('refresh_subscriptions', handleRefreshSubscriptions);
+    };
+  }, [socket]);
 
   const handlePurchase = async (addonId: string, addonName: string) => {
     try {
