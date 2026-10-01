@@ -321,7 +321,9 @@ export default function DashboardLayout({
           icon: CreditCard,
           subItems: [
             { name: 'My Plan', path: '/dashboard/subscription' },
-            { name: 'Add-ons', path: '/dashboard/subscription/addons' }
+            { name: 'Add-ons', path: '/dashboard/subscription/addons' },
+            { name: 'Payment History', path: '/dashboard/subscription/payment' },
+            // { name: 'Make Payment', path: '/dashboard/subscription/payment?tab=manual' }
           ]
         },
       ]

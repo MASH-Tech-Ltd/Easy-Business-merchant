@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AlertCircle, Check, Star, Zap, ShieldCheck, Clock, Crown, ThumbsUp } from 'lucide-react';
 import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
@@ -37,6 +38,7 @@ let globalSubscriptionLoaded = false;
 
 
 export default function SubscriptionPage() {
+  const router = useRouter();
   const [packages, setPackages] = useState<Package[]>(globalPackagesCache);
   const [subscription, setSubscription] = useState<Subscription | null>(globalSubscriptionCache);
   const [expiredSubscription, setExpiredSubscription] = useState<Subscription | null>(globalExpiredSubscriptionCache);
@@ -104,11 +106,14 @@ export default function SubscriptionPage() {
   const handleSubscribe = async () => {
     if (!confirmModal) return;
     setSubmitting(true);
+    const pkgName = confirmModal.name;
+    const pkgPrice = confirmModal.price;
+    const isRenewal = confirmModal.isRenewal;
     try {
       await api.post('/subscriptions/request-package', { packageId: confirmModal._id });
-      toast.success('Subscription requested! Pending admin approval.');
+      toast.success('Subscription requested! Redirecting to payment...');
       setConfirmModal(null);
-      fetchData(); // Refresh to show pending status
+      router.push(`/dashboard/subscription/payment?purpose=${isRenewal ? 'renewal' : 'package'}&title=${encodeURIComponent(pkgName)}&amount=${pkgPrice}`);
     } catch (error: any) {
       console.error('Error subscribing:', error);
       toast.error(error.response?.data?.message || 'Failed to request subscription');
