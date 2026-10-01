@@ -14,54 +14,67 @@ const SocketContext = createContext<SocketContextType>({
   isConnected: false,
 });
 
+let globalSocket: Socket | null = null;
+
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [socket, setSocket] = useState<Socket | null>(globalSocket);
+  const [isConnected, setIsConnected] = useState(globalSocket?.connected || false);
 
   useEffect(() => {
-    let socketInstance: Socket | null = null;
-
     const storedUser = sessionStorage.getItem('merchantUser');
+
     if (!storedUser) {
+      if (globalSocket) {
+        globalSocket.disconnect();
+        globalSocket.close();
+        globalSocket = null;
+      }
       setSocket(null);
       setIsConnected(false);
       return;
     }
 
+    let user: any = null;
     try {
-      const user = JSON.parse(storedUser);
-      const wsUrl = getWsUrl();
+      user = JSON.parse(storedUser);
+    } catch (e) {}
 
-      socketInstance = io(wsUrl, {
+    if (!globalSocket) {
+      const wsUrl = getWsUrl();
+      globalSocket = io(wsUrl, {
         transports: ['websocket', 'polling'],
         autoConnect: true,
       });
-
-      socketInstance.on('connect', () => {
-        setIsConnected(true);
-        if (user?._id) {
-          socketInstance?.emit('join_user_room', user._id);
-        }
-        const tenantId = user?.tenantId || user?._id;
-        if (tenantId) {
-          socketInstance?.emit('join_tenant_room', tenantId);
-        }
-      });
-
-      socketInstance.on('disconnect', () => {
-        setIsConnected(false);
-      });
-
-      setSocket(socketInstance);
-    } catch (e) {
-      console.error('Socket connection error:', e);
     }
 
-    return () => {
-      if (socketInstance) {
-        socketInstance.disconnect();
-        socketInstance.close();
+    const currentSocket = globalSocket;
+    setSocket(currentSocket);
+
+    const onConnect = () => {
+      setIsConnected(true);
+      if (user?._id) {
+        currentSocket.emit('join_user_room', user._id);
       }
+      const tenantId = user?.tenantId || user?._id;
+      if (tenantId) {
+        currentSocket.emit('join_tenant_room', tenantId);
+      }
+    };
+
+    const onDisconnect = () => {
+      setIsConnected(false);
+    };
+
+    if (currentSocket.connected) {
+      onConnect();
+    }
+
+    currentSocket.on('connect', onConnect);
+    currentSocket.on('disconnect', onDisconnect);
+
+    return () => {
+      currentSocket.off('connect', onConnect);
+      currentSocket.off('disconnect', onDisconnect);
     };
   }, []);
 
