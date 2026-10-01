@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
 import { getWsUrl } from '@/utils/api';
 
@@ -19,6 +20,7 @@ let globalSocket: Socket | null = null;
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(globalSocket);
   const [isConnected, setIsConnected] = useState(globalSocket?.connected || false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const storedUser = sessionStorage.getItem('merchantUser');
@@ -42,12 +44,18 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     if (!globalSocket) {
       const wsUrl = getWsUrl();
       globalSocket = io(wsUrl, {
-        transports: ['websocket', 'polling'],
         autoConnect: true,
+        reconnection: true,
+        reconnectionAttempts: Infinity,
+        reconnectionDelay: 1000,
       });
     }
 
     const currentSocket = globalSocket;
+    if (!currentSocket.connected) {
+      currentSocket.connect();
+    }
+
     setSocket(currentSocket);
 
     const onConnect = () => {
@@ -76,7 +84,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       currentSocket.off('connect', onConnect);
       currentSocket.off('disconnect', onDisconnect);
     };
-  }, []);
+  }, [pathname]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>
