@@ -136,6 +136,8 @@ export default function AddonsPage() {
             const purchasedAddon = purchasedAddons.find(p => p.id === addon._id);
             const isPurchased = !!purchasedAddon && purchasedAddon.status === 'active';
             const isPending = !!purchasedAddon && purchasedAddon.status === 'pending';
+            const isInactive = !!purchasedAddon && purchasedAddon.status === 'inactive';
+            const isTerminated = !!purchasedAddon && purchasedAddon.status === 'terminated';
             const isRejected = !!purchasedAddon && purchasedAddon.status === 'rejected';
             
             const limitReached = isPurchased && purchasedAddon.used >= purchasedAddon.limit && purchasedAddon.limit > 0;
@@ -143,7 +145,7 @@ export default function AddonsPage() {
             return (
               <div 
                 key={addon._id} 
-                className={`relative bg-white border ${isPurchased ? 'border-[#5022C3] shadow-md ring-1 ring-[#5022C3]/10' : 'border-gray-200 hover:border-purple-300 hover:shadow-xl'} rounded-2xl p-6 transition-all duration-300 flex flex-col group hover:-translate-y-1 overflow-hidden`}
+                className={`relative bg-white border ${isPurchased ? 'border-[#5022C3] shadow-md ring-1 ring-[#5022C3]/10' : isInactive ? 'border-orange-300 bg-orange-50/10' : isTerminated ? 'border-red-200 bg-red-50/10' : 'border-gray-200 hover:border-purple-300 hover:shadow-xl'} rounded-2xl p-6 transition-all duration-300 flex flex-col group hover:-translate-y-1 overflow-hidden`}
               >
                 {isPurchased && (
                   <div className="absolute top-0 right-0 bg-[#5022C3] text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
@@ -152,7 +154,22 @@ export default function AddonsPage() {
                 )}
                 {isPending && (
                   <div className="absolute top-0 right-0 bg-yellow-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
-                    Pending
+                    Pending Approval
+                  </div>
+                )}
+                {isInactive && (
+                  <div className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
+                    On Hold
+                  </div>
+                )}
+                {isTerminated && (
+                  <div className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
+                    Terminated
+                  </div>
+                )}
+                {isRejected && (
+                  <div className="absolute top-0 right-0 bg-gray-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
+                    Rejected
                   </div>
                 )}
                 
@@ -198,6 +215,16 @@ export default function AddonsPage() {
                       )}
                     </div>
                   )}
+                  {isInactive && (
+                    <div className="text-xs text-orange-600 font-medium border-t border-orange-200 pt-2 mt-2">
+                      Status: On Hold by Admin. (Non-refundable policy applied)
+                    </div>
+                  )}
+                  {isTerminated && (
+                    <div className="text-xs text-red-600 font-medium border-t border-red-200 pt-2 mt-2">
+                      Status: Terminated by Admin.
+                    </div>
+                  )}
                 </div>
                 
                 {limitReached ? (
@@ -206,7 +233,7 @@ export default function AddonsPage() {
                     disabled={processingId === addon._id}
                     className="w-full py-2.5 px-4 rounded-xl bg-[#5022C3] hover:bg-[#401a9b] text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    {processingId === addon._id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Limit Reached - Activate Again'}
+                    {processingId === addon._id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Limit Reached - Request Again'}
                   </button>
                 ) : isPurchased ? (
                   <button disabled className="w-full py-2.5 px-4 rounded-xl bg-gray-50 text-gray-500 font-medium text-sm flex items-center justify-center gap-2 border border-gray-200 cursor-not-allowed">
@@ -215,6 +242,15 @@ export default function AddonsPage() {
                 ) : isPending ? (
                   <button disabled className="w-full py-2.5 px-4 rounded-xl bg-yellow-50 text-yellow-600 font-medium text-sm flex items-center justify-center gap-2 border border-yellow-200 cursor-not-allowed">
                     <Loader2 className="w-4 h-4 animate-spin" /> Pending Approval
+                  </button>
+                ) : (isInactive || isTerminated || isRejected) ? (
+                  <button 
+                    onClick={() => handlePurchase(addon._id, addon.name)}
+                    disabled={processingId === addon._id}
+                    className="w-full py-2.5 px-4 rounded-xl bg-[#5022C3] hover:bg-[#401a9b] text-white font-semibold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {processingId === addon._id ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Re-request Add-on'}
+                    {!processingId && <ChevronRight className="w-4 h-4" />}
                   </button>
                 ) : (
                   <button 
