@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { io } from 'socket.io-client';
-import { api } from '@/utils/api';
+import { api, getWsUrl } from '@/utils/api';
 import NotificationBell from '@/components/NotificationBell';
 
 const Badge = ({ children, type = 'NEW' }: { children: React.ReactNode, type?: 'NEW' | 'BETA' | 'COUNT' | 'OPEN' }) => (
@@ -177,7 +177,7 @@ export default function DashboardLayout({
 
     fetchTicketsCount();
 
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || "");
+    const socket = io(getWsUrl());
     socketInstance = socket;
 
     if (merchantUser?._id) {

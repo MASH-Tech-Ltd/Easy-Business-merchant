@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Send, Clock, CircleDot, CheckCircle, Clock3 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { api } from '@/utils/api';
+import { api, getWsUrl } from '@/utils/api';
 import { io, Socket } from 'socket.io-client';
 
 export default function SupportDetailsPage() {
@@ -25,7 +25,7 @@ export default function SupportDetailsPage() {
   useEffect(() => {
     fetchTicketDetails();
 
-    const newSocket = io(process.env.NEXT_PUBLIC_WS_URL || "");
+    const newSocket = io(getWsUrl());
     setSocket(newSocket);
 
     return () => {

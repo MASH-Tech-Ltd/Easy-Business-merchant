@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bell, Check } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
-import { api } from '@/utils/api';
+import { api, getWsUrl } from '@/utils/api';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
@@ -46,7 +46,7 @@ export default function NotificationBell({ userId }: { userId?: string }) {
   useEffect(() => {
     if (!userId) return;
 
-    const newSocket = io(process.env.NEXT_PUBLIC_WS_URL || "");
+    const newSocket = io(getWsUrl());
     setSocket(newSocket);
 
     newSocket.on('connect', () => {

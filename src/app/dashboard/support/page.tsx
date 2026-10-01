@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { LifeBuoy, Plus, CircleDot, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { api } from '@/utils/api';
+import { api, getWsUrl } from '@/utils/api';
 import { io } from 'socket.io-client';
 
 let globalTicketsCache: any[] = [];
@@ -21,7 +21,7 @@ export default function SupportPage() {
     fetchTickets();
     
     // Add socket connection for real-time list updates
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || "");
+    const socket = io(getWsUrl());
     const userStr = sessionStorage.getItem('user');
     if (userStr) {
       try {

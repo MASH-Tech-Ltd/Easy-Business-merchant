@@ -9,6 +9,11 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+export const getWsUrl = (): string => {
+  const raw = process.env.NEXT_PUBLIC_WS_URL || '';
+  return raw.split('#')[0].trim();
+};
+
 let isRefreshing = false;
 let failedQueue: Array<{ resolve: (value?: unknown) => void; reject: (reason?: any) => void }> = [];
 

@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
-// Target backend URL for proxying socket traffic (read from env or fallback)
-const rawBackendUrl = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8000';
+// Clean env value by stripping inline comments (e.g. # comment) and whitespace
+const cleanEnv = (val?: string) => (val ? val.split('#')[0].trim() : '');
+
+const rawBackendUrl =
+  cleanEnv(process.env.BACKEND_INTERNAL_URL) ||
+  cleanEnv(process.env.NEXT_PUBLIC_WS_URL) ||
+  'http://localhost:8000';
+
 const backendUrl = rawBackendUrl.replace(/\/api(\/v\d+)?\/?$/, '').replace(/\/$/, '');
 
 const nextConfig: NextConfig = {
@@ -9,6 +15,10 @@ const nextConfig: NextConfig = {
   // and hides backend API domain (backapi.masheco.com) completely from browser DevTools
   async rewrites() {
     return [
+      {
+        source: '/socket.io',
+        destination: `${backendUrl}/socket.io/`,
+      },
       {
         source: '/socket.io/:path*',
         destination: `${backendUrl}/socket.io/:path*`,
