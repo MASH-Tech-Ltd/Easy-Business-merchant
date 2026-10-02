@@ -209,23 +209,23 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="p-6 w-full max-w-[1800px] mx-auto min-h-screen">
+    <div className="p-3 sm:p-6 w-full max-w-[1800px] mx-auto min-h-screen">
       
       {/* Header Section */}
-      <div className="relative mb-10 overflow-hidden rounded-2xl bg-gradient-to-r from-[#1E1B4B] via-[#312E81] to-[#1E1B4B] shadow-xl">
+      <div className="relative mb-6 sm:mb-10 overflow-hidden rounded-2xl bg-gradient-to-r from-[#1E1B4B] via-[#312E81] to-[#1E1B4B] shadow-xl">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        <div className="relative z-10 px-8 py-12 flex flex-col md:flex-row items-center md:items-end justify-between gap-6 backdrop-blur-sm">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="w-32 h-32 rounded-2xl bg-white/10 p-2 backdrop-blur-md border border-white/20 shadow-2xl flex-shrink-0 group relative overflow-hidden">
+        <div className="relative z-10 px-4 py-6 sm:px-8 sm:py-12 flex flex-col md:flex-row items-center md:items-end justify-between gap-4 sm:gap-6 backdrop-blur-sm">
+          <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6">
+            <div className="w-20 h-20 sm:w-32 sm:h-32 rounded-2xl bg-white/10 p-2 backdrop-blur-md border border-white/20 shadow-2xl flex-shrink-0 group relative overflow-hidden">
               {previewUrl ? (
                 <img src={previewUrl} alt="Store Avatar" className="w-full h-full rounded-xl object-cover bg-white" />
               ) : (
                 <div className="w-full h-full rounded-xl bg-white/20 flex items-center justify-center border-2 border-dashed border-white/40">
-                  <Store className="w-10 h-10 text-white/70" />
+                  <Store className="w-8 h-8 sm:w-10 sm:h-10 text-white/70" />
                 </div>
               )}
               <label className="absolute inset-0 m-2 rounded-xl bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer z-10">
-                <ImagePlus className="w-6 h-6 text-white mb-1" />
+                <ImagePlus className="w-5 h-5 sm:w-6 sm:h-6 text-white mb-1" />
                 <span className="text-[10px] text-white font-medium">Change</span>
                 <input 
                   type="file" 
@@ -240,9 +240,9 @@ export default function ProfilePage() {
               </label>
             </div>
             <div className="text-white text-center md:text-left">
-              <h1 className="text-4xl font-extrabold tracking-tight">{formData.storeName || 'Your Store'}</h1>
-              <p className="text-indigo-200 mt-2 flex items-center justify-center md:justify-start gap-2 text-sm font-medium">
-                <Store className="w-4 h-4" /> MASH ECO Merchant Dashboard
+              <h1 className="text-xl sm:text-4xl font-extrabold tracking-tight">{formData.storeName || 'Your Store'}</h1>
+              <p className="text-indigo-200 mt-1 sm:mt-2 flex items-center justify-center md:justify-start gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium">
+                <Store className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> MASH ECO Merchant Dashboard
               </p>
             </div>
           </div>
@@ -250,7 +250,7 @@ export default function ProfilePage() {
           <button 
             type="button"
             onClick={handleLogoutAll}
-            className="group bg-white/10 hover:bg-red-500/20 text-white hover:text-red-200 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 border border-white/20 hover:border-red-500/50 backdrop-blur-md"
+            className="group bg-white/10 hover:bg-red-500/20 text-white hover:text-red-200 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 flex items-center gap-2 border border-white/20 hover:border-red-500/50 backdrop-blur-md"
           >
             <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform" /> Sign Out All Devices
           </button>

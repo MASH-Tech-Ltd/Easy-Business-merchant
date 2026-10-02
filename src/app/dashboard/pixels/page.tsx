@@ -175,44 +175,44 @@ export default function TrackingSettingsPage() {
   }
 
   return (
-    <div className="p-6 md:p-8 w-full max-w-[1800px] mx-auto space-y-6 pb-16">
+    <div className="p-3 sm:p-6 md:p-8 w-full max-w-[1800px] mx-auto space-y-4 sm:space-y-6 pb-16">
       {/* Action Header Card */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-3.5 sm:p-6 rounded-2xl border border-gray-200/80 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#5022C3] flex-shrink-0">
-            <Activity className="w-6 h-6" />
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center text-[#5022C3] flex-shrink-0">
+            <Activity className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Marketing & Analytics Integrations</h1>
+            <h1 className="text-base sm:text-xl font-bold text-gray-900 tracking-tight">Marketing & Analytics Integrations</h1>
             <p className="text-xs text-gray-500 mt-0.5">
               Tracking IDs configured below will automatically apply to all 5 storefront themes across your domain and subdomains.
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <button
             onClick={handleTest}
             disabled={isTesting}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl text-sm transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="px-3 sm:px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl text-xs sm:text-sm transition-colors flex items-center gap-1.5 sm:gap-2 disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${isTesting ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isTesting ? 'animate-spin' : ''}`} />
             Test / Verify
           </button>
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-5 py-2 bg-[#5022C3] hover:bg-[#401ab0] text-white font-medium rounded-xl text-sm transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+            className="px-3.5 sm:px-5 py-2 bg-[#5022C3] hover:bg-[#401ab0] text-white font-medium rounded-xl text-xs sm:text-sm transition-colors flex items-center gap-1.5 sm:gap-2 shadow-sm disabled:opacity-50"
           >
-            {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {isSaving ? <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" /> : <Save className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
             Save Changes
           </button>
         </div>
       </div>
 
       {/* Provider Cards */}
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6">
         {/* 1. Google Analytics 4 */}
-        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 space-y-4 transition-all hover:border-purple-200">
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-4 sm:p-6 space-y-4 transition-all hover:border-purple-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center font-bold text-orange-600 text-lg">

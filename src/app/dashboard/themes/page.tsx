@@ -5,7 +5,7 @@ import {
   Palette, CheckCircle2, LayoutTemplate, 
   Settings, Type, Link as LinkIcon, Save,
   Phone, Mail, MapPin, Shield, HelpCircle, Image as ImageIcon,
-  Truck, Plus, Trash2, Minus
+  Truck, Plus, Trash2, Minus, Megaphone, Sparkles, ShoppingCart, Zap
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../../utils/api';
@@ -29,6 +29,7 @@ const availableThemes = [
 let globalThemeCache: any = null;
 
 export default function ThemesPage() {
+  const MarqueeTag = 'marquee' as any;
   const [activeTheme, setActiveTheme] = useState(globalThemeCache?.activeTheme || 'design-01');
   const [savedTheme, setSavedTheme] = useState(globalThemeCache?.savedTheme || 'design-01');
   const [primaryColor, setPrimaryColor] = useState(globalThemeCache?.primaryColor || '#5022C3');
@@ -55,6 +56,11 @@ export default function ThemesPage() {
     buttonLink: string;
     image: any;
     images?: any[];
+    showAnnouncement?: boolean;
+    announcementText?: string;
+    isSliding?: boolean;
+    announcementBgColor?: string;
+    announcementTextColor?: string;
   }>(globalThemeCache?.banner || {
     title: '',
     subtitle: '',
@@ -62,7 +68,12 @@ export default function ThemesPage() {
     buttonText: '',
     buttonLink: '',
     image: null,
-    images: []
+    images: [],
+    showAnnouncement: false,
+    announcementText: '',
+    isSliding: false,
+    announcementBgColor: '#0f172a',
+    announcementTextColor: '#ffffff'
   });
   const [bannerImagesFiles, setBannerImagesFiles] = useState<File[]>([]);
   const [bannerPreviewUrls, setBannerPreviewUrls] = useState<string[]>(globalThemeCache?.bannerPreviewUrls || []);
@@ -138,7 +149,12 @@ export default function ThemesPage() {
             buttonText: themeData.banner?.buttonText || '',
             buttonLink: themeData.banner?.buttonLink || '',
             image: themeData.banner?.image || null,
-            images: Array.isArray(themeData.banner?.images) ? themeData.banner.images : []
+            images: Array.isArray(themeData.banner?.images) ? themeData.banner.images : [],
+            showAnnouncement: themeData.banner?.showAnnouncement ?? (themeData.banner?.announcementText ? true : false),
+            announcementText: themeData.banner?.announcementText || '',
+            isSliding: themeData.banner?.isSliding ?? false,
+            announcementBgColor: themeData.banner?.announcementBgColor || '#0f172a',
+            announcementTextColor: themeData.banner?.announcementTextColor || '#ffffff',
         };
         setBanner(newBanner);
         
@@ -236,7 +252,12 @@ export default function ThemesPage() {
           buttonText: banner.buttonText,
           buttonLink: banner.buttonLink,
           imageSlots,
-          existingImages: retainedExistingImages
+          existingImages: retainedExistingImages,
+          showAnnouncement: banner.showAnnouncement || false,
+          announcementText: banner.announcementText || '',
+          isSliding: banner.isSliding || false,
+          announcementBgColor: banner.announcementBgColor || '#0f172a',
+          announcementTextColor: banner.announcementTextColor || '#ffffff',
         },
         shippingZones,
         defaultShippingCost
@@ -281,19 +302,19 @@ export default function ThemesPage() {
   }
 
   return (
-    <div className="p-6 w-full max-w-[1800px] mx-auto min-h-screen">
+    <div className="p-3 sm:p-6 w-full max-w-[1800px] mx-auto min-h-screen">
       
       {/* Header Section */}
-      <div className="relative mb-10 overflow-hidden rounded-2xl bg-gradient-to-r from-[#1E1B4B] via-[#312E81] to-[#1E1B4B] shadow-xl">
+      <div className="relative mb-6 sm:mb-10 overflow-hidden rounded-2xl bg-gradient-to-r from-[#1E1B4B] via-[#312E81] to-[#1E1B4B] shadow-xl">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-        <div className="relative z-10 px-8 py-10 flex flex-col md:flex-row items-center md:items-end justify-between gap-6 backdrop-blur-sm">
-          <div className="flex flex-col md:flex-row items-center gap-5">
-            <div className="w-20 h-20 rounded-2xl bg-white/10 p-4 backdrop-blur-md border border-white/20 shadow-2xl flex items-center justify-center flex-shrink-0">
-               <Palette className="w-10 h-10 text-white" />
+        <div className="relative z-10 px-4 py-6 sm:px-8 sm:py-10 flex flex-col md:flex-row items-center md:items-end justify-between gap-4 sm:gap-6 backdrop-blur-sm">
+          <div className="flex flex-col md:flex-row items-center gap-3 sm:gap-5">
+            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-white/10 p-3 sm:p-4 backdrop-blur-md border border-white/20 shadow-2xl flex items-center justify-center flex-shrink-0">
+               <Palette className="w-7 h-7 sm:w-10 sm:h-10 text-white" />
             </div>
             <div className="text-white text-center md:text-left">
-              <h1 className="text-3xl font-extrabold tracking-tight">Store Theme & Settings</h1>
-              <p className="text-indigo-200 mt-2 text-sm font-medium">
+              <h1 className="text-xl sm:text-3xl font-extrabold tracking-tight">Store Theme & Settings</h1>
+              <p className="text-indigo-200 mt-1 sm:mt-2 text-xs sm:text-sm font-medium">
                 Customize the look, feel, and details of your storefront
               </p>
             </div>
@@ -304,7 +325,7 @@ export default function ThemesPage() {
       <div className="flex flex-col pb-24">
         
         {/* Tabs Navigation */}
-        <div className="flex flex-wrap justify-center md:justify-start items-center gap-2 mb-8 bg-gray-50/80 p-2 rounded-xl border border-gray-100 shadow-sm w-full">
+        <div className="flex flex-nowrap sm:flex-wrap justify-start items-center gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-gray-50/80 p-1.5 sm:p-2 rounded-xl border border-gray-100 shadow-sm w-full overflow-x-auto">
           {[
             { id: 'template', label: 'Theme Template', icon: LayoutTemplate },
             { id: 'customization', label: 'Advanced Customization', icon: Settings },
@@ -315,7 +336,7 @@ export default function ThemesPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all grow md:grow-0 ${
+              className={`flex items-center justify-center gap-1.5 px-2.5 sm:px-5 py-2 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all shrink-0 sm:grow md:grow-0 whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'bg-white text-indigo-600 shadow-sm border border-gray-100'
                   : 'text-gray-500 hover:bg-white hover:text-gray-800'
@@ -481,10 +502,25 @@ export default function ThemesPage() {
                     value={fontFamily}
                     onChange={(e) => setFontFamily(e.target.value)}
                     options={[
-                      { value: "Inter", label: "Inter (Default)" },
-                      { value: "Roboto", label: "Roboto" },
-                      { value: "Playfair Display", label: "Playfair Display" },
-                      { value: "Montserrat", label: "Montserrat" }
+                      { value: "Inter", label: "Inter (Modern Tech - Default)" },
+                      { value: "Plus Jakarta Sans", label: "Plus Jakarta Sans (Ultra Clean Corporate)" },
+                      { value: "Outfit", label: "Outfit (Sleek Modern Tech)" },
+                      { value: "Poppins", label: "Poppins (Geometric E-Commerce)" },
+                      { value: "Manrope", label: "Manrope (Modern & Minimalist)" },
+                      { value: "DM Sans", label: "DM Sans (Clean Geometric Sans)" },
+                      { value: "Sora", label: "Sora (Futuristic Minimal Tech)" },
+                      { value: "Syne", label: "Syne (Edgy & Creative Display)" },
+                      { value: "Space Grotesk", label: "Space Grotesk (Cyber & Gadgets)" },
+                      { value: "Roboto", label: "Roboto (Clean Standard Sans)" },
+                      { value: "Montserrat", label: "Montserrat (Bold High-Impact)" },
+                      { value: "Lato", label: "Lato (Warm & Professional)" },
+                      { value: "Open Sans", label: "Open Sans (Neutral & Readable)" },
+                      { value: "Playfair Display", label: "Playfair Display (Luxury High-End Serif)" },
+                      { value: "Cinzel", label: "Cinzel (Exclusive Premium Serif)" },
+                      { value: "Cormorant Garamond", label: "Cormorant Garamond (Editorial Luxury Serif)" },
+                      { value: "Merriweather", label: "Merriweather (Classic Book Serif)" },
+                      { value: "JetBrains Mono", label: "JetBrains Mono (Technical Monospace)" },
+                      { value: "Hind Siliguri", label: "Hind Siliguri (Bengali & English Dual)" }
                     ]}
                   />
                   <p className="text-xs text-gray-500 mt-3 font-medium">Select the font used for titles and headers.</p>
@@ -515,6 +551,106 @@ export default function ThemesPage() {
                     placeholder="e.g. ৳, BDT, $"
                   />
                   <p className="text-xs text-gray-500 mt-3 font-medium">Set the currency symbol to display (e.g. ৳ or BDT).</p>
+                </div>
+
+                {/* Instant Color & Button Live Preview Box */}
+                <div className="lg:col-span-2 pt-6 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-[#5022C3]" /> Instant Color & Button Live Preview
+                      </h3>
+                      <p className="text-xs text-gray-500">Real-time preview of how your custom colors and buttons will appear on your storefront.</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-200/80 flex flex-col md:flex-row items-center justify-between gap-6 shadow-inner">
+                    {/* Inject Google Font dynamically for real-time preview */}
+                    <link 
+                      rel="stylesheet" 
+                      href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily || 'Inter').replace(/%20/g, '+')}&display=swap`} 
+                    />
+                    {/* Demo Card */}
+                    <div 
+                      style={{ fontFamily: `'${fontFamily || 'Inter'}', sans-serif` }}
+                      className="w-full max-w-sm bg-white rounded-2xl border border-gray-200 p-4 shadow-md space-y-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span 
+                          style={{ backgroundColor: primaryColor || '#5022C3' }}
+                          className="text-[11px] font-bold text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider"
+                        >
+                          PROMO OFFER
+                        </span>
+                        <span className="text-xs font-mono text-gray-400">SKU-9941</span>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <h4 
+                          style={{ fontFamily: `'${fontFamily || 'Inter'}', sans-serif` }}
+                          className="font-bold text-gray-900 text-sm truncate"
+                        >
+                          Wireless Noise-Canceling Headphones
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <span 
+                            style={{ color: primaryColor || '#5022C3' }}
+                            className="text-lg font-extrabold"
+                          >
+                            {currencySymbol || '৳'} 12,500
+                          </span>
+                          <span className="text-xs text-gray-400 line-through">
+                            {currencySymbol || '৳'} 15,000
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Demo Action Buttons */}
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+                        <button
+                          type="button"
+                          style={{
+                            borderColor: buttonColors.addToCart || primaryColor || '#5022C3',
+                            color: buttonColors.addToCart || primaryColor || '#5022C3',
+                            backgroundColor: 'transparent'
+                          }}
+                          className="flex items-center justify-center gap-1.5 py-2 px-3 border-2 rounded-xl text-xs font-bold transition-all shadow-sm"
+                        >
+                          <ShoppingCart className="w-3.5 h-3.5" />
+                          <span>Add to Cart</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          style={{
+                            backgroundColor: buttonColors.buyNow || primaryColor || '#ef4444',
+                            color: '#ffffff'
+                          }}
+                          className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-sm text-white"
+                        >
+                          <Zap className="w-3.5 h-3.5" />
+                          <span>Buy Now</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Summary Swatches */}
+                    <div className="flex flex-col gap-3 w-full md:w-auto shrink-0 bg-white p-4 rounded-xl border border-gray-200">
+                      <div className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Color Palette Swatches</div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: primaryColor || '#5022C3' }} />
+                        <span className="text-xs font-mono text-gray-600">Primary: {primaryColor || '#5022C3'}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: buttonColors.addToCart || primaryColor || '#5022C3' }} />
+                        <span className="text-xs font-mono text-gray-600">Add to Cart: {buttonColors.addToCart || primaryColor || '#5022C3'}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: buttonColors.buyNow || '#ef4444' }} />
+                        <span className="text-xs font-mono text-gray-600">Buy Now: {buttonColors.buyNow || '#ef4444'}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -564,6 +700,151 @@ export default function ThemesPage() {
                   <p className="text-xs text-gray-500 font-medium">
                     Upload up to 3 banner images. If multiple images are added, they will automatically display as an animated slider / carousel across all storefront themes.
                   </p>
+
+                  {/* Top Announcement Bar Settings */}
+                  <div className="bg-gray-50/70 p-5 rounded-2xl border border-gray-200/80 space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                          <Megaphone className="w-4 h-4 text-[#5022C3]" /> Top Announcement Bar
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Display a custom notice bar at the top of every storefront theme.
+                        </p>
+                      </div>
+                      
+                      {/* Visibility Switch */}
+                      <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input 
+                          type="checkbox" 
+                          className="sr-only peer"
+                          checked={banner.showAnnouncement || false}
+                          onChange={(e) => setBanner(prev => ({ ...prev, showAnnouncement: e.target.checked }))}
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#5022C3]"></div>
+                      </label>
+                    </div>
+
+                    {banner.showAnnouncement && (
+                      <div className="space-y-4 pt-3 border-t border-gray-200/60">
+                        <Input 
+                          label="Announcement Text"
+                          type="text" 
+                          value={banner.announcementText || ''} 
+                          onChange={(e) => setBanner(prev => ({ ...prev, announcementText: e.target.value }))}
+                          placeholder="e.g. Free shipping on orders over ৳999 | All Products"
+                        />
+
+                        {/* Sliding Marquee Toggle Button */}
+                        <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200 gap-3">
+                          <div>
+                            <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">sliding</span>
+                            <p className="text-[11px] text-gray-500">Enable sliding text animation</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setBanner(prev => ({ ...prev, isSliding: !prev.isSliding }))}
+                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
+                              banner.isSliding 
+                                ? 'bg-[#5022C3] text-white shadow-sm ring-2 ring-purple-300' 
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                            }`}
+                          >
+                            {banner.isSliding ? 'sliding (ON)' : 'sliding (OFF)'}
+                          </button>
+                        </div>
+
+                        {/* Background Color & Text Color */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Background Color */}
+                          <div className="bg-white p-3.5 rounded-xl border border-gray-200 space-y-2">
+                            <label className="text-xs font-bold text-gray-800 uppercase tracking-wider block">
+                              Background Color
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="color" 
+                                value={banner.announcementBgColor || '#0f172a'}
+                                onChange={(e) => setBanner(prev => ({ ...prev, announcementBgColor: e.target.value }))}
+                                className="w-8 h-8 rounded-lg cursor-pointer border border-gray-300 p-0.5"
+                              />
+                              <input 
+                                type="text" 
+                                value={banner.announcementBgColor || '#0f172a'}
+                                onChange={(e) => setBanner(prev => ({ ...prev, announcementBgColor: e.target.value }))}
+                                className="w-full text-xs font-mono uppercase bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5022C3]"
+                              />
+                            </div>
+                            {/* Color Swatches */}
+                            <div className="flex items-center gap-1.5 pt-1">
+                              {['#0f172a', '#dc2626', '#5022C3', '#059669', '#18181b', '#1e3a8a', '#b45309'].map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => setBanner(prev => ({ ...prev, announcementBgColor: c }))}
+                                  className="w-5 h-5 rounded-full border border-gray-300 transition-transform hover:scale-110 shadow-sm"
+                                  style={{ backgroundColor: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Text Color */}
+                          <div className="bg-white p-3.5 rounded-xl border border-gray-200 space-y-2">
+                            <label className="text-xs font-bold text-gray-800 uppercase tracking-wider block">
+                              Text Color
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="color" 
+                                value={banner.announcementTextColor || '#ffffff'}
+                                onChange={(e) => setBanner(prev => ({ ...prev, announcementTextColor: e.target.value }))}
+                                className="w-8 h-8 rounded-lg cursor-pointer border border-gray-300 p-0.5"
+                              />
+                              <input 
+                                type="text" 
+                                value={banner.announcementTextColor || '#ffffff'}
+                                onChange={(e) => setBanner(prev => ({ ...prev, announcementTextColor: e.target.value }))}
+                                className="w-full text-xs font-mono uppercase bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5022C3]"
+                              />
+                            </div>
+                            {/* Color Swatches */}
+                            <div className="flex items-center gap-1.5 pt-1">
+                              {['#ffffff', '#fef08a', '#a5f3fc', '#f3f4f6', '#fbbf24', '#f87171'].map((c) => (
+                                <button
+                                  key={c}
+                                  type="button"
+                                  onClick={() => setBanner(prev => ({ ...prev, announcementTextColor: c }))}
+                                  className="w-5 h-5 rounded-full border border-gray-300 transition-transform hover:scale-110 shadow-sm"
+                                  style={{ backgroundColor: c }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Live Announcement Bar Preview */}
+                        <div className="space-y-1">
+                          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Live Preview</span>
+                          <div 
+                            style={{ 
+                              backgroundColor: banner.announcementBgColor || '#0f172a',
+                              color: banner.announcementTextColor || '#ffffff'
+                            }}
+                            className="p-2.5 rounded-xl text-sm font-medium text-center overflow-hidden border border-black/10 transition-all shadow-sm"
+                          >
+                            {banner.isSliding ? (
+                              <MarqueeTag scrollamount="6" className="whitespace-nowrap flex items-center tracking-wide">
+                                {banner.announcementText || 'Announcement bar text preview...'}
+                              </MarqueeTag>
+                            ) : (
+                              <span>{banner.announcementText || 'Announcement bar text preview...'}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="space-y-6">

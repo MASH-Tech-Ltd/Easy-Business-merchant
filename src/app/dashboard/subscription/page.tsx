@@ -138,24 +138,24 @@ export default function SubscriptionPage() {
     : '';
 
   return (
-    <div className="p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)] bg-[#f8f9fc]">
-      <div className="text-center mb-12 relative z-10 pt-8">
-        <div className="inline-flex items-center justify-center p-3 bg-purple-100 rounded-full mb-6">
-          <Crown className="w-8 h-8 text-[#5022C3]" />
+    <div className="p-3 sm:p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)] bg-[#f8f9fc]">
+      <div className="text-center mb-8 sm:mb-12 relative z-10 pt-4 sm:pt-8">
+        <div className="inline-flex items-center justify-center p-2.5 sm:p-3 bg-purple-100 rounded-full mb-4 sm:mb-6">
+          <Crown className="w-6 h-6 sm:w-8 sm:h-8 text-[#5022C3]" />
         </div>
-        <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 mb-6 tracking-tight">
+        <h1 className="text-xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 mb-3 sm:mb-6 tracking-tight px-2">
           Choose the right plan for your business
         </h1>
-        <p className="text-gray-500 max-w-2xl mx-auto text-lg">
+        <p className="text-gray-500 max-w-2xl mx-auto text-xs sm:text-lg px-2">
           Scale your store with confidence. From startup to enterprise, we have a tier that perfectly matches your ambition.
         </p>
 
         {/* Billing Cycle Toggle */}
-        <div className="flex items-center justify-center mt-8">
+        <div className="flex items-center justify-center mt-6 sm:mt-8">
           <div className="bg-white p-1 rounded-xl inline-flex relative shadow-sm border border-gray-200">
             <button
               onClick={() => setBillingCycle('monthly')}
-              className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
+              className={`px-3.5 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-300 ${
                 billingCycle === 'monthly' ? 'bg-[#5022C3] text-white shadow-md shadow-purple-500/20' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -163,13 +163,13 @@ export default function SubscriptionPage() {
             </button>
             <button
               onClick={() => setBillingCycle('yearly')}
-              className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
+              className={`px-3.5 sm:px-6 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-lg transition-all duration-300 ${
                 billingCycle === 'yearly' ? 'bg-[#5022C3] text-white shadow-md shadow-purple-500/20' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               Yearly billing
             </button>
-            <span className="absolute -top-3 -right-6 bg-gradient-to-r from-emerald-400 to-emerald-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm animate-pulse border border-white">
+            <span className="absolute -top-3 -right-4 sm:-right-6 bg-gradient-to-r from-emerald-400 to-emerald-500 text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full shadow-sm animate-pulse border border-white">
               SAVE 20%
             </span>
           </div>

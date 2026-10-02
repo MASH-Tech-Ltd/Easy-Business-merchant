@@ -97,13 +97,13 @@ export default function CheckoutLeadsPage() {
       <div className="bg-white border-t border-gray-200 flex-1 flex flex-col min-h-0">
         
         {/* Stats Section */}
-        <div className="p-6 border-b border-gray-200 bg-white shrink-0">
+        <div className="p-3.5 sm:p-6 border-b border-gray-200 bg-white shrink-0">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Checkout Recovery Stats</h2>
+            <h2 className="text-base sm:text-lg font-bold text-gray-900">Checkout Recovery Stats</h2>
             <select 
               value={timeframe} 
               onChange={(e) => setTimeframe(e.target.value)}
-              className="bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-1.5 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5022C3] cursor-pointer"
+              className="bg-gray-50 border border-gray-200 text-xs sm:text-sm rounded-lg px-2.5 sm:px-3 py-1.5 font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5022C3] cursor-pointer"
             >
               <option value="allTime">All Time</option>
               <option value="thisYear">This Year</option>
@@ -112,7 +112,7 @@ export default function CheckoutLeadsPage() {
             </select>
           </div>
           
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 min-[340px]:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <div className="bg-gradient-to-br from-purple-50 to-white border border-purple-100 rounded-xl p-3 sm:p-4 shadow-sm">
               <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
                 <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-purple-100 flex items-center justify-center text-[#5022C3] shrink-0">

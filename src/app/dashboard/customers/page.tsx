@@ -65,7 +65,7 @@ export default function CustomersPage() {
     <div className="w-full h-full font-sans flex flex-col">
       <div className="bg-white border-t border-gray-200 flex-1 flex flex-col min-h-0">
         {/* Filters Bar */}
-        <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#fcfcfc] shrink-0">
+        <div className="p-3 sm:p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3 bg-[#fcfcfc] shrink-0">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
@@ -74,18 +74,18 @@ export default function CustomersPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchCustomers()}
-              className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
+              className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
             />
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
-            <select className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium w-full sm:w-auto">
+          <div className="flex items-center gap-3 w-full sm:w-auto mt-1 sm:mt-0">
+            <select className="border border-gray-300 rounded-lg text-xs sm:text-sm px-3 py-2 sm:py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium w-full sm:w-auto">
               <option>Sort by: Newest</option>
             </select>
           </div>
         </div>
 
         {/* Mobile View (Cards) */}
-        <div className="md:hidden flex-1 p-4 space-y-4 bg-gray-50/50 overflow-y-auto">
+        <div className="md:hidden flex-1 p-3 sm:p-4 space-y-3 bg-gray-50/50 overflow-y-auto">
           {loading ? (
             <div className="text-center py-10 text-gray-500">
               <div className="flex flex-col items-center justify-center">
@@ -105,7 +105,7 @@ export default function CustomersPage() {
             </div>
           ) : (
             customers.map((customer) => (
-              <div key={customer._id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+              <div key={customer._id} className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm flex flex-col gap-2.5">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 rounded-full bg-purple-100 text-[#5022C3] flex items-center justify-center font-bold text-sm shrink-0">
                     {customer.name.charAt(0).toUpperCase()}

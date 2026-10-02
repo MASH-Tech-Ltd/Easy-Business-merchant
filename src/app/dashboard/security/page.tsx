@@ -183,13 +183,13 @@ export default function SecurityPage() {
   const hasNumber = /\d/.test(passwordForm.newPassword);
 
   return (
-    <div className="p-6 w-full max-w-[1800px] mx-auto min-h-screen">
+    <div className="p-3 sm:p-6 w-full max-w-[1800px] mx-auto min-h-screen">
       
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Security & 2FA Settings</h1>
-          <p className="text-sm text-gray-500 mt-1 font-medium">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight">Security & 2FA Settings</h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1 font-medium">
             Manage Two-Factor Authentication and update your merchant account password.
           </p>
         </div>

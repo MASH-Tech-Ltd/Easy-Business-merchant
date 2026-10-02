@@ -116,10 +116,10 @@ export default function DomainManagementPage() {
   }
 
   return (
-    <div className="p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)]">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
+    <div className="p-3 sm:p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 pt-2 sm:pt-4">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+          <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
             <h2 className="text-lg font-bold text-gray-900 mb-6">Custom Domain Settings</h2>
             
             <form onSubmit={handleSave} className="space-y-6">

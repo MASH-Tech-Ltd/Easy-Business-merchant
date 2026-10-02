@@ -112,7 +112,7 @@ export default function ProductsPage() {
     <div className="w-full h-full font-sans flex flex-col">
       <div className="bg-white border-t border-gray-200 flex-1 flex flex-col min-h-0">
         {/* Filters Bar */}
-        <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#fcfcfc] shrink-0">
+        <div className="p-3 sm:p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3 bg-[#fcfcfc] shrink-0">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
@@ -124,43 +124,45 @@ export default function ProductsPage() {
               className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
-            <select 
-              value={categoryId}
-              onChange={(e) => {
-                setCategoryId(e.target.value);
-                setPage(1); // Reset page on filter change
-              }}
-              className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium flex-1 sm:flex-none min-w-[140px]">
-              <option value="all">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat._id} value={cat._id}>{cat.name}</option>
-              ))}
-            </select>
-            <select 
-              value={`${sortBy}-${sortOrder}`}
-              onChange={(e) => {
-                const [by, order] = e.target.value.split('-');
-                setSortBy(by === 'default' ? '' : by);
-                setSortOrder(order === 'default' ? '' : order);
-                setPage(1); // Reset page on sort change
-              }}
-              className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium flex-1 sm:flex-none min-w-[150px]">
-              <option value="default-default">Sort by: Newest</option>
-              <option value="createdAt-asc">Oldest</option>
-              <option value="discountedPrice-asc">Price: Low to High</option>
-              <option value="discountedPrice-desc">Price: High to Low</option>
-              <option value="salesCount-desc">Best Selling</option>
-            </select>
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full sm:w-auto mt-1 sm:mt-0">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <select 
+                value={categoryId}
+                onChange={(e) => {
+                  setCategoryId(e.target.value);
+                  setPage(1); // Reset page on filter change
+                }}
+                className="border border-gray-300 rounded-lg text-xs sm:text-sm px-2.5 sm:px-3 py-2 sm:py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium flex-1 sm:flex-none min-w-0">
+                <option value="all">All Categories</option>
+                {categories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>{cat.name}</option>
+                ))}
+              </select>
+              <select 
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [by, order] = e.target.value.split('-');
+                  setSortBy(by === 'default' ? '' : by);
+                  setSortOrder(order === 'default' ? '' : order);
+                  setPage(1); // Reset page on sort change
+                }}
+                className="border border-gray-300 rounded-lg text-xs sm:text-sm px-2.5 sm:px-3 py-2 sm:py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium flex-1 sm:flex-none min-w-0">
+                <option value="default-default">Sort: Newest</option>
+                <option value="createdAt-asc">Oldest</option>
+                <option value="discountedPrice-asc">Price: Low to High</option>
+                <option value="discountedPrice-desc">Price: High to Low</option>
+                <option value="salesCount-desc">Best Selling</option>
+              </select>
+            </div>
             {categories.length === 0 ? (
               <button 
                 onClick={() => toast.error('Please create a category first before adding products.')}
-                className="bg-[#5022C3] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap opacity-50 cursor-not-allowed">
-                <Plus className="w-5 h-5" /> Add Product
+                className="bg-[#5022C3] text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap opacity-50 cursor-not-allowed w-full sm:w-auto">
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" /> Add Product
               </button>
             ) : (
-              <Link href="/dashboard/products/new" className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 shadow-sm whitespace-nowrap">
-                <Plus className="w-5 h-5" /> Add Product
+              <Link href="/dashboard/products/new" className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap w-full sm:w-auto">
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" /> Add Product
               </Link>
             )}
           </div>

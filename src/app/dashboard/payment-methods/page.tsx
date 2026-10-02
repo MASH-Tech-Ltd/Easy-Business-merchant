@@ -156,7 +156,7 @@ export default function PaymentMethodsPage() {
   }
 
   return (
-    <div className="p-6 w-full max-w-[1000px] mx-auto min-h-[calc(100vh-64px)]">
+    <div className="p-3 sm:p-6 w-full max-w-[1000px] mx-auto min-h-[calc(100vh-64px)]">
       <div className="mb-6 flex justify-end">
         <button
           onClick={handleAddMethod}

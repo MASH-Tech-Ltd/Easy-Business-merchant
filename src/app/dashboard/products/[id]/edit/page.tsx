@@ -252,9 +252,26 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         data.append('videos', '[]');
       }
       
-      // Send existing images to keep
-      const existingImagesToKeep = initialImages.filter(img => previewUrls.includes(img.secure_url));
+      // Send existing images and imageManifest in exact previewUrls sequence
+      let fileCount = 0;
+      const imageManifest: Array<{ type: 'existing' | 'new'; secure_url?: string; newIndex?: number }> = [];
+      const existingImagesToKeep: any[] = [];
+
+      previewUrls.forEach(url => {
+        if (url.startsWith('blob:')) {
+          imageManifest.push({ type: 'new', newIndex: fileCount });
+          fileCount++;
+        } else {
+          const existingImg = initialImages.find(img => img.secure_url === url);
+          if (existingImg) {
+            existingImagesToKeep.push(existingImg);
+            imageManifest.push({ type: 'existing', secure_url: url });
+          }
+        }
+      });
+
       data.append('existingImages', JSON.stringify(existingImagesToKeep));
+      data.append('imageManifest', JSON.stringify(imageManifest));
 
       if (imageFiles.length > 0) {
         imageFiles.forEach(file => {
@@ -286,31 +303,31 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   return (
     <form onSubmit={handleSubmit} className="h-full flex flex-col">
       {/* Top Action Bar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/products" className="text-gray-400 hover:text-gray-600 transition-colors">
+      <div className="bg-white border-b border-gray-200 px-3 sm:px-6 py-3 sm:py-4 flex justify-between items-center sticky top-0 z-10">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <Link href="/dashboard/products" className="text-gray-400 hover:text-gray-600 transition-colors p-1">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-xl font-bold text-gray-900">Edit Product</h1>
+          <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">Edit Product</h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link 
             href="/dashboard/products"
-            className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
+            className="px-2.5 sm:px-4 py-2 text-xs sm:text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1.5"
           >
             <X className="w-4 h-4" /> Discard
           </Link>
           <button 
             type="submit" 
             disabled={loading}
-            className="px-5 py-2 text-sm font-medium text-white bg-[#5022C3] hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-70"
+            className="px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-medium text-white bg-[#5022C3] hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-70"
           >
             <Save className="w-4 h-4" /> {loading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6">
         <div className="w-full max-w-[1800px] mx-auto flex flex-col xl:flex-row gap-6">
           
           {/* Main Content Column */}

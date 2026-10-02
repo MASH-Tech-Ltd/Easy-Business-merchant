@@ -84,7 +84,7 @@ export default function CategoriesPage() {
     <div className="w-full h-full font-sans flex flex-col">
       <div className="bg-white border-t border-gray-200 flex-1 flex flex-col min-h-0">
         {/* Filters Bar */}
-        <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#fcfcfc] shrink-0">
+        <div className="p-3 sm:p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3 bg-[#fcfcfc] shrink-0">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
@@ -93,21 +93,21 @@ export default function CategoriesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && fetchCategories()}
-              className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
+              className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto mt-3 sm:mt-0">
-            <select className="border border-gray-300 rounded-lg text-sm px-3 py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium flex-1 sm:flex-none">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto mt-1 sm:mt-0">
+            <select className="border border-gray-300 rounded-lg text-xs sm:text-sm px-3 py-2 sm:py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium flex-1 sm:flex-none min-w-0">
               <option>Sort by: Newest</option>
             </select>
-            <Link href="/dashboard/categories/new" className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap flex-1 sm:flex-none">
-              <Plus className="w-5 h-5" /> Add Category
+            <Link href="/dashboard/categories/new" className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap flex-1 sm:flex-none">
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" /> Add Category
             </Link>
           </div>
         </div>
 
         {/* Mobile View (Cards) */}
-        <div className="md:hidden flex-1 p-4 space-y-4 bg-gray-50/50 overflow-y-auto">
+        <div className="md:hidden flex-1 p-3 sm:p-4 space-y-3 bg-gray-50/50 overflow-y-auto">
           {loading ? (
             <div className="text-center py-10 text-gray-500">
               <div className="w-8 h-8 border-4 border-purple-200 border-t-[#5022C3] rounded-full animate-spin mx-auto mb-4"></div>

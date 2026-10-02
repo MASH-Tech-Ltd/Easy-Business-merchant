@@ -7,6 +7,19 @@ import toast from 'react-hot-toast';
 import { api } from '@/utils/api';
 import { useSocket } from '@/context/SocketContext';
 
+const extractBackendErrorMessage = (error: any, fallbackMsg: string): string => {
+  if (error.response?.data) {
+    const data = error.response.data;
+    if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+      return data.errors.map((e: any) => e.message).join(' • ');
+    }
+    if (data.message) {
+      return data.message;
+    }
+  }
+  return error.message || fallbackMsg;
+};
+
 export default function SupportDetailsPage() {
   const params = useParams();
   const id = params.id as string;
@@ -96,8 +109,8 @@ export default function SupportDetailsPage() {
     try {
       const res = await api.get(`/support/ticket/${id}`);
       setTicket(res.data.data);
-    } catch (error) {
-      toast.error('Failed to load ticket details');
+    } catch (error: any) {
+      toast.error(extractBackendErrorMessage(error, 'Failed to load ticket details'));
     } finally {
       setLoading(false);
     }
@@ -115,8 +128,8 @@ export default function SupportDetailsPage() {
       setTicket(res.data.data);
       setReplyMessage('');
       toast.success('Reply sent');
-    } catch (error) {
-      toast.error('Failed to send reply');
+    } catch (error: any) {
+      toast.error(extractBackendErrorMessage(error, 'Failed to send reply'));
     } finally {
       setSending(false);
     }
@@ -127,8 +140,8 @@ export default function SupportDetailsPage() {
       await api.patch(`/support/ticket/${id}/status`, { status });
       // The socket will receive the update and change the UI automatically
       toast.success(`Ticket marked as ${status}`);
-    } catch (error) {
-      toast.error('Failed to update status');
+    } catch (error: any) {
+      toast.error(extractBackendErrorMessage(error, 'Failed to update status'));
     }
   };
 
@@ -138,8 +151,8 @@ export default function SupportDetailsPage() {
       await api.delete(`/support/ticket/${id}`);
       toast.success('Ticket deleted');
       router.push('/dashboard/support');
-    } catch (error) {
-      toast.error('Failed to delete ticket');
+    } catch (error: any) {
+      toast.error(extractBackendErrorMessage(error, 'Failed to delete ticket'));
     }
   };
 
@@ -263,7 +276,8 @@ export default function SupportDetailsPage() {
                       }, 2000);
                     }
                   }}
-                  placeholder="Type your message here..."
+                  maxLength={1000}
+                  placeholder="Type your message here (max 1000 characters)..."
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 resize-none max-h-32 min-h-[60px]"
                   rows={2}
                   onKeyDown={(e) => {

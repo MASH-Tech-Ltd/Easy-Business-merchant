@@ -257,22 +257,22 @@ function PlatformPaymentContent() {
   }
 
   return (
-    <div className="p-6 md:p-8 w-full space-y-8">
+    <div className="p-3 sm:p-6 md:p-8 w-full space-y-6 sm:space-y-8">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-4 sm:pb-6">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-[#5022C3] text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-[#5022C3] text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2">
             <Sparkles className="w-3.5 h-3.5" /> Platform Billing & Payments
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Payment Verification Center</h1>
-          <p className="text-gray-500 text-sm mt-1">Track payment history, submit new payment proofs, or view online gateways.</p>
+          <h1 className="text-xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Payment Verification Center</h1>
+          <p className="text-gray-500 text-xs sm:text-sm mt-1">Track payment history, submit new payment proofs, or view online gateways.</p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200 self-start md:self-auto gap-1">
+        <div className="flex bg-gray-100 p-1.5 rounded-2xl border border-gray-200 self-start md:self-auto gap-1 overflow-x-auto max-w-full">
           <button
             onClick={() => setActiveTab('history')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
               activeTab === 'history' ? 'bg-white text-[#5022C3] shadow-sm' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -281,7 +281,7 @@ function PlatformPaymentContent() {
 
           <button
             onClick={() => setActiveTab('manual')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
               activeTab === 'manual' ? 'bg-white text-[#5022C3] shadow-sm' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -290,7 +290,7 @@ function PlatformPaymentContent() {
 
           <button
             onClick={() => setActiveTab('gateways')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
               activeTab === 'gateways' ? 'bg-white text-[#5022C3] shadow-sm' : 'text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -622,7 +622,7 @@ function PlatformPaymentContent() {
                     className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-mono font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5022C3]"
                   />
                   <p className="text-[11px] text-gray-400 mt-1 font-medium">
-                    💡 Enter full TrxID (e.g. TRX98234) or last 6 digits of sender number (e.g. 567890).
+                    💡 Enter full TrxID (e.g. TRX98234).
                   </p>
                 </div>
               </div>

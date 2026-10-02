@@ -46,8 +46,8 @@ export default function FraudCheckHistory() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+    <div className="p-3 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-[#5022C3]" /> Fraud Check History

@@ -238,7 +238,7 @@ export default function OrdersPage() {
     <div className="w-full h-full font-sans flex flex-col">
       <div className="bg-white border-t border-gray-200 flex-1 flex flex-col min-h-0">
         {/* Filters Bar */}
-        <div className="p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#fcfcfc] shrink-0">
+        <div className="p-3 sm:p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3 bg-[#fcfcfc] shrink-0">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input 
@@ -249,14 +249,14 @@ export default function OrdersPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
+              className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
             />
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <select 
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-              className="border border-gray-300 rounded-lg text-sm px-4 py-2 bg-white focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full sm:w-auto font-medium text-gray-700"
+              className="border border-gray-300 rounded-lg text-xs sm:text-sm px-3 sm:px-4 py-2 bg-white focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full sm:w-auto font-medium text-gray-700"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
@@ -269,7 +269,7 @@ export default function OrdersPage() {
         </div>
 
         {/* Mobile View (Cards) */}
-        <div className="md:hidden flex-1 p-4 space-y-4 bg-gray-50/50 overflow-y-auto">
+        <div className="md:hidden flex-1 p-3 sm:p-4 space-y-3 bg-gray-50/50 overflow-y-auto">
           {loading ? (
             <div className="text-center py-10 text-gray-500">
               <div className="w-8 h-8 border-4 border-purple-200 border-t-[#5022C3] rounded-full animate-spin mx-auto mb-4"></div>
@@ -285,20 +285,20 @@ export default function OrdersPage() {
             </div>
           ) : (
             orders.map((order) => (
-              <div key={order._id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
-                <div className="flex justify-between items-start mb-1">
+              <div key={order._id} className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm flex flex-col gap-2.5">
+                <div className="flex justify-between items-start gap-2 mb-1">
                   <div>
                     <span className="font-mono text-xs font-bold text-[#5022C3] bg-purple-50 px-2 py-1 rounded">
                       #{order.orderId || order._id?.substring(order._id.length - 6).toUpperCase()}
                     </span>
-                    <div className="text-xs text-gray-500 mt-2 font-medium">
+                    <div className="text-xs text-gray-500 mt-1.5 font-medium">
                       {new Date(order.createdAt).toLocaleDateString('en-GB')} at {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </div>
                   </div>
-                  <div>{getStatusBadge(order.status)}</div>
+                  <div className="shrink-0">{getStatusBadge(order.status)}</div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-2 mt-1 border-t border-b border-gray-50 py-3">
+                <div className="grid grid-cols-1 min-[320px]:grid-cols-2 gap-2 mt-1 border-t border-b border-gray-50 py-2.5">
                   <div>
                     <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Customer</div>
                     <div className="font-bold text-gray-900 text-sm truncate">{order.customerName}</div>

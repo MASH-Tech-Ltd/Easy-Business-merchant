@@ -76,13 +76,13 @@ export default function ApiKeysPage() {
   }
 
   return (
-    <div className="p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)]">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-4">
+    <div className="p-3 sm:p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 pt-2 sm:pt-4">
         <div className="lg:col-span-2 space-y-6">
           <form onSubmit={handleSave} className="space-y-6">
             
             {/* Email Provider */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
                   <Mail className="w-5 h-5" />

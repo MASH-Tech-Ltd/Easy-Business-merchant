@@ -139,8 +139,8 @@ export default function CourierAutomation() {
   };
 
   return (
-    <div className="p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)] space-y-6">
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start justify-between">
+    <div className="p-3 sm:p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)] space-y-4 sm:space-y-6">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 sm:gap-6 items-start justify-between">
         <div>
           <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
             <Truck className="w-6 h-6 text-[#5022C3]" /> Courier Automation

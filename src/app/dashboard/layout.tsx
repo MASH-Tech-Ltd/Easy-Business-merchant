@@ -480,33 +480,33 @@ export default function DashboardLayout({
         {banner}
         
         {/* Mobile Top Branding Bar */}
-        <div className="lg:hidden h-14 px-4 border-b border-gray-100 flex flex-col items-center justify-center bg-white flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <img src="/masheco-logo.png" alt="MASH ECO" className="w-7 h-7 object-contain" />
-            <h1 className="text-xl font-righteous text-gray-900 tracking-tight leading-none mt-0.5">
+        <div className="lg:hidden h-12 px-3 border-b border-gray-100 flex flex-col items-center justify-center bg-white flex-shrink-0">
+          <div className="flex items-center gap-1.5">
+            <img src="/masheco-logo.png" alt="MASH ECO" className="w-6 h-6 object-contain" />
+            <h1 className="text-lg font-righteous text-gray-900 tracking-tight leading-none mt-0.5">
               MASH ECO
             </h1>
           </div>
-          <div className="pl-9 mt-0">
-            <span className="text-[8px] font-bold text-gray-500 tracking-[0.25em] uppercase leading-none">
+          <div className="pl-8 -mt-0.5">
+            <span className="text-[7px] font-bold text-gray-500 tracking-[0.2em] uppercase leading-none">
               MERCHANT HUB
             </span>
           </div>
         </div>
 
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-4 lg:px-6 border-b border-gray-100 flex-shrink-0 bg-white">
-          <div className="flex items-center gap-3">
+        <header className="h-14 sm:h-16 flex items-center justify-between px-2.5 sm:px-6 border-b border-gray-100 flex-shrink-0 bg-white min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
             <button 
-              className="lg:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-md shrink-0"
+              className="lg:hidden p-1.5 text-gray-500 hover:bg-gray-100 rounded-md shrink-0"
               onClick={() => setIsSidebarOpen(true)}
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
             {/* Desktop Page Title (and mobile page title) */}
-            <div className="flex flex-col justify-center">
-               <h2 className="text-lg font-bold text-gray-900">
+            <div className="flex flex-col justify-center min-w-0">
+               <h2 className="text-sm sm:text-lg font-bold text-gray-900 truncate">
                  {pathname === '/dashboard/orders' ? 'Orders Management' : 
                   pathname === '/dashboard/products' ? 'Products Management' : 
                   pathname === '/dashboard/categories' ? 'Categories Management' : 
@@ -514,7 +514,7 @@ export default function DashboardLayout({
                   pathname === '/dashboard/security' ? 'Security Settings' : 
                   pathname === '/dashboard/profile' ? 'Merchant Profile' : 
                   pathname === '/dashboard/courier-automation' ? 'Courier' : 
-                  pathname === '/dashboard/fraud-check' ? 'Fraud Check & Risk Analysis' : 
+                  pathname === '/dashboard/fraud-check' ? 'Fraud Check & Risk' : 
                   pathname === '/dashboard/checkout-leads' ? 'Checkout Leads' : 
                   pathname === '/dashboard/themes' ? 'Store Themes & Branding' : 
                   pathname === '/dashboard/subscription' ? 'Subscription & Plan' : 
@@ -529,7 +529,7 @@ export default function DashboardLayout({
                   'Dashboard'}
                </h2>
                {pathname !== '/dashboard' && (
-                 <p className="text-xs text-gray-500 hidden sm:block">
+                 <p className="text-xs text-gray-500 hidden sm:block truncate">
                  {pathname === '/dashboard/orders' ? 'View and process customer orders' : 
                   pathname === '/dashboard/products' ? "Manage your store's inventory" : 
                   pathname === '/dashboard/categories' ? 'Organize your products into categories' : 
@@ -554,15 +554,15 @@ export default function DashboardLayout({
              )}
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <NotificationBell userId={merchantUser?._id} />
             {merchantUser && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <div className="text-sm text-right hidden sm:block">
                   <div className="font-medium text-gray-900">{merchantUser.name || 'Merchant'}</div>
                   <div className="text-xs text-gray-500">{merchantUser.email}</div>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-purple-100 text-[#5022C3] flex items-center justify-center font-bold overflow-hidden border border-purple-200">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-100 text-[#5022C3] flex items-center justify-center font-bold overflow-hidden border border-purple-200 shrink-0">
                   {merchantUser.avatar?.secure_url ? (
                     <img src={merchantUser.avatar.secure_url} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
@@ -581,10 +581,10 @@ export default function DashboardLayout({
                 sessionStorage.removeItem('merchantUser');
                 window.location.href = '/login';
               }}
-              className="ml-4 p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
               title="Logout"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
             </button>
           </div>
         </header>

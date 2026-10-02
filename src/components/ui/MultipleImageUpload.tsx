@@ -9,6 +9,7 @@ interface MultipleImageUploadProps {
   previewUrls: string[];
   onChange: (files: File[], urls: string[]) => void;
   maxFiles?: number;
+  columns?: string;
 }
 
 export function MultipleImageUpload({
@@ -18,11 +19,19 @@ export function MultipleImageUpload({
   previewUrls,
   onChange,
   maxFiles = 4,
+  columns,
 }: MultipleImageUploadProps) {
   const addFileInputRef = useRef<HTMLInputElement>(null);
   const replaceFileInputRef = useRef<HTMLInputElement>(null);
   const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
   const [dragActive, setDragActive] = useState(false);
+
+  const getGridColsClass = () => {
+    if (columns) return columns;
+    if (maxFiles <= 3) return 'grid-cols-3';
+    if (maxFiles <= 4) return 'grid-cols-2 sm:grid-cols-4';
+    return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5';
+  };
 
   // Helper to reconstruct array of { url, file }
   const getItems = () => {
@@ -162,7 +171,7 @@ export function MultipleImageUpload({
         onChange={handleReplaceFileChange}
       />
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-6 gap-3 mb-3">
+      <div className={`grid ${getGridColsClass()} gap-3 mb-3`}>
         {previewUrls.map((url, index) => (
           <div
             key={`${url}-${index}`}
@@ -228,7 +237,7 @@ export function MultipleImageUpload({
         {/* Add Image Slot */}
         {previewUrls.length < maxFiles && (
           <div
-            className={`relative aspect-square border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 ${
+            className={`relative aspect-square border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center cursor-pointer p-2 transition-all duration-200 ${
               dragActive
                 ? 'border-[#5022C3] bg-purple-50/50 scale-[0.99]'
                 : error && previewUrls.length === 0
@@ -253,11 +262,11 @@ export function MultipleImageUpload({
                 }
               }}
             />
-            <div className="w-9 h-9 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center text-[#5022C3] mb-1 group-hover:scale-110 transition-transform">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center text-[#5022C3] mb-1 group-hover:scale-110 transition-transform">
               <ImagePlus className="w-4 h-4" />
             </div>
-            <p className="text-xs font-bold text-gray-800 px-1">Add Image</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">JPG, PNG, WebP</p>
+            <p className="text-xs font-bold text-gray-800 px-1 truncate w-full">Add Image</p>
+            <p className="text-[10px] text-gray-400 mt-0.5 truncate w-full">JPG, PNG, WebP</p>
           </div>
         )}
       </div>

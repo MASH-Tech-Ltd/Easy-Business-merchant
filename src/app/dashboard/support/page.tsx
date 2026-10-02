@@ -9,11 +9,28 @@ import { useSocket } from '@/context/SocketContext';
 
 let globalTicketsCache: any[] = [];
 
+const extractBackendErrorMessage = (error: any, fallbackMsg: string): string => {
+  if (error.response?.data) {
+    const data = error.response.data;
+    if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+      return data.errors.map((e: any) => e.message).join(' • ');
+    }
+    if (data.message) {
+      return data.message;
+    }
+  }
+  return error.message || fallbackMsg;
+};
+
 export default function SupportPage() {
   const [tickets, setTickets] = useState<any[]>(globalTicketsCache);
   const [loading, setLoading] = useState(globalTicketsCache.length === 0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newTicket, setNewTicket] = useState({ subject: '', message: '' });
+  const [newTicket, setNewTicket] = useState({
+    subject: '',
+    category: 'General',
+    message: ''
+  });
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
   const { socket } = useSocket();
@@ -39,8 +56,8 @@ export default function SupportPage() {
       const res = await api.get('/support/my-tickets');
       globalTicketsCache = res.data.data;
       setTickets(res.data.data);
-    } catch (error) {
-      toast.error('Failed to load tickets');
+    } catch (error: any) {
+      toast.error(extractBackendErrorMessage(error, 'Failed to load tickets'));
     } finally {
       setLoading(false);
     }
@@ -48,8 +65,8 @@ export default function SupportPage() {
 
   const handleCreateTicket = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTicket.subject.trim() || !newTicket.message.trim()) {
-      toast.error('Subject and message are required');
+    if (!newTicket.subject.trim() || !newTicket.message.trim() || !newTicket.category) {
+      toast.error('Subject, Category, and Message are required');
       return;
     }
     setSubmitting(true);
@@ -57,10 +74,10 @@ export default function SupportPage() {
       const res = await api.post('/support/ticket', newTicket);
       setTickets([res.data.data, ...tickets]);
       setIsModalOpen(false);
-      setNewTicket({ subject: '', message: '' });
+      setNewTicket({ subject: '', category: 'General', message: '' });
       toast.success('Support ticket created successfully!');
-    } catch (error) {
-      toast.error('Failed to create ticket');
+    } catch (error: any) {
+      toast.error(extractBackendErrorMessage(error, 'Failed to create ticket'));
     } finally {
       setSubmitting(false);
     }
@@ -149,7 +166,7 @@ export default function SupportPage() {
             <form onSubmit={handleCreateTicket} className="p-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Subject</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Subject *</label>
                   <input
                     type="text"
                     required
@@ -159,15 +176,40 @@ export default function SupportPage() {
                     placeholder="Brief description of the issue"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Message</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category *</label>
+                  <select
+                    required
+                    value={newTicket.category}
+                    onChange={(e) => setNewTicket({...newTicket, category: e.target.value})}
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-sm text-gray-900"
+                  >
+                    <option value="General">General</option>
+                    <option value="Technical">Technical</option>
+                    <option value="Billing">Billing</option>
+                    <option value="Order Issues">Order Issues</option>
+                    <option value="Account / Domain">Account / Domain</option>
+                    <option value="Feature Request">Feature Request</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="block text-sm font-semibold text-gray-700">Message *</label>
+                    <span className={`text-xs ${newTicket.message.length >= 1000 ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                      {newTicket.message.length} / 1000
+                    </span>
+                  </div>
                   <textarea
                     required
+                    maxLength={1000}
                     rows={4}
                     value={newTicket.message}
                     onChange={(e) => setNewTicket({...newTicket, message: e.target.value})}
                     className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 text-sm resize-none"
-                    placeholder="Describe your problem in detail..."
+                    placeholder="Describe your problem in detail (max 1000 characters)..."
                   />
                 </div>
               </div>
