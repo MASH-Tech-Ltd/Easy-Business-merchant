@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [storeName, setStoreName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -21,8 +24,10 @@ export default function RegisterPage() {
 
     // Frontend Validation
     const errors: Record<string, string> = {};
-    if (name.trim().length < 2)
-      errors.name = "Name must be at least 2 characters";
+    if (!name.trim() || name.trim().length < 2)
+      errors.name = "Full name must be at least 2 characters";
+    if (!storeName.trim() || storeName.trim().length < 2)
+      errors.storeName = "Store name must be at least 2 characters";
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       errors.email = "Please provide a valid email address";
     if (!password) {
@@ -46,7 +51,13 @@ export default function RegisterPage() {
       const res = await fetch(`/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role: "tenant_admin" }),
+        body: JSON.stringify({
+          name: name.trim(),
+          storeName: storeName.trim(),
+          email: email.trim(),
+          password,
+          role: "tenant_admin",
+        }),
       });
 
       const data = await res.json();
@@ -186,7 +197,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="w-full max-w-md mt-10 lg:mt-0">
-          <div className="mb-10 text-center lg:text-left">
+          <div className="mb-8 text-center lg:text-left">
             <h2 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
               Create your store
             </h2>
@@ -213,19 +224,20 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <form onSubmit={handleRegister} className="flex flex-col gap-5">
+          <form onSubmit={handleRegister} className="flex flex-col gap-4">
+            {/* Owner / Full Name Field */}
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="name"
                 className="text-sm font-semibold text-gray-700"
               >
-                Business / Store Name
+                Owner / Full Name
               </label>
               <input
                 type="text"
                 id="name"
                 className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.name ? "border-red-400 bg-red-50/30" : "border-gray-200 bg-white"} text-gray-900 text-sm focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-400`}
-                placeholder="e.g. My Awesome Store"
+                placeholder="e.g. Full Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -237,6 +249,31 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Business / Store Name Field */}
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="storeName"
+                className="text-sm font-semibold text-gray-700"
+              >
+                Business / Store Name
+              </label>
+              <input
+                type="text"
+                id="storeName"
+                className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.storeName ? "border-red-400 bg-red-50/30" : "border-gray-200 bg-white"} text-gray-900 text-sm focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-400`}
+                placeholder="e.g. Business Name"
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
+                required
+              />
+              {fieldErrors.storeName && (
+                <span className="text-xs text-red-500 font-medium">
+                  {fieldErrors.storeName}
+                </span>
+              )}
+            </div>
+
+            {/* Email Address Field */}
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="email"
@@ -248,7 +285,7 @@ export default function RegisterPage() {
                 type="email"
                 id="email"
                 className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.email ? "border-red-400 bg-red-50/30" : "border-gray-200 bg-white"} text-gray-900 text-sm focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-400`}
-                placeholder="admin@mystore.com"
+                placeholder="e.g. demo@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -260,6 +297,7 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Password Field with Eye Toggle */}
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="password"
@@ -269,14 +307,27 @@ export default function RegisterPage() {
               </label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="password"
-                  className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.password ? "border-red-400 bg-red-50/30" : "border-gray-200 bg-white"} text-gray-900 text-sm focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-400`}
+                  className={`w-full px-4 py-3 pr-11 rounded-xl border ${fieldErrors.password ? "border-red-400 bg-red-50/30" : "border-gray-200 bg-white"} text-gray-900 text-sm focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-400`}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5 text-gray-500" />
+                  ) : (
+                    <Eye className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
               </div>
               {fieldErrors.password && (
                 <span className="text-xs text-red-500 font-medium">
@@ -287,7 +338,7 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              className="mt-2 w-full bg-[hsl(var(--accent-primary))] text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-[hsl(var(--accent-primary))]/25 hover:shadow-[hsl(var(--accent-primary))]/40 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+              className="mt-3 w-full bg-[hsl(var(--accent-primary))] text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-[hsl(var(--accent-primary))]/25 hover:shadow-[hsl(var(--accent-primary))]/40 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               disabled={loading}
             >
               {loading ? (
