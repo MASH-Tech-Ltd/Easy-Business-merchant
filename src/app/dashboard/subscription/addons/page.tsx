@@ -310,14 +310,10 @@ export default function AddonsPage() {
               } else {
                 effectiveStatus = purchasedAddon.status;
               }
-            } else if (latestPayment) {
-              if (latestPayment.status === 'pending') {
-                effectiveStatus = 'pending';
-              } else if (latestPayment.status === 'rejected') {
-                effectiveStatus = 'rejected';
-              } else if (latestPayment.status === 'approved') {
-                effectiveStatus = 'active';
-              }
+            } else if (latestPayment && latestPayment.status === 'pending') {
+              effectiveStatus = 'pending';
+            } else {
+              effectiveStatus = 'none';
             }
 
             const isPurchased = effectiveStatus === 'active';
