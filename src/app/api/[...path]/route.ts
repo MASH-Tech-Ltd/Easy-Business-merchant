@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const SESSION_SECONDS = 3 * 24 * 60 * 60; // 3 days
+
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
@@ -37,16 +39,30 @@ async function handleProxy(req: NextRequest) {
       headers.set("x-tenant-client-ip", clientIp);
     }
 
-    // Forward incoming cookies from browser to backend
-    const incomingCookies = req.headers.get("cookie");
-    if (incomingCookies) {
-      headers.set("cookie", incomingCookies);
+    // Forward incoming cookies from browser to backend.
+    // - Strip super-admin cookies (shared parent domain).
+    // - De-duplicate same-named cookies (legacy domain-wide copy + host-only copy):
+    //   the newest one is listed last by browsers, so the last occurrence wins.
+    const cookieMap = new Map<string, string>();
+    (req.headers.get("cookie") || "").split(/;\s*/).forEach((c) => {
+      const idx = c.indexOf("=");
+      if (idx <= 0) return;
+      const name = c.slice(0, idx);
+      if (name === "_super_r_tkn" || name === "_super_x_tkn") return;
+      cookieMap.set(name, c.slice(idx + 1));
+    });
+    if (cookieMap.size) {
+      headers.set(
+        "cookie",
+        Array.from(cookieMap.entries()).map(([k, v]) => `${k}=${v}`).join("; "),
+      );
+    } else {
+      headers.delete("cookie");
     }
 
     // Attach the auth tokens from cookies if present
     const accessToken =
-      req.cookies.get("accessToken")?.value ||
-      req.cookies.get("_merchant_x_tkn")?.value;
+      cookieMap.get("_merchant_x_tkn") || cookieMap.get("accessToken");
     if (accessToken && !headers.has("Authorization")) {
       headers.set("Authorization", `Bearer ${accessToken}`);
     }
@@ -69,6 +85,9 @@ async function handleProxy(req: NextRequest) {
     // Delete headers that might cause issues when the body is modified
     responseHeaders.delete("content-length");
     responseHeaders.delete("content-encoding");
+    // The proxy is the single owner of auth cookies. Backend Set-Cookie headers
+    // (domain-wide copies) would create duplicate, stale same-named cookies.
+    responseHeaders.delete("set-cookie");
 
     // Get the response body
     const data = await response.text();
@@ -111,14 +130,14 @@ async function handleProxy(req: NextRequest) {
         secure: isProd,
         sameSite: "lax",
         path: "/",
-        maxAge: 30 * 24 * 60 * 60, // 30 days persistent session
+        maxAge: SESSION_SECONDS, // 3 days persistent session
       });
       nextResponse.cookies.set("_merchant_x_tkn", hasAccessToken, {
         httpOnly: true,
         secure: isProd,
         sameSite: "lax",
         path: "/",
-        maxAge: 30 * 24 * 60 * 60,
+        maxAge: SESSION_SECONDS,
       });
     }
 
@@ -128,15 +147,31 @@ async function handleProxy(req: NextRequest) {
         secure: isProd,
         sameSite: "lax",
         path: "/",
-        maxAge: 30 * 24 * 60 * 60, // 30 days persistent session
+        maxAge: SESSION_SECONDS, // 3 days persistent session
       });
       nextResponse.cookies.set("_merchant_r_tkn", hasRefreshToken, {
         httpOnly: true,
         secure: isProd,
         sameSite: "lax",
         path: "/",
-        maxAge: 30 * 24 * 60 * 60,
+        maxAge: SESSION_SECONDS,
       });
+    }
+
+    // Expire legacy domain-wide cookies (e.g. Domain=.masheco.com) set by older
+    // backend versions, so only the host-only cookies above remain.
+    // Must run AFTER cookies.set() calls, which rewrite the set-cookie header.
+    if (isLogout || hasAccessToken || hasRefreshToken) {
+      const host = (req.headers.get("host") || "").split(":")[0];
+      if (host && !/^\d+\.\d+\.\d+\.\d+$/.test(host) && host !== "localhost") {
+        const baseDomain = host.replace(/^(merchant|www)\./, "");
+        ["accessToken", "refreshToken", "_merchant_x_tkn", "_merchant_r_tkn"].forEach((n) => {
+          nextResponse.headers.append(
+            "set-cookie",
+            `${n}=; Path=/; Domain=.${baseDomain}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly${isProd ? "; Secure" : ""}; SameSite=${isProd ? "None" : "Lax"}`,
+          );
+        });
+      }
     }
 
     return nextResponse;
