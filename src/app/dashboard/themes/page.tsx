@@ -5,7 +5,8 @@ import {
   Palette, CheckCircle2, LayoutTemplate, 
   Settings, Type, Link as LinkIcon, Save,
   Phone, Mail, MapPin, Shield, HelpCircle, Image as ImageIcon,
-  Truck, Plus, Trash2, Minus, Megaphone, Sparkles, ShoppingCart, Zap
+  Truck, Plus, Trash2, Minus, Megaphone, Sparkles, ShoppingCart, Zap,
+  Eye, ExternalLink
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api } from '../../../utils/api';
@@ -92,8 +93,41 @@ export default function ThemesPage() {
   const [newZone, setNewZone] = useState<ShippingZone>({ name: '', cost: 0, division: '', districts: [] });
   const [newZoneDistrictsList, setNewZoneDistrictsList] = useState<string[]>([]);
 
+  // Theme live preview URLs managed dynamically by Super Admin
+  const [themePreviews, setThemePreviews] = useState<Record<string, string>>(globalThemeCache?.themePreviews || {});
+
+  const fetchThemePreviews = async () => {
+    try {
+      const res = await api.get('/themes/previews');
+      if (res.data?.data) {
+        setThemePreviews(res.data.data);
+        if (globalThemeCache) {
+          globalThemeCache.themePreviews = res.data.data;
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load theme preview links:', err);
+    }
+  };
+
+  const handlePreviewTheme = (themeId: string, themeName: string) => {
+    const rawUrl = themePreviews[themeId];
+    if (rawUrl && rawUrl.trim()) {
+      let finalUrl = rawUrl.trim();
+      if (!/^https?:\/\//i.test(finalUrl)) {
+        finalUrl = 'https://' + finalUrl;
+      }
+      window.open(finalUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      toast(`Live preview demo for ${themeName} is not configured yet.`, {
+        icon: 'ℹ️',
+      });
+    }
+  };
+
   useEffect(() => {
     fetchTheme();
+    fetchThemePreviews();
   }, []);
 
   const fetchTheme = async () => {
@@ -370,7 +404,7 @@ export default function ThemesPage() {
                     setActiveTheme(theme.id);
                     setPrimaryColor(theme.accent);
                   }}
-                  className={`group relative border-2 rounded-2xl p-4 cursor-pointer transition-all duration-300 ${
+                  className={`group relative border-2 rounded-2xl p-4 cursor-pointer transition-all duration-300 flex flex-col justify-between ${
                     activeTheme === theme.id 
                       ? 'border-indigo-600 ring-4 ring-indigo-50 bg-indigo-50/10 scale-[1.02]' 
                       : 'border-gray-200 hover:border-indigo-300 hover:shadow-md'
@@ -386,25 +420,58 @@ export default function ThemesPage() {
                       <CheckCircle2 className="w-6 h-6 fill-indigo-100" />
                     </div>
                   )}
-                  <div 
-                    className="w-full h-36 rounded-xl mb-4 border border-gray-200 shadow-sm flex flex-col p-4 relative overflow-hidden group-hover:shadow-md transition-shadow"
-                    style={{ backgroundColor: theme.color }}
-                  >
-                    {/* Mockup UI */}
-                    <div className="flex justify-between items-center mb-4">
-                      <div className="w-16 h-4 rounded-md" style={{ backgroundColor: theme.textColor, opacity: 0.8 }}></div>
-                      <div className="flex gap-1.5">
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: theme.textColor, opacity: 0.2 }}></div>
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: theme.textColor, opacity: 0.2 }}></div>
+                  
+                  <div>
+                    <div 
+                      className="w-full h-36 rounded-xl mb-3 border border-gray-200 shadow-sm flex flex-col p-4 relative overflow-hidden group-hover:shadow-md transition-shadow"
+                      style={{ backgroundColor: theme.color }}
+                    >
+                      {/* Mockup UI */}
+                      <div className="flex justify-between items-center mb-4">
+                        <div className="w-16 h-4 rounded-md" style={{ backgroundColor: theme.textColor, opacity: 0.8 }}></div>
+                        <div className="flex gap-1.5">
+                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: theme.textColor, opacity: 0.2 }}></div>
+                          <div className="w-4 h-4 rounded-full" style={{ backgroundColor: theme.textColor, opacity: 0.2 }}></div>
+                        </div>
+                      </div>
+                      <div className="w-3/4 h-6 rounded-md mb-2" style={{ backgroundColor: theme.textColor, opacity: 0.9 }}></div>
+                      <div className="w-1/2 h-4 rounded-md mb-4" style={{ backgroundColor: theme.textColor, opacity: 0.5 }}></div>
+                      <div className="w-24 h-8 rounded-lg mt-auto shadow-sm transition-colors duration-300" style={{ backgroundColor: activeTheme === theme.id ? primaryColor : theme.accent }}></div>
+
+                      {/* Hover Quick Preview Action */}
+                      <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePreviewTheme(theme.id, theme.name);
+                          }}
+                          className="px-3.5 py-1.5 bg-white text-slate-900 font-semibold text-xs rounded-xl shadow-lg flex items-center gap-1.5 hover:scale-105 transition-transform"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>Live Preview</span>
+                        </button>
                       </div>
                     </div>
-                    <div className="w-3/4 h-6 rounded-md mb-2" style={{ backgroundColor: theme.textColor, opacity: 0.9 }}></div>
-                    <div className="w-1/2 h-4 rounded-md mb-4" style={{ backgroundColor: theme.textColor, opacity: 0.5 }}></div>
-                    <div className="w-24 h-8 rounded-lg mt-auto shadow-sm transition-colors duration-300" style={{ backgroundColor: activeTheme === theme.id ? primaryColor : theme.accent }}></div>
                   </div>
-                  <h4 className={`font-bold text-center transition-colors ${activeTheme === theme.id ? 'text-indigo-700' : 'text-gray-700 group-hover:text-gray-900'}`}>
-                    {theme.name}
-                  </h4>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100/90 mt-1">
+                    <h4 className={`text-xs font-bold truncate transition-colors ${activeTheme === theme.id ? 'text-indigo-700' : 'text-gray-800'}`}>
+                      {theme.name}
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePreviewTheme(theme.id, theme.name);
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:text-indigo-600 bg-slate-100 hover:bg-indigo-50 border border-slate-200/80 hover:border-indigo-200 rounded-lg transition-all shadow-2xs hover:shadow-xs flex-shrink-0 active:scale-95"
+                      title={`Preview live demo for ${theme.name}`}
+                    >
+                      <ExternalLink className="w-3 h-3 text-indigo-500" />
+                      <span>Preview</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
