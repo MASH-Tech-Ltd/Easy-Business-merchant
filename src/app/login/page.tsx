@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
@@ -17,6 +17,18 @@ export default function LoginPage() {
   const [is2FARequired, setIs2FARequired] = useState(false);
   const [twoFactorToken, setTwoFactorToken] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
+
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("merchantUser") || sessionStorage.getItem("merchantUser");
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        if (user && user.role === "tenant_admin") {
+          router.replace("/dashboard");
+        }
+      }
+    } catch (e) {}
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +84,7 @@ export default function LoginPage() {
         throw new Error("Access denied. Merchant account required.");
       }
 
+      localStorage.setItem("merchantUser", JSON.stringify(user));
       sessionStorage.setItem("merchantUser", JSON.stringify(user));
       router.push("/dashboard");
     } catch (err: any) {
@@ -103,6 +116,7 @@ export default function LoginPage() {
       if (user && user.role !== "tenant_admin") {
         throw new Error("Access denied. Merchant account required.");
       }
+      localStorage.setItem("merchantUser", JSON.stringify(user));
       sessionStorage.setItem("merchantUser", JSON.stringify(user));
       router.push("/dashboard");
     } catch (err: any) {
@@ -248,20 +262,12 @@ export default function LoginPage() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <div className="flex justify-between items-center">
-                  <label
-                    htmlFor="password"
-                    className="text-sm font-semibold text-gray-700"
-                  >
-                    Password
-                  </label>
-                  <Link
-                    href="/forgot"
-                    className="text-xs text-[hsl(var(--accent-primary))] font-semibold hover:text-[hsl(var(--accent-primary))]/80 transition-colors"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                <label
+                  htmlFor="password"
+                  className="text-sm font-semibold text-gray-700"
+                >
+                  Password
+                </label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -279,6 +285,14 @@ export default function LoginPage() {
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
+                </div>
+                <div className="flex justify-end mt-0.5">
+                  <Link
+                    href="/forgot"
+                    className="text-xs text-[hsl(var(--accent-primary))] font-semibold hover:text-[hsl(var(--accent-primary))]/80 transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
                 </div>
                 {fieldErrors.password && (
                   <span className="text-xs text-red-500 font-medium">

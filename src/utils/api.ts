@@ -62,6 +62,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         if (typeof window !== 'undefined') {
+          localStorage.removeItem('merchantUser');
           sessionStorage.removeItem('merchantUser');
           window.location.href = '/login';
         }
@@ -73,6 +74,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401 && !isAuthAction && originalRequest._retry) {
       if (typeof window !== 'undefined') {
+        localStorage.removeItem('merchantUser');
         sessionStorage.removeItem('merchantUser');
         window.location.href = '/login';
       }

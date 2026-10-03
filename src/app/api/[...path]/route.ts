@@ -96,21 +96,42 @@ async function handleProxy(req: NextRequest) {
       headers: responseHeaders,
     });
 
-    if (hasAccessToken) {
-      nextResponse.cookies.set("accessToken", hasAccessToken, {
+    const isLogout = path.startsWith("auth/logout");
+
+    if (isLogout) {
+      nextResponse.cookies.set("accessToken", "", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",
+        maxAge: 0,
+      });
+      nextResponse.cookies.set("refreshToken", "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 0,
+      });
+    }
+
+    if (hasAccessToken) {
+      nextResponse.cookies.set("accessToken", hasAccessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 30 * 24 * 60 * 60, // 30 days persistent session
       });
     }
 
     if (hasRefreshToken) {
       nextResponse.cookies.set("refreshToken", hasRefreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: true,
         sameSite: "lax",
         path: "/",
+        maxAge: 30 * 24 * 60 * 60, // 30 days persistent session
       });
     }
 

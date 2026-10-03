@@ -212,21 +212,26 @@ export default function DashboardLayout({
   }, [isAuthenticated, socket]);
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem('merchantUser');
+    const storedUser = localStorage.getItem('merchantUser') || sessionStorage.getItem('merchantUser');
     if (!storedUser) {
       router.push('/login');
     } else {
       try {
         const user = JSON.parse(storedUser);
         if (user.role !== 'tenant_admin') {
+          localStorage.removeItem('merchantUser');
           sessionStorage.removeItem('merchantUser');
           router.push('/login');
           return;
         }
+        // Keep both storages synced
+        localStorage.setItem('merchantUser', storedUser);
+        sessionStorage.setItem('merchantUser', storedUser);
         setMerchantUser(user);
         setIsAuthenticated(true);
       } catch (e) {
         console.error('Error parsing user data', e);
+        localStorage.removeItem('merchantUser');
         sessionStorage.removeItem('merchantUser');
         router.push('/login');
       }
@@ -473,7 +478,7 @@ export default function DashboardLayout({
           <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Account Suspended</h1>
           <p className="text-gray-500 text-center max-w-md mb-6">Your merchant account has been suspended by the administration. You have restricted access to the dashboard. Please contact support.</p>
-          <button onClick={() => { sessionStorage.removeItem("merchantUser"); window.location.href="/login"; }} className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700">Logout</button>
+          <button onClick={() => { localStorage.removeItem("merchantUser"); sessionStorage.removeItem("merchantUser"); window.location.href="/login"; }} className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700">Logout</button>
         </div>
       )}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
@@ -578,6 +583,7 @@ export default function DashboardLayout({
                 } catch (err) {
                   console.error('Logout error', err);
                 }
+                localStorage.removeItem('merchantUser');
                 sessionStorage.removeItem('merchantUser');
                 window.location.href = '/login';
               }}

@@ -24,7 +24,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem('merchantUser');
+    const storedUser = localStorage.getItem('merchantUser') || sessionStorage.getItem('merchantUser');
 
     if (!storedUser) {
       if (globalSocket) {

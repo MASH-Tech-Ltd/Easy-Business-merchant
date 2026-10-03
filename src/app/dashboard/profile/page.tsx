@@ -43,7 +43,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     try {
-      const storedUser = sessionStorage.getItem('merchantUser');
+      const storedUser = localStorage.getItem('merchantUser') || sessionStorage.getItem('merchantUser');
       if (storedUser) {
         const user = JSON.parse(storedUser);
         setMerchantUser(user);
@@ -182,6 +182,7 @@ export default function ProfilePage() {
       ]);
 
       if (userResponse.data?.data) {
+        localStorage.setItem('merchantUser', JSON.stringify(userResponse.data.data));
         sessionStorage.setItem('merchantUser', JSON.stringify(userResponse.data.data));
         setMerchantUser(userResponse.data.data);
       }
@@ -201,7 +202,9 @@ export default function ProfilePage() {
       } catch (err) {
         console.error('Logout all failed', err);
       } finally {
+        localStorage.removeItem('merchantToken');
         sessionStorage.removeItem('merchantToken');
+        localStorage.removeItem('merchantUser');
         sessionStorage.removeItem('merchantUser');
         router.push('/login');
       }

@@ -73,7 +73,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     try {
-      const storedUser = sessionStorage.getItem('merchantUser');
+      const storedUser = localStorage.getItem('merchantUser') || sessionStorage.getItem('merchantUser');
       if (storedUser) {
         const user = JSON.parse(storedUser);
         let sName = user.name || 'Your Store';

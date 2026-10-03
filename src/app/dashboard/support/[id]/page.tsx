@@ -261,7 +261,7 @@ export default function SupportDetailsPage() {
                     setReplyMessage(e.target.value);
                     if (socket) {
                       // Try to get user name from local storage or fallback to "Merchant"
-                      const userStr = sessionStorage.getItem('user');
+                      const userStr = localStorage.getItem('merchantUser') || sessionStorage.getItem('merchantUser') || localStorage.getItem('user') || sessionStorage.getItem('user');
                       let name = 'Merchant';
                       if (userStr) {
                         try {
