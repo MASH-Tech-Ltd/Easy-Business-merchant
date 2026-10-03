@@ -230,7 +230,19 @@ export default function ThemesPage() {
     }
   };
 
+const isValidBDPhone = (phone?: string): boolean => {
+  if (!phone || !phone.trim()) return true;
+  const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+  return /^(?:\+?88|88)?01[3-9]\d{8}$/.test(cleanPhone);
+};
+
   const handleSaveTheme = async () => {
+    // Validate BD phone number in footer contact info
+    if (footer.contactInfo.phone && !isValidBDPhone(footer.contactInfo.phone)) {
+      toast.error('Please enter a valid Bangladeshi Phone Number in Footer Settings (e.g. 01XXXXXXXXXX)');
+      return;
+    }
+
     // Frontend Validation for Banner
     const hasBannerImage = bannerImagesFiles.length > 0 || bannerPreviewUrls.length > 0;
     const hasBannerContent = banner.title || banner.subtitle || banner.description || banner.buttonText || banner.buttonLink || hasBannerImage;
@@ -318,11 +330,15 @@ export default function ThemesPage() {
   };
 
   const updateFooter = (section: 'socialLinks' | 'contactInfo' | 'policies', field: string, value: string) => {
+    let finalValue = value;
+    if (section === 'contactInfo' && field === 'phone') {
+      finalValue = value.replace(/[^0-9+\-\s()]/g, '');
+    }
     setFooter((prev: any) => ({
       ...prev,
       [section]: {
         ...prev[section],
-        [field]: value
+        [field]: finalValue
       }
     }));
   };
@@ -997,13 +1013,18 @@ export default function ThemesPage() {
                     onChange={(e) => updateFooter('contactInfo', 'email', e.target.value)}
                     placeholder="support@mystore.com"
                   />
-                  <Input 
-                    label="Phone Number"
-                    type="text" 
-                    value={footer.contactInfo.phone} 
-                    onChange={(e) => updateFooter('contactInfo', 'phone', e.target.value)}
-                    placeholder="+1 234 567 890"
-                  />
+                  <div>
+                    <Input 
+                      label="Phone Number"
+                      type="tel" 
+                      value={footer.contactInfo.phone} 
+                      onChange={(e) => updateFooter('contactInfo', 'phone', e.target.value)}
+                      placeholder="E.g. 01XXXXXXXXXX"
+                    />
+                    {footer.contactInfo.phone && !isValidBDPhone(footer.contactInfo.phone) && (
+                      <p className="text-xs text-red-500 mt-1 font-medium">Please enter a valid BD phone number (e.g. 01XXXXXXXXXX)</p>
+                    )}
+                  </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide">Store Address</label>
                     <textarea 

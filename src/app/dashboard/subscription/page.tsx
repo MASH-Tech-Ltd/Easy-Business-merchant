@@ -286,9 +286,20 @@ export default function SubscriptionPage() {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-baseline gap-1 mb-2">
-                    <span className="text-4xl font-black text-gray-900 tracking-tight">৳{pkg.price}</span>
-                    <span className="text-xs text-gray-500 font-bold uppercase">/{pkg.billingCycle === 'yearly' ? 'yr' : 'mo'}</span>
+                  <div className="mb-2">
+                    {pkg.billingCycle === 'yearly' ? (
+                      <div className="text-base sm:text-lg font-semibold text-gray-400 line-through decoration-red-300 decoration-1 leading-tight">
+                        ৳{Math.round(pkg.price * 1.2).toLocaleString()}
+                      </div>
+                    ) : (
+                      <div className="text-base sm:text-lg font-semibold invisible select-none leading-tight">
+                        ৳0
+                      </div>
+                    )}
+                    <div className="flex items-baseline gap-1.5 flex-wrap mt-0.5">
+                      <span className="text-4xl font-black text-gray-900 tracking-tight">৳{pkg.price.toLocaleString()}</span>
+                      <span className="text-xs sm:text-sm text-gray-500 font-semibold">/ Per {pkg.billingCycle === 'yearly' ? 'Year' : 'Month'}</span>
+                    </div>
                   </div>
                   <div className="mb-2 space-y-1">
                     {pkg.tagline && (

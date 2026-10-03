@@ -215,8 +215,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (['length', 'width', 'height', 'saveAmount'].includes(key)) return; // Handled below
-        if (value) data.append(key, value as string);
+        if (value !== undefined && value !== null && value !== '') data.append(key, value as string);
       });
+
+      // Compatibility aliases
+      if (formData.title) data.append('name', formData.title);
+      if (formData.discountedPrice) data.append('price', formData.discountedPrice);
 
       // Dimensions Object
       const dimensions = {

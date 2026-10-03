@@ -98,6 +98,11 @@ export default function ProfilePage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (name === 'phone' || name === 'supportPhone') {
+      const numericValue = value.replace(/[^0-9+\-\s()]/g, '');
+      setFormData(prev => ({ ...prev, [name]: numericValue }));
+      return;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -134,10 +139,31 @@ export default function ProfilePage() {
     }
   };
 
+const isValidBDPhone = (phone?: string): boolean => {
+  if (!phone || !phone.trim()) return true;
+  const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
+  return /^(?:\+?88|88)?01[3-9]\d{8}$/.test(cleanPhone);
+};
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    // Validate BD phone numbers
+    if (formData.phone && !isValidBDPhone(formData.phone)) {
+      const msg = 'Please enter a valid Bangladeshi Personal Phone number (e.g. 01XXXXXXXXXX)';
+      toast.error(msg);
+      setError(msg);
+      return;
+    }
+    if (formData.supportPhone && !isValidBDPhone(formData.supportPhone)) {
+      const msg = 'Please enter a valid Bangladeshi Support Phone number (e.g. 01XXXXXXXXXX)';
+      toast.error(msg);
+      setError(msg);
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const data = new FormData();
@@ -291,13 +317,19 @@ export default function ProfilePage() {
                     placeholder="E.g. John Doe"
                     required
                   />
-                  <Input 
-                    label="Personal Phone" 
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
+                  <div>
+                    <Input 
+                      label="Personal Phone" 
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleChange}
                     placeholder="Your contact number"
-                  />
+                    />
+                    {formData.phone && !isValidBDPhone(formData.phone) && (
+                      <p className="text-xs text-red-500 mt-1 font-medium">Please enter a valid BD phone number (e.g. 01XXXXXXXXXX)</p>
+                    )}
+                  </div>
                 </div>
                 <Input 
                   label="Email Address" 
@@ -441,13 +473,19 @@ export default function ProfilePage() {
                     onChange={handleChange}
                     placeholder="support@store.com"
                   />
-                  <Input 
-                    label="Support Phone" 
-                    name="supportPhone"
-                    value={formData.supportPhone}
-                    onChange={handleChange}
+                  <div>
+                    <Input 
+                      label="Support Phone" 
+                      name="supportPhone"
+                      type="tel"
+                      value={formData.supportPhone}
+                      onChange={handleChange}
                     placeholder="Customer service line"
-                  />
+                    />
+                    {formData.supportPhone && !isValidBDPhone(formData.supportPhone) && (
+                      <p className="text-xs text-red-500 mt-1 font-medium">Please enter a valid BD phone number (e.g. 01XXXXXXXXXX)</p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-5">

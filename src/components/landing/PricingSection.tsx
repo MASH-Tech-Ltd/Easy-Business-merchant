@@ -212,12 +212,23 @@ export default function PricingSection({
 
                   {/* Price */}
                   <div className="mb-3 sm:mb-4">
-                    <span className="text-3xl sm:text-5xl font-extrabold text-gray-900">
-                      {formattedPrice}
-                    </span>
-                    <span className="ml-1 text-gray-500 font-medium text-base">
-                      /{billing === "yearly" ? "yr" : "mo"}
-                    </span>
+                    {billing === "yearly" ? (
+                      <div className="text-base sm:text-lg font-semibold text-gray-400 line-through decoration-red-300 decoration-1 leading-tight">
+                        ৳{Math.round(pkg.price * 1.2).toLocaleString()}
+                      </div>
+                    ) : (
+                      <div className="text-base sm:text-lg font-semibold invisible select-none leading-tight">
+                        ৳0
+                      </div>
+                    )}
+                    <div className="flex items-baseline gap-1.5 flex-wrap mt-0.5">
+                      <span className="text-3xl sm:text-5xl font-extrabold text-gray-900">
+                        {formattedPrice}
+                      </span>
+                      <span className="text-gray-500 font-medium text-sm sm:text-base">
+                        / Per {billing === "yearly" ? "Year" : "Month"}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Product limit pill */}
