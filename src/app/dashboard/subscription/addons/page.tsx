@@ -58,6 +58,11 @@ export default function AddonsPage() {
     amount: '',
     note: ''
   });
+  const [formErrors, setFormErrors] = useState<{
+    senderNumber?: string;
+    transactionId?: string;
+    amount?: string;
+  }>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [submittingPayment, setSubmittingPayment] = useState(false);
 
@@ -127,20 +132,7 @@ export default function AddonsPage() {
 
     const handleNewNotification = (notification: any) => {
       if (!notification) return;
-      const { type, relatedEntityId } = notification;
-
-      if (type === 'ADDON_APPROVED' || type === 'ADDON_REJECTED') {
-        const newStatus = type === 'ADDON_APPROVED' ? 'active' : 'rejected';
-        setPurchasedAddons((prev) =>
-          prev.map((pa) => {
-            if (!relatedEntityId || pa.id === relatedEntityId) {
-              return { ...pa, status: newStatus };
-            }
-            return pa;
-          })
-        );
-        fetchData();
-      }
+      fetchData();
     };
 
     const handleRefreshSubscriptions = () => {
@@ -157,9 +149,9 @@ export default function AddonsPage() {
   }, [socket]);
 
   const handleOpenPaymentModal = (addon: any) => {
-    // Find existing pending payment proof for this addon name
+    // Find existing pending payment proof specifically for this addon name
     const existing = myPayments.find(
-      (p) => p.status === 'pending' && (p.purposeTitle === addon.name || p.purpose === 'addon')
+      (p) => p.status === 'pending' && p.purposeTitle?.trim().toLowerCase() === addon.name?.trim().toLowerCase()
     );
 
     setPaymentModal({
@@ -175,10 +167,12 @@ export default function AddonsPage() {
       amount: String(existing?.amount || addon.price || 0),
       note: existing?.note || `Purchase of ${addon.name}`
     });
+    setFormErrors({});
   };
 
   const handleClosePaymentModal = () => {
     setPaymentModal({ isOpen: false, addon: null, existingPayment: null });
+    setFormErrors({});
   };
 
   const handleCopy = (text: string, id: string) => {
@@ -193,9 +187,41 @@ export default function AddonsPage() {
     const { addon, existingPayment } = paymentModal;
     if (!addon) return;
 
-    if (!paymentForm.transactionId.trim() || !paymentForm.amount || !paymentForm.senderNumber.trim()) {
-      return toast.error('Please fill in all required payment details (TrxID, Amount, Sender Number)');
+    const errors: { senderNumber?: string; transactionId?: string; amount?: string } = {};
+
+    const numAmount = Number(paymentForm.amount);
+    if (!paymentForm.amount || isNaN(numAmount) || numAmount <= 0) {
+      errors.amount = 'Please enter a valid amount greater than 0';
     }
+
+    const rawSender = paymentForm.senderNumber.trim();
+    const sanitizedMobile = rawSender.replace(/[\s\-()]/g, '').replace(/^(?:\+?880)/, '0');
+    const isMobileBanking = ['bKash', 'Nagad', 'Rocket', 'Upay'].includes(paymentForm.provider);
+
+    if (!rawSender) {
+      errors.senderNumber = 'Sender phone/account number is required';
+    } else if (isMobileBanking) {
+      // Bangladeshi valid mobile numbers: 013, 014, 015, 016, 017, 018, 019 (11 digits total)
+      if (!/^01[3-9]\d{8}$/.test(sanitizedMobile)) {
+        errors.senderNumber = 'Please enter a valid 11-digit BD number (e.g. 017XXXXXXXX, 018..., 019..., 013...)';
+      }
+    } else if (!isMobileBanking && rawSender.length < 5) {
+      errors.senderNumber = 'Account number must be at least 5 characters/digits';
+    }
+
+    const cleanTrx = paymentForm.transactionId.trim();
+    if (!cleanTrx) {
+      errors.transactionId = 'Transaction ID (TrxID) is required';
+    } else if (cleanTrx.length < 4) {
+      errors.transactionId = 'TrxID must be at least 4 characters';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return toast.error('Please fix the errors in the payment form');
+    }
+
+    setFormErrors({});
 
     try {
       setSubmittingPayment(true);
@@ -220,7 +246,7 @@ export default function AddonsPage() {
         purposeTitle: addon.name,
         amount: Number(paymentForm.amount),
         provider: paymentForm.provider,
-        senderNumber: paymentForm.senderNumber.trim(),
+        senderNumber: isMobileBanking ? sanitizedMobile : rawSender,
         transactionId: paymentForm.transactionId.trim(),
         note: paymentForm.note.trim()
       };
@@ -271,13 +297,36 @@ export default function AddonsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {addons.map((addon) => {
             const purchasedAddon = purchasedAddons.find(p => p.id === addon._id);
-            const isPurchased = !!purchasedAddon && purchasedAddon.status === 'active';
-            const isPending = !!purchasedAddon && purchasedAddon.status === 'pending';
-            const isInactive = !!purchasedAddon && purchasedAddon.status === 'inactive';
-            const isTerminated = !!purchasedAddon && purchasedAddon.status === 'terminated';
-            const isRejected = !!purchasedAddon && purchasedAddon.status === 'rejected';
+
+            // Find latest payment submission for this specific addon
+            const latestPayment = myPayments
+              ?.filter((p: any) => p.purpose === 'addon' && p.purposeTitle?.trim().toLowerCase() === addon.name?.trim().toLowerCase())
+              .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+
+            let effectiveStatus = purchasedAddon?.status || 'none';
+            if (purchasedAddon && ['terminated', 'rejected', 'inactive', 'active'].includes(purchasedAddon.status)) {
+              if (latestPayment && latestPayment.status === 'pending') {
+                effectiveStatus = 'pending';
+              } else {
+                effectiveStatus = purchasedAddon.status;
+              }
+            } else if (latestPayment) {
+              if (latestPayment.status === 'pending') {
+                effectiveStatus = 'pending';
+              } else if (latestPayment.status === 'rejected') {
+                effectiveStatus = 'rejected';
+              } else if (latestPayment.status === 'approved') {
+                effectiveStatus = 'active';
+              }
+            }
+
+            const isPurchased = effectiveStatus === 'active';
+            const isPending = effectiveStatus === 'pending';
+            const isInactive = effectiveStatus === 'inactive';
+            const isTerminated = effectiveStatus === 'terminated';
+            const isRejected = effectiveStatus === 'rejected';
             
-            const limitReached = isPurchased && purchasedAddon.used >= purchasedAddon.limit && purchasedAddon.limit > 0;
+            const limitReached = isPurchased && purchasedAddon && purchasedAddon.used >= purchasedAddon.limit && purchasedAddon.limit > 0;
 
             return (
               <div 
@@ -330,7 +379,7 @@ export default function AddonsPage() {
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
                     <span>Includes <strong>{addon.defaultLimit}</strong> limit</span>
                   </div>
-                  {isPurchased && (
+                  {isPurchased && purchasedAddon && (
                     <div className="text-xs text-gray-500 border-t border-gray-200 pt-3 mt-2">
                       <div className="flex justify-between mb-1.5">
                         <span>Usage Limit:</span>
@@ -355,12 +404,12 @@ export default function AddonsPage() {
                   {isPending && (
                     <div className="text-xs text-yellow-700 font-medium border-t border-yellow-200 pt-2 mt-2 leading-relaxed flex items-center justify-between">
                       <span>Verification Pending</span>
-                      <button
-                        onClick={() => handleOpenPaymentModal(addon)}
+                      <Link
+                        href="/dashboard/subscription/payment-history"
                         className="text-[#5022C3] underline font-bold hover:text-purple-900"
                       >
-                        Edit Payment Proof
-                      </button>
+                        View Payment History
+                      </Link>
                     </div>
                   )}
                   {isInactive && (
@@ -388,10 +437,10 @@ export default function AddonsPage() {
                   </button>
                 ) : isPending ? (
                   <button 
-                    onClick={() => handleOpenPaymentModal(addon)}
-                    className="w-full py-2.5 px-4 rounded-xl bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-bold text-sm flex items-center justify-center gap-2 border border-yellow-300 transition-all shadow-sm"
+                    disabled
+                    className="w-full py-2.5 px-4 rounded-xl bg-yellow-50 text-yellow-700 font-bold text-sm flex items-center justify-center gap-2 border border-yellow-300 cursor-not-allowed"
                   >
-                    <Clock className="w-4 h-4 text-yellow-600" /> Pending Approval (View/Edit Payment)
+                    <Clock className="w-4 h-4 text-yellow-600" /> Pending Approval
                   </button>
                 ) : (isInactive || isTerminated || isRejected) ? (
                   <button 
@@ -517,7 +566,12 @@ export default function AddonsPage() {
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Payment Method Used</label>
                   <select
                     value={paymentForm.provider}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, provider: e.target.value })}
+                    onChange={(e) => {
+                      setPaymentForm({ ...paymentForm, provider: e.target.value });
+                      if (formErrors.senderNumber) {
+                        setFormErrors((prev) => ({ ...prev, senderNumber: undefined }));
+                      }
+                    }}
                     className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5022C3]"
                   >
                     <option value="bKash">bKash</option>
@@ -530,14 +584,27 @@ export default function AddonsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Amount Paid (৳ BDT)</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                    Amount Paid (৳ BDT) <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
-                    required
                     value={paymentForm.amount}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5022C3]"
+                    onChange={(e) => {
+                      setPaymentForm({ ...paymentForm, amount: e.target.value });
+                      if (formErrors.amount) {
+                        setFormErrors((prev) => ({ ...prev, amount: undefined }));
+                      }
+                    }}
+                    className={`w-full px-3.5 py-2.5 rounded-xl text-sm font-bold focus:bg-white focus:outline-none focus:ring-2 transition-all ${
+                      formErrors.amount
+                        ? 'bg-red-50/50 border border-red-400 focus:ring-red-400 text-red-900'
+                        : 'bg-gray-50 border border-gray-200 focus:ring-[#5022C3]'
+                    }`}
                   />
+                  {formErrors.amount && (
+                    <p className="text-xs text-red-500 font-medium mt-1">{formErrors.amount}</p>
+                  )}
                 </div>
               </div>
 
@@ -548,12 +615,29 @@ export default function AddonsPage() {
                   </label>
                   <input
                     type="text"
-                    required
                     placeholder="e.g. 01712345678"
                     value={paymentForm.senderNumber}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, senderNumber: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5022C3]"
+                    onChange={(e) => {
+                      setPaymentForm({ ...paymentForm, senderNumber: e.target.value });
+                      if (formErrors.senderNumber) {
+                        setFormErrors((prev) => ({ ...prev, senderNumber: undefined }));
+                      }
+                    }}
+                    className={`w-full px-3.5 py-2.5 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 transition-all ${
+                      formErrors.senderNumber
+                        ? 'bg-red-50/50 border border-red-400 focus:ring-red-400 text-red-900'
+                        : 'bg-gray-50 border border-gray-200 focus:ring-[#5022C3]'
+                    }`}
                   />
+                  {formErrors.senderNumber ? (
+                    <p className="text-xs text-red-500 font-medium mt-1">{formErrors.senderNumber}</p>
+                  ) : (
+                    ['bKash', 'Nagad', 'Rocket', 'Upay'].includes(paymentForm.provider) && (
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        Must be a valid 11-digit BD number (013–019).
+                      </p>
+                    )
+                  )}
                 </div>
 
                 <div>
@@ -562,15 +646,27 @@ export default function AddonsPage() {
                   </label>
                   <input
                     type="text"
-                    required
                     placeholder="e.g. TRX9B87A or 567890"
                     value={paymentForm.transactionId}
-                    onChange={(e) => setPaymentForm({ ...paymentForm, transactionId: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-mono font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5022C3]"
+                    onChange={(e) => {
+                      setPaymentForm({ ...paymentForm, transactionId: e.target.value });
+                      if (formErrors.transactionId) {
+                        setFormErrors((prev) => ({ ...prev, transactionId: undefined }));
+                      }
+                    }}
+                    className={`w-full px-3.5 py-2.5 rounded-xl text-sm font-mono font-bold focus:bg-white focus:outline-none focus:ring-2 transition-all ${
+                      formErrors.transactionId
+                        ? 'bg-red-50/50 border border-red-400 focus:ring-red-400 text-red-900'
+                        : 'bg-gray-50 border border-gray-200 focus:ring-[#5022C3]'
+                    }`}
                   />
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    Enter full TrxID or last 6 digits of sender number.
-                  </p>
+                  {formErrors.transactionId ? (
+                    <p className="text-xs text-red-500 font-medium mt-1">{formErrors.transactionId}</p>
+                  ) : (
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      Enter full TrxID or last 6 digits of sender number.
+                    </p>
+                  )}
                 </div>
               </div>
 
