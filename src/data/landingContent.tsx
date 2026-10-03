@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 import ContactForm from "@/components/landing/ContactForm";
+import BookDemoForm from "@/components/landing/BookDemoForm";
 
 export const contentMap: Record<string, ReactNode> = {
   "about-us": (
@@ -577,110 +578,29 @@ export const contentMap: Record<string, ReactNode> = {
     </div>
   ),
   "book-a-demo": (
-    <div className="space-y-8 text-left max-w-4xl mx-auto">
+    <div className="space-y-8 text-center max-w-4xl mx-auto">
       <div className="text-center mb-8">
-        <p className="text-lg text-gray-600">
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           See MASH ECO in action. Schedule a 30-minute personalized walkthrough
           with one of our e-commerce experts and discover how we can help scale
           your business.
         </p>
       </div>
 
-      <div className="bg-white p-8 rounded-2xl shadow-xl shadow-[hsl(var(--accent-primary))]/10 border border-[hsl(var(--accent-primary))]/20">
-        <form className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                First Name *
-              </label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all"
-                required
-                placeholder="John"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Last Name *
-              </label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all"
-                required
-                placeholder="Smith"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Business Email *
-              </label>
-              <input
-                type="email"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all"
-                required
-                placeholder="john@business.com"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">
-                Business Name *
-              </label>
-              <input
-                type="text"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all"
-                required
-                placeholder="Acme Store"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              Current Monthly Revenue
-            </label>
-            <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all text-gray-700">
-              <option>Just starting out</option>
-              <option>BDT 50,000 - BDT 200,000</option>
-              <option>BDT 200,000 - BDT 1,000,000</option>
-              <option>BDT 1,000,000 - BDT 5,000,000</option>
-              <option>BDT 5,000,000+</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              What are you looking to achieve?
-            </label>
-            <textarea
-              rows={4}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all"
-              placeholder="Tell us a bit about your current challenges..."
-            ></textarea>
-          </div>
-
-          <button
-            type="button"
-            className="w-full py-4 bg-[hsl(var(--accent-primary))] hover:bg-[hsl(var(--accent-hover))] text-white font-bold rounded-lg shadow-lg shadow-[hsl(var(--accent-primary))]/30 transition-all transform hover:-translate-y-0.5 text-lg"
-          >
-            Schedule My Demo
-          </button>
-
-          <p className="text-center text-xs text-gray-500 mt-4">
-            By submitting this form, you agree to our{" "}
-            <Link
-              href="/landing/privacy-policy"
-              className="text-[hsl(var(--accent-primary))] hover:underline"
-            >
-              Privacy Policy
-            </Link>
-            .
-          </p>
-        </form>
+      <BookDemoForm />
+    </div>
+  ),
+  "demo": (
+    <div className="space-y-8 text-center max-w-4xl mx-auto">
+      <div className="text-center mb-8">
+        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          See MASH ECO in action. Schedule a 30-minute personalized walkthrough
+          with one of our e-commerce experts and discover how we can help scale
+          your business.
+        </p>
       </div>
+
+      <BookDemoForm />
     </div>
   ),
 };
