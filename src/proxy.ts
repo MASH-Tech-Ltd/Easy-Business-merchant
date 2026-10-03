@@ -13,9 +13,10 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 1. If someone accesses merchant.masheco.com/ directly, redirect to login
+  // 1. If someone accesses merchant.masheco.com/ directly, redirect to dashboard if logged in, else login
   if (isMerchant && url.pathname === '/') {
-    url.pathname = '/login';
+    const hasAuth = req.cookies.has('accessToken') || req.cookies.has('_merchant_x_tkn');
+    url.pathname = hasAuth ? '/dashboard' : '/login';
     return NextResponse.redirect(url);
   }
 

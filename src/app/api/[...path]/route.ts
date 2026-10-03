@@ -37,8 +37,16 @@ async function handleProxy(req: NextRequest) {
       headers.set("x-tenant-client-ip", clientIp);
     }
 
+    // Forward incoming cookies from browser to backend
+    const incomingCookies = req.headers.get("cookie");
+    if (incomingCookies) {
+      headers.set("cookie", incomingCookies);
+    }
+
     // Attach the auth tokens from cookies if present
-    const accessToken = req.cookies.get("accessToken")?.value;
+    const accessToken =
+      req.cookies.get("accessToken")?.value ||
+      req.cookies.get("_merchant_x_tkn")?.value;
     if (accessToken && !headers.has("Authorization")) {
       headers.set("Authorization", `Bearer ${accessToken}`);
     }
@@ -74,64 +82,60 @@ async function handleProxy(req: NextRequest) {
     const hasAccessToken = parsedData?.data?.accessToken;
     const hasRefreshToken = parsedData?.data?.refreshToken;
 
-    if (hasAccessToken) {
-      delete parsedData.data.accessToken;
-    }
-    if (hasRefreshToken) {
-      delete parsedData.data.refreshToken;
-    }
-
-    // Re-serialize data if we mutated it
-    let finalBody = data;
-    if (
-      parsedData &&
-      (hasAccessToken !== undefined || hasRefreshToken !== undefined)
-    ) {
-      finalBody = JSON.stringify(parsedData);
-    }
-
-    const nextResponse = new NextResponse(finalBody, {
+    const nextResponse = new NextResponse(data, {
       status: response.status,
       statusText: response.statusText,
       headers: responseHeaders,
     });
 
+    const isProd = process.env.NODE_ENV === "production";
     const isLogout = path.startsWith("auth/logout");
 
     if (isLogout) {
-      nextResponse.cookies.set("accessToken", "", {
+      const cookieClearOpts = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: isProd,
+        sameSite: "lax" as const,
         path: "/",
         maxAge: 0,
-      });
-      nextResponse.cookies.set("refreshToken", "", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge: 0,
-      });
+      };
+      nextResponse.cookies.set("accessToken", "", cookieClearOpts);
+      nextResponse.cookies.set("refreshToken", "", cookieClearOpts);
+      nextResponse.cookies.set("_merchant_x_tkn", "", cookieClearOpts);
+      nextResponse.cookies.set("_merchant_r_tkn", "", cookieClearOpts);
     }
 
     if (hasAccessToken) {
       nextResponse.cookies.set("accessToken", hasAccessToken, {
         httpOnly: true,
-        secure: true,
+        secure: isProd,
         sameSite: "lax",
         path: "/",
         maxAge: 30 * 24 * 60 * 60, // 30 days persistent session
+      });
+      nextResponse.cookies.set("_merchant_x_tkn", hasAccessToken, {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 30 * 24 * 60 * 60,
       });
     }
 
     if (hasRefreshToken) {
       nextResponse.cookies.set("refreshToken", hasRefreshToken, {
         httpOnly: true,
-        secure: true,
+        secure: isProd,
         sameSite: "lax",
         path: "/",
         maxAge: 30 * 24 * 60 * 60, // 30 days persistent session
+      });
+      nextResponse.cookies.set("_merchant_r_tkn", hasRefreshToken, {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 30 * 24 * 60 * 60,
       });
     }
 
