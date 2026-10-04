@@ -163,6 +163,7 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
                   <option value="shipped">Shipped</option>
                   <option value="delivered">Delivered</option>
                   <option value="cancelled">Cancelled</option>
+                  <option value="returned">Returned</option>
                 </select>
               </div>
               
@@ -175,6 +176,9 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
                 >
                   <option value="unpaid">Unpaid</option>
                   <option value="paid">Paid</option>
+                  {/* no need for now */}
+                  {/* <option value="failed">Failed</option> */}
+                  {/* <option value="refunded">Refunded</option> */}
                 </select>
                 
                 <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">

@@ -567,14 +567,14 @@ export default function OrdersPage() {
           
           <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl print:shadow-none print:w-full print:max-w-none print:max-h-none print:h-auto print:rounded-none">
             {/* Modal Header (Hidden on Print) */}
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center print:hidden">
+            <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center gap-2 print:hidden">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Order Details</h2>
                 <div className="text-sm font-mono text-[#5022C3] mt-1 bg-purple-50 inline-block px-2 py-0.5 rounded">#{viewOrder.orderId || viewOrder._id?.substring(viewOrder._id.length - 6).toUpperCase()}</div>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => window.print()} className="p-2.5 text-[#5022C3] bg-purple-50 hover:bg-purple-100 rounded-full transition-colors flex items-center gap-2 px-4 font-semibold text-sm">
-                  <Printer className="w-4 h-4" /> Print Slip
+                <button onClick={() => window.print()} className="p-2.5 text-[#5022C3] bg-purple-50 hover:bg-purple-100 rounded-full transition-colors flex items-center gap-2 sm:px-4 font-semibold text-sm" aria-label="Print Slip">
+                  <Printer className="w-4 h-4" /> <span className="hidden sm:inline">Print Slip</span>
                 </button>
                 <button onClick={() => setViewOrder(null)} className="p-2.5 text-gray-400 hover:bg-gray-100 rounded-full transition-colors">
                   <X className="w-5 h-5" />
@@ -583,26 +583,26 @@ export default function OrdersPage() {
             </div>
             
             {/* Printable Content */}
-            <div className="p-8 overflow-y-auto space-y-8 flex-1 print:overflow-visible">
+            <div className="p-4 sm:p-8 overflow-y-auto space-y-6 sm:space-y-8 flex-1 print:overflow-visible">
               
               {/* Slip Header (Visible mainly on print or as nice UI) */}
-              <div className="flex justify-between items-start border-b border-gray-200 pb-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 border-b border-gray-200 pb-4 sm:pb-6 print:flex-row print:justify-between">
                 <div className="flex items-center gap-3">
                   {storeLogo && (
                     <img src={storeLogo} alt="Store Logo" className="w-12 h-12 object-contain" />
                   )}
                   <div>
-                    <h1 className="text-3xl font-black text-gray-900 tracking-tight">{storeName}</h1>
+                    <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight break-words">{storeName}</h1>
                     <p className="text-gray-500 mt-1 font-medium tracking-widest text-sm uppercase">Packing Slip</p>
                   </div>
                 </div>
-                <div className="text-center md:text-right">
+                <div className="text-left sm:text-right">
                   <p className="text-sm font-bold text-gray-900">Order #{viewOrder.orderId || viewOrder._id?.substring(viewOrder._id.length - 6).toUpperCase()}</p>
                   <p className="text-xs text-gray-500 mt-1">Date: {new Date(viewOrder.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4 sm:gap-8">
                 <div>
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Customer Info</h3>
                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 print:border-none print:bg-transparent print:p-0">
@@ -628,8 +628,8 @@ export default function OrdersPage() {
               <div className="pt-4">
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Order Items</h3>
                 
-                <div className="border border-gray-200 rounded-xl overflow-hidden print:border-gray-300">
-                  <table className="w-full text-left border-collapse">
+                <div className="border border-gray-200 rounded-xl overflow-x-auto print:overflow-visible print:border-gray-300">
+                  <table className="w-full min-w-[420px] print:min-w-0 text-left border-collapse text-sm sm:text-base">
                     <thead className="bg-gray-50 print:bg-gray-100">
                       <tr>
                         <th className="py-3 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Item</th>
@@ -641,7 +641,7 @@ export default function OrdersPage() {
                     <tbody className="divide-y divide-gray-200">
                       {viewOrder.items.map((item, idx) => (
                         <tr key={idx} className="bg-white">
-                          <td className="py-4 px-4">
+                          <td className="py-3 px-3 sm:py-4 sm:px-4">
                             <div className="flex items-center gap-3">
                               <div className="w-12 h-12 bg-gray-50 rounded overflow-hidden border border-gray-100 shrink-0">
                                 {item.image && <img src={item.image} alt={item.title} className="w-full h-full object-cover" />}
@@ -649,9 +649,9 @@ export default function OrdersPage() {
                               <span className="font-medium text-gray-900">{item.title}</span>
                             </div>
                           </td>
-                          <td className="py-4 px-4 text-center text-gray-700 font-medium">{item.quantity}</td>
-                          <td className="py-4 px-4 text-right text-gray-600">{item.price.toLocaleString()} BDT</td>
-                          <td className="py-4 px-4 text-right font-bold text-gray-900">{(item.price * item.quantity).toLocaleString()} BDT</td>
+                          <td className="py-3 px-3 sm:py-4 sm:px-4 text-center text-gray-700 font-medium">{item.quantity}</td>
+                          <td className="py-3 px-3 sm:py-4 sm:px-4 text-right text-gray-600 whitespace-nowrap">{item.price.toLocaleString()} BDT</td>
+                          <td className="py-3 px-3 sm:py-4 sm:px-4 text-right font-bold text-gray-900 whitespace-nowrap">{(item.price * item.quantity).toLocaleString()} BDT</td>
                         </tr>
                       ))}
                     </tbody>
@@ -659,17 +659,23 @@ export default function OrdersPage() {
                 </div>
               </div>
               
-              <div className="flex justify-between items-end pt-4">
-                {viewOrder.isDeliveryChargePaid ? (
-                  <div className="border-2 border-green-500 text-green-600 rounded px-4 py-2 transform -rotate-6 flex flex-col items-center justify-center opacity-90 print:opacity-100 print:border-gray-900 print:text-gray-900 ml-4 mb-4">
-                    <span className="text-lg font-black uppercase tracking-wider">Paid</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest">Delivery Charge</span>
-                  </div>
-                ) : (
-                  <div></div>
-                )}
+              <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4 pt-4 print:flex-row print:justify-between">
+                <div className="flex items-center gap-2">
+                  {viewOrder.isDeliveryChargePaid && (
+                    <div className="border-2 border-green-500 text-green-600 rounded px-4 py-2 transform -rotate-6 flex flex-col items-center justify-center opacity-90 print:opacity-100 print:border-gray-900 print:text-gray-900 sm:ml-4 sm:mb-4">
+                      <span className="text-lg font-black uppercase tracking-wider">Paid</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Delivery Charge</span>
+                    </div>
+                  )}
+                </div>
                 
-                <div className="w-full max-w-sm space-y-3">
+                <div className="relative w-full sm:max-w-sm space-y-3">
+                  {viewOrder.paymentStatus === 'paid' && (
+                    <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 border-4 border-green-500 text-green-600 rounded-lg px-5 py-2 sm:px-8 sm:py-3 flex flex-col items-center justify-center opacity-30 print:opacity-40 print:border-gray-900 print:text-gray-900 z-10">
+                      <span className="text-3xl sm:text-5xl font-black uppercase tracking-widest leading-none">Paid</span>
+                      <span className="text-xs font-bold uppercase tracking-[0.3em] mt-1">Payment</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center text-gray-600">
                     <span>Subtotal</span>
                     <span>{viewOrder.items.reduce((acc, item) => acc + (item.price * item.quantity), 0).toLocaleString()} BDT</span>
@@ -682,7 +688,7 @@ export default function OrdersPage() {
                         : 'Free'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-xl font-black text-gray-900 border-t border-gray-200 pt-3">
+                  <div className="flex justify-between items-center gap-2 text-lg sm:text-xl font-black text-gray-900 border-t border-gray-200 pt-3">
                     <span>Total Amount</span>
                     <span className="text-[#5022C3] print:text-gray-900">{viewOrder.totalPrice.toLocaleString()} BDT</span>
                   </div>
@@ -692,12 +698,12 @@ export default function OrdersPage() {
             </div>
             
             {/* Modal Footer (Hidden on Print) */}
-            <div className="p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex justify-between items-center print:hidden">
+            <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex justify-between items-center gap-3 print:hidden">
               <div>
                 <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Current Status</div>
                 {getStatusBadge(viewOrder.status)}
               </div>
-              <button onClick={() => setViewOrder(null)} className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl transition-colors">
+              <button onClick={() => setViewOrder(null)} className="px-5 sm:px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl transition-colors">
                 Close
               </button>
             </div>
