@@ -1,17 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 
-export default function ContactForm() {
+function ContactFormContent() {
+  const searchParams = useSearchParams();
+  const rawTopic = searchParams.get("topic");
+
+  // Determine initial topic selection based on URL parameter
+  const getInitialTopic = (param: string | null) => {
+    if (!param) return "General Inquiry";
+    const lower = param.toLowerCase();
+    if (lower.includes("consult") || lower.includes("পরামর্শ")) {
+      return "Business Consultation (ব্যবসার পরামর্শ)";
+    }
+    return param;
+  };
+
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
-    topic: "General Inquiry",
+    topic: getInitialTopic(rawTopic),
     message: "",
   });
+
+  useEffect(() => {
+    if (rawTopic) {
+      setFormData((prev) => ({ ...prev, topic: getInitialTopic(rawTopic) }));
+    }
+  }, [rawTopic]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -119,13 +139,16 @@ export default function ContactForm() {
             name="topic"
             value={formData.topic}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all text-gray-700"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all text-gray-700 font-medium"
           >
-            <option>General Inquiry</option>
-            <option>Sales & Subscriptions</option>
-            <option>Technical Support</option>
-            <option>API Integration</option>
-            <option>Partnerships</option>
+            <option value="General Inquiry">General Inquiry</option>
+            <option value="Business Consultation (ব্যবসার পরামর্শ)">
+              Business Consultation (ব্যবসার পরামর্শ)
+            </option>
+            <option value="Sales & Subscriptions">Sales & Subscriptions</option>
+            <option value="Technical Support">Technical Support</option>
+            <option value="API Integration">API Integration</option>
+            <option value="Partnerships">Partnerships</option>
           </select>
         </div>
         <div>
@@ -151,5 +174,13 @@ export default function ContactForm() {
         </button>
       </form>
     </div>
+  );
+}
+
+export default function ContactForm() {
+  return (
+    <Suspense fallback={<div className="p-8 bg-white rounded-2xl animate-pulse">Loading form...</div>}>
+      <ContactFormContent />
+    </Suspense>
   );
 }

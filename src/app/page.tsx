@@ -4,6 +4,7 @@ import FeaturesSection from "@/components/landing/FeaturesSection";
 import PricingSection, { IPackage } from "@/components/landing/PricingSection";
 import FAQSection from "@/components/landing/FAQSection";
 import Footer from "@/components/landing/Footer";
+import TrialPromoModal from "@/components/landing/TrialPromoModal";
 import { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -189,6 +190,7 @@ export default async function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
+      <TrialPromoModal />
       <Navbar />
 
       <main>
