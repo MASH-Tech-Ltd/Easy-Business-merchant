@@ -4,6 +4,12 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 
+const isValidBDPhone = (phone: string): boolean => {
+  if (!phone || !phone.trim()) return false;
+  const cleanPhone = phone.replace(/[\s\-\(\)]/g, "");
+  return /^(?:\+?88|88)?01[3-9]\d{8}$/.test(cleanPhone);
+};
+
 function ContactFormContent() {
   const searchParams = useSearchParams();
   const rawTopic = searchParams.get("topic");
@@ -19,9 +25,11 @@ function ContactFormContent() {
   };
 
   const [loading, setLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    phone: "",
     email: "",
     topic: getInitialTopic(rawTopic),
     message: "",
@@ -44,6 +52,19 @@ function ContactFormContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate BD Phone Number
+    if (!formData.phone.trim()) {
+      setPhoneError("Mobile number is required");
+      return;
+    }
+
+    if (!isValidBDPhone(formData.phone)) {
+      setPhoneError("Please enter a valid Bangladeshi mobile number (e.g.: 017XXXXXXXX)");
+      return;
+    }
+
+    setPhoneError("");
     setLoading(true);
 
     try {
@@ -71,6 +92,7 @@ function ContactFormContent() {
       setFormData({
         firstName: "",
         lastName: "",
+        phone: "",
         email: "",
         topic: "General Inquiry",
         message: "",
@@ -90,7 +112,7 @@ function ContactFormContent() {
         <div className="grid grid-cols-2 gap-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              First Name
+              First Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -104,7 +126,7 @@ function ContactFormContent() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Last Name
+              Last Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -117,23 +139,48 @@ function ContactFormContent() {
             />
           </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email Address
-          </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all"
-            placeholder="jane@yourstore.com"
-          />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mobile Number / ফোন নম্বর <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={(e) => {
+                handleChange(e);
+                setPhoneError("");
+              }}
+              required
+              className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all ${
+                phoneError ? "border-red-500 bg-red-50/50 text-red-900" : "border-gray-200"
+              }`}
+              placeholder="01712345678"
+            />
+            {phoneError && (
+              <p className="text-xs text-red-600 font-medium mt-1">{phoneError}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email Address <span className="text-gray-400 text-xs font-normal">(Optional)</span>
+            </label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all"
+              placeholder="jane@yourstore.com (optional)"
+            />
+          </div>
         </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Topic
+            Topic <span className="text-red-500">*</span>
           </label>
           <select
             name="topic"
@@ -151,9 +198,10 @@ function ContactFormContent() {
             <option value="Partnerships">Partnerships</option>
           </select>
         </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Message
+            Message <span className="text-red-500">*</span>
           </label>
           <textarea
             rows={5}
@@ -165,6 +213,7 @@ function ContactFormContent() {
             placeholder="How can we help you grow your business?"
           ></textarea>
         </div>
+
         <button
           type="submit"
           disabled={loading}

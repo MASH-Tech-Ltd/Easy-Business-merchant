@@ -167,7 +167,7 @@ export const contentMap: Record<string, ReactNode> = {
       <div className="text-center mb-8">
         <p className="text-lg text-gray-600">
           Whether you need help setting up your custom domain, have questions
-          about our subscription tiers, or need API support—our team is here for
+          about our subscription tiers, or need support—our team is here for
           you.
         </p>
       </div>
