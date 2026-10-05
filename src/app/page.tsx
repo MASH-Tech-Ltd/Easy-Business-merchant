@@ -192,7 +192,7 @@ export default async function LandingPage() {
       <Navbar />
 
       <main>
-        <HeroSection />
+        <HeroSection packages={packages} />
         <FeaturesSection />
         <PricingSection packages={packages} />
         <FAQSection />
