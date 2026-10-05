@@ -1,13 +1,27 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, MoreVertical, ShoppingBag, Eye, Edit, Trash2, X, ChevronLeft, ChevronRight, FileText, Printer, ShieldCheck, Truck } from 'lucide-react';
-import { api } from '@/utils/api';
-import { toast } from 'react-hot-toast';
-import { EditOrderModal } from './EditOrderModal';
-import { CourierModal } from './CourierModal';
-import { getCourierTrackingUrl } from '@/config/couriers';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Search,
+  MoreVertical,
+  ShoppingBag,
+  Eye,
+  Edit,
+  Trash2,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Printer,
+  ShieldCheck,
+  Truck,
+} from "lucide-react";
+import { api } from "@/utils/api";
+import { toast } from "react-hot-toast";
+import { EditOrderModal } from "./EditOrderModal";
+import { CourierModal } from "./CourierModal";
+import { getCourierTrackingUrl } from "@/config/couriers";
 
 interface OrderItem {
   productId: string;
@@ -43,17 +57,17 @@ let globalTotalRecords = 0;
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>(globalOrdersCache);
   const [loading, setLoading] = useState(globalOrdersCache.length === 0);
-  
+
   // Pagination
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(globalTotalPages);
   const [totalRecords, setTotalRecords] = useState(globalTotalRecords);
-  
+
   // Filters
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const router = useRouter();
   // Modals
@@ -61,23 +75,37 @@ export default function OrdersPage() {
   const [editOrder, setEditOrder] = useState<Order | null>(null);
   const [deleteOrder, setDeleteOrder] = useState<Order | null>(null);
   const [checkingFraud, setCheckingFraud] = useState<string | null>(null);
-  const [fraudErrorModal, setFraudErrorModal] = useState<{show: boolean, message: string} | null>(null);
+  const [fraudErrorModal, setFraudErrorModal] = useState<{
+    show: boolean;
+    message: string;
+  } | null>(null);
   const [fraudResultModal, setFraudResultModal] = useState<any>(null);
-  
-  const [courierModal, setCourierModal] = useState<{show: boolean, orderId: string, configuredProviders: string[]} | null>(null);
+
+  const [courierModal, setCourierModal] = useState<{
+    show: boolean;
+    orderId: string;
+    configuredProviders: string[];
+  } | null>(null);
   const [checkingCourier, setCheckingCourier] = useState<string | null>(null);
-  const [forwardedInfoModal, setForwardedInfoModal] = useState<{show: boolean, order: Order} | null>(null);
-  const [trackingIframeUrl, setTrackingIframeUrl] = useState<string | null>(null);
-  const [storeName, setStoreName] = useState('Your Store');
-  const [storeLogo, setStoreLogo] = useState('');
+  const [forwardedInfoModal, setForwardedInfoModal] = useState<{
+    show: boolean;
+    order: Order;
+  } | null>(null);
+  const [trackingIframeUrl, setTrackingIframeUrl] = useState<string | null>(
+    null,
+  );
+  const [storeName, setStoreName] = useState("Your Store");
+  const [storeLogo, setStoreLogo] = useState("");
 
   useEffect(() => {
     try {
-      const storedUser = localStorage.getItem('merchantUser') || sessionStorage.getItem('merchantUser');
+      const storedUser =
+        localStorage.getItem("merchantUser") ||
+        sessionStorage.getItem("merchantUser");
       if (storedUser) {
         const user = JSON.parse(storedUser);
-        let sName = user.name || 'Your Store';
-        if (user.details && user.details.startsWith('{')) {
+        let sName = user.name || "Your Store";
+        if (user.details && user.details.startsWith("{")) {
           const extraDetails = JSON.parse(user.details);
           if (extraDetails.storeName) sName = extraDetails.storeName;
         }
@@ -87,13 +115,13 @@ export default function OrdersPage() {
 
     const fetchStoreSettings = async () => {
       try {
-        const res = await api.get('/tenants/my-store');
+        const res = await api.get("/tenants/my-store");
         const data = res.data?.data;
         if (data?.logo) {
           setStoreLogo(data.logo);
         }
       } catch (err) {
-        console.error('Failed to fetch store settings', err);
+        console.error("Failed to fetch store settings", err);
       }
     };
     fetchStoreSettings();
@@ -108,15 +136,15 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-    window.addEventListener('dashboard:refresh', fetchOrders);
-    return () => window.removeEventListener('dashboard:refresh', fetchOrders);
+    window.addEventListener("dashboard:refresh", fetchOrders);
+    return () => window.removeEventListener("dashboard:refresh", fetchOrders);
   }, [page, statusFilter, debouncedSearch]);
 
   const fetchOrders = async () => {
     if (globalOrdersCache.length === 0) setLoading(true);
     try {
-      const response = await api.get('/orders/my-orders', {
-        params: { page, limit, status: statusFilter, search: debouncedSearch }
+      const response = await api.get("/orders/my-orders", {
+        params: { page, limit, status: statusFilter, search: debouncedSearch },
       });
       const newOrders = response.data.data || [];
       const newTotalPages = response.data.meta?.totalPages || 1;
@@ -130,7 +158,7 @@ export default function OrdersPage() {
       setTotalPages(newTotalPages);
       setTotalRecords(newTotalRecords);
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      console.error("Error fetching orders:", error);
     } finally {
       setLoading(false);
     }
@@ -141,10 +169,11 @@ export default function OrdersPage() {
       await api.patch(`/orders/update-order/${id}`, payload);
       setEditOrder(null);
       fetchOrders();
-      toast.success('Order updated successfully');
+      toast.success("Order updated successfully");
     } catch (error: any) {
-      console.error('Failed to update order', error);
-      const errorMessage = error.response?.data?.message || 'Failed to update order';
+      console.error("Failed to update order", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to update order";
       toast.error(errorMessage);
     }
   };
@@ -156,15 +185,15 @@ export default function OrdersPage() {
       setDeleteOrder(null);
       fetchOrders();
     } catch (error) {
-      console.error('Failed to delete order', error);
-      toast.error('Failed to delete order');
+      console.error("Failed to delete order", error);
+      toast.error("Failed to delete order");
     }
   };
 
   const handleFraudCheck = async (orderId: string, force: boolean = false) => {
     setCheckingFraud(orderId);
     try {
-      const response = await api.post('/fraud/check', { orderId, force });
+      const response = await api.post("/fraud/check", { orderId, force });
       const data = response.data?.data;
       if (data) {
         setFraudResultModal(data);
@@ -173,10 +202,12 @@ export default function OrdersPage() {
       if (error.response?.status === 403 || error.response?.status === 402) {
         setFraudErrorModal({
           show: true,
-          message: error.response?.data?.message || 'Fraud check add-on is not active or limit reached for this subscription.'
+          message:
+            error.response?.data?.message ||
+            "Fraud check add-on is not active or limit reached for this subscription.",
         });
       } else {
-        toast.error('Failed to check fraud score');
+        toast.error("Failed to check fraud score");
       }
     } finally {
       setCheckingFraud(null);
@@ -190,22 +221,24 @@ export default function OrdersPage() {
     }
     setCheckingCourier(order._id);
     try {
-      const response = await api.get('/courier/check-addon');
+      const response = await api.get("/courier/check-addon");
       if (response.data?.data?.allowed) {
         setCourierModal({
           show: true,
           orderId: order._id,
-          configuredProviders: response.data.data.configuredProviders || []
+          configuredProviders: response.data.data.configuredProviders || [],
         });
       }
     } catch (error: any) {
       if (error.response?.status === 403 || error.response?.status === 402) {
         setFraudErrorModal({
           show: true,
-          message: error.response?.data?.message || 'Courier automation add-on is not active or limit reached for this subscription.'
+          message:
+            error.response?.data?.message ||
+            "Courier automation add-on is not active or limit reached for this subscription.",
         });
       } else {
-        toast.error('Failed to verify courier add-on status.');
+        toast.error("Failed to verify courier add-on status.");
       }
     } finally {
       setCheckingCourier(null);
@@ -214,23 +247,53 @@ export default function OrdersPage() {
 
   const handleForwardOrder = async (orderId: string, providerId: string) => {
     try {
-      await api.post('/courier/forward', { orderId, providerId });
+      await api.post("/courier/forward", { orderId, providerId });
       toast.success(`Order forwarded to ${providerId} successfully!`);
       setCourierModal(null);
       fetchOrders(); // refresh order list
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to forward order');
+      toast.error(error.response?.data?.message || "Failed to forward order");
     }
   };
 
   const getStatusBadge = (status: string) => {
-    switch(status.toLowerCase()) {
-      case 'pending': return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200 capitalize">Pending</span>;
-      case 'confirmed': return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200 capitalize">Confirmed</span>;
-      case 'shipped': return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200 capitalize">Shipped</span>;
-      case 'delivered': return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200 capitalize">Delivered</span>;
-      case 'cancelled': return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200 capitalize">Cancelled</span>;
-      default: return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200 capitalize">{status}</span>;
+    switch (status.toLowerCase()) {
+      case "pending":
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200 capitalize">
+            Pending
+          </span>
+        );
+      case "confirmed":
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200 capitalize">
+            Confirmed
+          </span>
+        );
+      case "shipped":
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200 capitalize">
+            Shipped
+          </span>
+        );
+      case "delivered":
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200 capitalize">
+            Delivered
+          </span>
+        );
+      case "cancelled":
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200 capitalize">
+            Cancelled
+          </span>
+        );
+      default:
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200 capitalize">
+            {status}
+          </span>
+        );
     }
   };
 
@@ -241,7 +304,7 @@ export default function OrdersPage() {
         <div className="p-3 sm:p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3 bg-[#fcfcfc] shrink-0">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
+            <input
               type="text"
               placeholder="Search by ID, customer name or phone..."
               value={search}
@@ -253,9 +316,12 @@ export default function OrdersPage() {
             />
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <select 
+            <select
               value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
               className="border border-gray-300 rounded-lg text-xs sm:text-sm px-3 sm:px-4 py-2 bg-white focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full sm:w-auto font-medium text-gray-700"
             >
               <option value="all">All Statuses</option>
@@ -280,43 +346,77 @@ export default function OrdersPage() {
               <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-4 mx-auto">
                 <ShoppingBag className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No orders found</h3>
-              <p className="text-gray-500 text-sm">Adjust your filters or wait for new orders.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">
+                No orders found
+              </h3>
+              <p className="text-gray-500 text-sm">
+                Adjust your filters or wait for new orders.
+              </p>
             </div>
           ) : (
             orders.map((order) => (
-              <div key={order._id} className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm flex flex-col gap-2.5">
+              <div
+                key={order._id}
+                className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 shadow-sm flex flex-col gap-2.5"
+              >
                 <div className="flex justify-between items-start gap-2 mb-1">
                   <div>
                     <span className="font-mono text-xs font-bold text-[#5022C3] bg-purple-50 px-2 py-1 rounded">
-                      #{order.orderId || order._id?.substring(order._id.length - 6).toUpperCase()}
+                      #
+                      {order.orderId ||
+                        order._id
+                          ?.substring(order._id.length - 6)
+                          .toUpperCase()}
                     </span>
                     <div className="text-xs text-gray-500 mt-1.5 font-medium">
-                      {new Date(order.createdAt).toLocaleDateString('en-GB')} at {new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                      {new Date(order.createdAt).toLocaleDateString("en-GB")} at{" "}
+                      {new Date(order.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </div>
                   </div>
                   <div className="shrink-0">{getStatusBadge(order.status)}</div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 min-[320px]:grid-cols-2 gap-2 mt-1 border-t border-b border-gray-50 py-2.5">
                   <div>
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Customer</div>
-                    <div className="font-bold text-gray-900 text-sm truncate">{order.customerName}</div>
-                    <div className="text-xs text-gray-500">{order.customerPhone}</div>
+                    <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">
+                      Customer
+                    </div>
+                    <div className="font-bold text-gray-900 text-sm truncate">
+                      {order.customerName}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {order.customerPhone}
+                    </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Total</div>
-                    <div className="font-bold text-gray-900 text-sm">{order.totalPrice.toLocaleString()} BDT</div>
-                    <div className="text-xs text-gray-500">{order.items?.length || 0} item(s)</div>
+                    <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">
+                      Total
+                    </div>
+                    <div className="font-bold text-gray-900 text-sm">
+                      {order.totalPrice.toLocaleString()} BDT
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {order.items?.length || 0} item(s)
+                    </div>
                   </div>
                   <div className="col-span-2 mt-1">
-                    <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Location</div>
-                    <div className="text-sm text-gray-700 truncate" title={order.shippingAddress}>{order.shippingAddress}</div>
+                    <div className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">
+                      Location
+                    </div>
+                    <div
+                      className="text-sm text-gray-700 truncate"
+                      title={order.shippingAddress}
+                    >
+                      {order.shippingAddress}
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end gap-2 mt-1">
-                  <button 
+                  <button
                     onClick={() => handleFraudCheck(order._id)}
                     disabled={checkingFraud === order._id}
                     className="w-8 h-8 flex items-center justify-center bg-[#f3e8ff] text-[#9333ea] hover:bg-purple-200 rounded-lg transition-colors disabled:opacity-50"
@@ -327,15 +427,19 @@ export default function OrdersPage() {
                       <ShieldCheck className="w-4 h-4" />
                     )}
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleCourierCheck(order)}
                     disabled={checkingCourier === order._id}
                     className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors tooltip ${
-                      order.consignmentId 
-                        ? 'bg-green-100 text-green-600'
-                        : 'bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100'
+                      order.consignmentId
+                        ? "bg-green-100 text-green-600"
+                        : "bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100"
                     }`}
-                    title={order.consignmentId ? 'Already forwarded' : 'Forward to Courier'}
+                    title={
+                      order.consignmentId
+                        ? "Already forwarded"
+                        : "Forward to Courier"
+                    }
                   >
                     {checkingCourier === order._id ? (
                       <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -343,19 +447,19 @@ export default function OrdersPage() {
                       <Truck className="w-4 h-4" />
                     )}
                   </button>
-                  <button 
+                  <button
                     onClick={() => setViewOrder(order)}
                     className="w-8 h-8 flex items-center justify-center bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100 rounded-lg transition-colors"
                   >
                     <Eye className="w-4 h-4" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => setEditOrder(order)}
                     className="w-8 h-8 flex items-center justify-center bg-[#fff4ed] text-[#f97316] hover:bg-orange-100 rounded-lg transition-colors"
                   >
                     <Edit className="w-4 h-4" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => setDeleteOrder(order)}
                     className="w-8 h-8 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] hover:bg-red-100 rounded-lg transition-colors"
                   >
@@ -395,41 +499,70 @@ export default function OrdersPage() {
                     <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-4 mx-auto">
                       <ShoppingBag className="w-8 h-8" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-1">No orders found</h3>
-                    <p className="text-gray-500 text-sm">Adjust your filters or wait for new orders.</p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">
+                      No orders found
+                    </h3>
+                    <p className="text-gray-500 text-sm">
+                      Adjust your filters or wait for new orders.
+                    </p>
                   </td>
                 </tr>
               ) : (
                 orders.map((order) => (
-                  <tr key={order._id} className="hover:bg-gray-50/80 transition-colors group">
+                  <tr
+                    key={order._id}
+                    className="hover:bg-gray-50/80 transition-colors group"
+                  >
                     <td className="px-6 py-4">
                       <span className="font-mono text-xs font-medium text-[#5022C3] bg-purple-50 px-2 py-1 rounded">
-                        #{order.orderId || order._id?.substring(order._id.length - 6).toUpperCase()}
+                        #
+                        {order.orderId ||
+                          order._id
+                            ?.substring(order._id.length - 6)
+                            .toUpperCase()}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-bold text-gray-900 text-sm">{order.customerName}</div>
-                      <div className="text-xs text-gray-500 mt-0.5">{order.customerPhone}</div>
+                      <div className="font-bold text-gray-900 text-sm">
+                        {order.customerName}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        {order.customerPhone}
+                      </div>
                     </td>
                     <td className="px-6 py-4 max-w-[200px]">
-                      <div className="text-sm text-gray-700 truncate" title={order.shippingAddress}>
+                      <div
+                        className="text-sm text-gray-700 truncate"
+                        title={order.shippingAddress}
+                      >
                         {order.shippingAddress}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{new Date(order.createdAt).toLocaleDateString('en-GB')}</div>
-                      <div className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {new Date(order.createdAt).toLocaleDateString("en-GB")}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {new Date(order.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-bold text-gray-900 text-sm">{order.totalPrice.toLocaleString()} BDT</div>
-                      <div className="text-xs text-gray-500 font-medium">{order.items?.length || 0} item(s)</div>
+                      <div className="font-bold text-gray-900 text-sm">
+                        {order.totalPrice.toLocaleString()} BDT
+                      </div>
+                      <div className="text-xs text-gray-500 font-medium">
+                        {order.items?.length || 0} item(s)
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       {getStatusBadge(order.status)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
-                        <button 
+                        <button
                           onClick={() => handleFraudCheck(order._id)}
                           disabled={checkingFraud === order._id}
                           className="w-8 h-8 flex items-center justify-center bg-[#f3e8ff] text-[#9333ea] hover:bg-purple-200 rounded-xl transition-colors tooltip disabled:opacity-50"
@@ -441,15 +574,19 @@ export default function OrdersPage() {
                             <ShieldCheck className="w-4 h-4" />
                           )}
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleCourierCheck(order)}
                           disabled={checkingCourier === order._id}
                           className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors tooltip ${
-                            order.consignmentId 
-                              ? 'bg-green-100 text-green-600'
-                              : 'bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100'
+                            order.consignmentId
+                              ? "bg-green-100 text-green-600"
+                              : "bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100"
                           }`}
-                          title={order.consignmentId ? 'Already forwarded' : 'Forward to Courier'}
+                          title={
+                            order.consignmentId
+                              ? "Already forwarded"
+                              : "Forward to Courier"
+                          }
                         >
                           {checkingCourier === order._id ? (
                             <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -457,21 +594,21 @@ export default function OrdersPage() {
                             <Truck className="w-4 h-4" />
                           )}
                         </button>
-                        <button 
+                        <button
                           onClick={() => setViewOrder(order)}
                           className="w-8 h-8 flex items-center justify-center bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100 rounded-xl transition-colors tooltip"
                           title="View Details"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => setEditOrder(order)}
                           className="w-8 h-8 flex items-center justify-center bg-[#fff4ed] text-[#f97316] hover:bg-orange-100 rounded-xl transition-colors tooltip"
                           title="Update Status"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => setDeleteOrder(order)}
                           className="w-8 h-8 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] hover:bg-red-100 rounded-xl transition-colors tooltip"
                           title="Delete Order"
@@ -491,23 +628,41 @@ export default function OrdersPage() {
         {!loading && orders.length > 0 && (
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 mt-auto">
             <div className="text-sm text-gray-500 font-medium whitespace-nowrap">
-              Showing <span className="font-bold text-gray-900">{(page - 1) * limit + 1}</span> to <span className="font-bold text-gray-900">{Math.min(page * limit, totalRecords)}</span> of <span className="font-bold text-gray-900">{totalRecords}</span> results
+              Showing{" "}
+              <span className="font-bold text-gray-900">
+                {(page - 1) * limit + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-bold text-gray-900">
+                {Math.min(page * limit, totalRecords)}
+              </span>{" "}
+              of <span className="font-bold text-gray-900">{totalRecords}</span>{" "}
+              results
             </div>
             <div className="flex gap-1.5 overflow-x-auto pb-1 max-w-full">
-              <button 
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              
+
               {[...Array(totalPages)].map((_, i) => {
                 // To avoid rendering thousands of buttons, we will render a sliding window of pages
                 // If total pages is very large, this logic prevents the UI from breaking.
                 if (totalPages > 10) {
-                  if (i !== 0 && i !== totalPages - 1 && (i < page - 3 || i > page + 1)) {
-                    if (i === page - 4 || i === page + 2) return <span key={i} className="px-1 flex items-end">...</span>;
+                  if (
+                    i !== 0 &&
+                    i !== totalPages - 1 &&
+                    (i < page - 3 || i > page + 1)
+                  ) {
+                    if (i === page - 4 || i === page + 2)
+                      return (
+                        <span key={i} className="px-1 flex items-end">
+                          ...
+                        </span>
+                      );
                     return null;
                   }
                 }
@@ -517,9 +672,9 @@ export default function OrdersPage() {
                     key={i}
                     onClick={() => setPage(i + 1)}
                     className={`w-8 h-8 shrink-0 flex items-center justify-center rounded-lg border text-sm font-semibold transition-colors ${
-                      page === i + 1 
-                        ? 'bg-[#5022C3] border-[#5022C3] text-white shadow-sm' 
-                        : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                      page === i + 1
+                        ? "bg-[#5022C3] border-[#5022C3] text-white shadow-sm"
+                        : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     {i + 1}
@@ -527,8 +682,8 @@ export default function OrdersPage() {
                 );
               })}
 
-              <button 
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 className="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
@@ -541,7 +696,10 @@ export default function OrdersPage() {
 
       {/* View Order Modal (Printable) */}
       {viewOrder && (
-        <div id="printable-wrapper" className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans print:absolute print:inset-0 print:bg-white print:z-[9999] print:block print:p-0">
+        <div
+          id="printable-wrapper"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans print:absolute print:inset-0 print:bg-white print:z-[9999] print:block print:p-0"
+        >
           <style type="text/css" media="print">
             {`
               @page { size: auto; margin: 0mm; }
@@ -564,78 +722,133 @@ export default function OrdersPage() {
               }
             `}
           </style>
-          
+
           <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col shadow-2xl print:shadow-none print:w-full print:max-w-none print:max-h-none print:h-auto print:rounded-none">
             {/* Modal Header (Hidden on Print) */}
             <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center gap-2 print:hidden">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Order Details</h2>
-                <div className="text-sm font-mono text-[#5022C3] mt-1 bg-purple-50 inline-block px-2 py-0.5 rounded">#{viewOrder.orderId || viewOrder._id?.substring(viewOrder._id.length - 6).toUpperCase()}</div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  Order Details
+                </h2>
+                <div className="text-sm font-mono text-[#5022C3] mt-1 bg-purple-50 inline-block px-2 py-0.5 rounded">
+                  #
+                  {viewOrder.orderId ||
+                    viewOrder._id
+                      ?.substring(viewOrder._id.length - 6)
+                      .toUpperCase()}
+                </div>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => window.print()} className="p-2.5 text-[#5022C3] bg-purple-50 hover:bg-purple-100 rounded-full transition-colors flex items-center gap-2 sm:px-4 font-semibold text-sm" aria-label="Print Slip">
-                  <Printer className="w-4 h-4" /> <span className="hidden sm:inline">Print Slip</span>
+                <button
+                  onClick={() => window.print()}
+                  className="p-2.5 text-[#5022C3] bg-purple-50 hover:bg-purple-100 rounded-full transition-colors flex items-center gap-2 sm:px-4 font-semibold text-sm"
+                  aria-label="Print Slip"
+                >
+                  <Printer className="w-4 h-4" />{" "}
+                  <span className="hidden sm:inline">Print Slip</span>
                 </button>
-                <button onClick={() => setViewOrder(null)} className="p-2.5 text-gray-400 hover:bg-gray-100 rounded-full transition-colors">
+                <button
+                  onClick={() => setViewOrder(null)}
+                  className="p-2.5 text-gray-400 hover:bg-gray-100 rounded-full transition-colors"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
             </div>
-            
+
             {/* Printable Content */}
             <div className="p-4 sm:p-8 overflow-y-auto space-y-6 sm:space-y-8 flex-1 print:overflow-visible">
-              
               {/* Slip Header (Visible mainly on print or as nice UI) */}
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 border-b border-gray-200 pb-4 sm:pb-6 print:flex-row print:justify-between">
                 <div className="flex items-center gap-3">
                   {storeLogo && (
-                    <img src={storeLogo} alt="Store Logo" className="w-12 h-12 object-contain" />
+                    <img
+                      src={storeLogo}
+                      alt="Store Logo"
+                      className="w-12 h-12 object-contain"
+                    />
                   )}
                   <div>
-                    <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight break-words">{storeName}</h1>
-                    <p className="text-gray-500 mt-1 font-medium tracking-widest text-sm uppercase">Packing Slip</p>
+                    <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight break-words">
+                      {storeName}
+                    </h1>
+                    <p className="text-gray-500 mt-1 font-medium tracking-widest text-sm uppercase">
+                      Packing Slip
+                    </p>
                   </div>
                 </div>
                 <div className="text-left sm:text-right">
-                  <p className="text-sm font-bold text-gray-900">Order #{viewOrder.orderId || viewOrder._id?.substring(viewOrder._id.length - 6).toUpperCase()}</p>
-                  <p className="text-xs text-gray-500 mt-1">Date: {new Date(viewOrder.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm font-bold text-gray-900">
+                    Order #
+                    {viewOrder.orderId ||
+                      viewOrder._id
+                        ?.substring(viewOrder._id.length - 6)
+                        .toUpperCase()}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Date: {new Date(viewOrder.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-4 sm:gap-8">
                 <div>
-                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Customer Info</h3>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                    Customer Info
+                  </h3>
                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 print:border-none print:bg-transparent print:p-0">
-                    <p className="font-bold text-gray-900 text-lg">{viewOrder.customerName}</p>
-                    <p className="text-gray-600 mt-1">{viewOrder.customerPhone}</p>
+                    <p className="font-bold text-gray-900 text-lg">
+                      {viewOrder.customerName}
+                    </p>
+                    <p className="text-gray-600 mt-1">
+                      {viewOrder.customerPhone}
+                    </p>
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Shipping Address</h3>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
+                    Shipping Address
+                  </h3>
                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 print:border-none print:bg-transparent print:p-0">
-                    <p className="text-gray-800 leading-relaxed">{viewOrder.shippingAddress}</p>
+                    <p className="text-gray-800 leading-relaxed">
+                      {viewOrder.shippingAddress}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {viewOrder.note && (
                 <div className="pt-2">
-                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1"><FileText className="w-3 h-3"/> Order Note</h3>
-                  <p className="text-sm text-gray-700 bg-yellow-50 p-4 rounded-xl border border-yellow-100 italic print:bg-transparent print:border-gray-200">{viewOrder.note}</p>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+                    <FileText className="w-3 h-3" /> Order Note
+                  </h3>
+                  <p className="text-sm text-gray-700 bg-yellow-50 p-4 rounded-xl border border-yellow-100 italic print:bg-transparent print:border-gray-200">
+                    {viewOrder.note}
+                  </p>
                 </div>
               )}
 
               <div className="pt-4">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Order Items</h3>
-                
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">
+                  Order Items
+                </h3>
+
                 <div className="border border-gray-200 rounded-xl overflow-x-auto print:overflow-visible print:border-gray-300">
                   <table className="w-full min-w-[420px] print:min-w-0 text-left border-collapse text-sm sm:text-base">
                     <thead className="bg-gray-50 print:bg-gray-100">
                       <tr>
-                        <th className="py-3 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">Item</th>
-                        <th className="py-3 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200 text-center">Qty</th>
-                        <th className="py-3 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200 text-right">Price</th>
-                        <th className="py-3 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200 text-right">Total</th>
+                        <th className="py-3 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200">
+                          Item
+                        </th>
+                        <th className="py-3 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200 text-center">
+                          Qty
+                        </th>
+                        <th className="py-3 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200 text-right">
+                          Price
+                        </th>
+                        <th className="py-3 px-4 text-xs font-bold text-gray-600 uppercase tracking-wider border-b border-gray-200 text-right">
+                          Total
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
@@ -644,80 +857,126 @@ export default function OrdersPage() {
                           <td className="py-3 px-3 sm:py-4 sm:px-4">
                             <div className="flex items-center gap-3">
                               <div className="w-12 h-12 bg-gray-50 rounded overflow-hidden border border-gray-100 shrink-0">
-                                {item.image && <img src={item.image} alt={item.title} className="w-full h-full object-cover" />}
+                                {item.image && (
+                                  <img
+                                    src={item.image}
+                                    alt={item.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
                               </div>
-                              <span className="font-medium text-gray-900">{item.title}</span>
+                              <span className="font-medium text-gray-900">
+                                {item.title}
+                              </span>
                             </div>
                           </td>
-                          <td className="py-3 px-3 sm:py-4 sm:px-4 text-center text-gray-700 font-medium">{item.quantity}</td>
-                          <td className="py-3 px-3 sm:py-4 sm:px-4 text-right text-gray-600 whitespace-nowrap">{item.price.toLocaleString()} BDT</td>
-                          <td className="py-3 px-3 sm:py-4 sm:px-4 text-right font-bold text-gray-900 whitespace-nowrap">{(item.price * item.quantity).toLocaleString()} BDT</td>
+                          <td className="py-3 px-3 sm:py-4 sm:px-4 text-center text-gray-700 font-medium">
+                            {item.quantity}
+                          </td>
+                          <td className="py-3 px-3 sm:py-4 sm:px-4 text-right text-gray-600 whitespace-nowrap">
+                            {item.price.toLocaleString()} BDT
+                          </td>
+                          <td className="py-3 px-3 sm:py-4 sm:px-4 text-right font-bold text-gray-900 whitespace-nowrap">
+                            {(item.price * item.quantity).toLocaleString()} BDT
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-end gap-4 pt-4 print:flex-row print:justify-between">
                 <div className="flex items-center gap-2">
                   {viewOrder.isDeliveryChargePaid && (
                     <div className="border-2 border-green-500 text-green-600 rounded px-4 py-2 transform -rotate-6 flex flex-col items-center justify-center opacity-90 print:opacity-100 print:border-gray-900 print:text-gray-900 sm:ml-4 sm:mb-4">
-                      <span className="text-lg font-black uppercase tracking-wider">Paid</span>
-                      <span className="text-[10px] font-bold uppercase tracking-widest">Delivery Charge</span>
+                      <span className="text-lg font-black uppercase tracking-wider">
+                        Paid
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest">
+                        Delivery Charge
+                      </span>
                     </div>
                   )}
                 </div>
-                
+
                 <div className="relative w-full sm:max-w-sm space-y-3">
-                  {viewOrder.paymentStatus === 'paid' && (
+                  {viewOrder.paymentStatus === "paid" && (
                     <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 border-4 border-green-500 text-green-600 rounded-lg px-5 py-2 sm:px-8 sm:py-3 flex flex-col items-center justify-center opacity-30 print:opacity-40 print:border-gray-900 print:text-gray-900 z-10">
-                      <span className="text-3xl sm:text-5xl font-black uppercase tracking-widest leading-none">Paid</span>
-                      <span className="text-xs font-bold uppercase tracking-[0.3em] mt-1">Payment</span>
+                      <span className="text-3xl sm:text-5xl font-black uppercase tracking-widest leading-none">
+                        Paid
+                      </span>
+                      <span className="text-xs font-bold uppercase tracking-[0.3em] mt-1">
+                        Payment
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between items-center text-gray-600">
                     <span>Subtotal</span>
-                    <span>{viewOrder.items.reduce((acc, item) => acc + (item.price * item.quantity), 0).toLocaleString()} BDT</span>
+                    <span>
+                      {viewOrder.items
+                        .reduce(
+                          (acc, item) => acc + item.price * item.quantity,
+                          0,
+                        )
+                        .toLocaleString()}{" "}
+                      BDT
+                    </span>
                   </div>
                   <div className="flex justify-between items-center text-gray-600">
                     <span>Shipping</span>
                     <span>
-                      {(viewOrder.totalPrice - viewOrder.items.reduce((acc, item) => acc + (item.price * item.quantity), 0)) > 0 
-                        ? (viewOrder.totalPrice - viewOrder.items.reduce((acc, item) => acc + (item.price * item.quantity), 0)).toLocaleString() + ' BDT' 
-                        : 'Free'}
+                      {viewOrder.totalPrice -
+                        viewOrder.items.reduce(
+                          (acc, item) => acc + item.price * item.quantity,
+                          0,
+                        ) >
+                      0
+                        ? (
+                            viewOrder.totalPrice -
+                            viewOrder.items.reduce(
+                              (acc, item) => acc + item.price * item.quantity,
+                              0,
+                            )
+                          ).toLocaleString() + " BDT"
+                        : "Free"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center gap-2 text-lg sm:text-xl font-black text-gray-900 border-t border-gray-200 pt-3">
                     <span>Total Amount</span>
-                    <span className="text-[#5022C3] print:text-gray-900">{viewOrder.totalPrice.toLocaleString()} BDT</span>
+                    <span className="text-[#5022C3] print:text-gray-900">
+                      {viewOrder.totalPrice.toLocaleString()} BDT
+                    </span>
                   </div>
                 </div>
               </div>
-
             </div>
-            
+
             {/* Modal Footer (Hidden on Print) */}
             <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex justify-between items-center gap-3 print:hidden">
               <div>
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Current Status</div>
+                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                  Current Status
+                </div>
                 {getStatusBadge(viewOrder.status)}
               </div>
-              <button onClick={() => setViewOrder(null)} className="px-5 sm:px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl transition-colors">
+              <button
+                onClick={() => setViewOrder(null)}
+                className="px-5 sm:px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl transition-colors"
+              >
                 Close
               </button>
             </div>
-
           </div>
         </div>
       )}
 
       {/* Edit Status Modal */}
       {editOrder && (
-        <EditOrderModal 
-          order={editOrder} 
-          onClose={() => setEditOrder(null)} 
-          onSave={handleUpdateOrder} 
+        <EditOrderModal
+          order={editOrder}
+          onClose={() => setEditOrder(null)}
+          onSave={handleUpdateOrder}
         />
       )}
 
@@ -729,19 +988,29 @@ export default function OrdersPage() {
               <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5">
                 <Trash2 className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Order?</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                Delete Order?
+              </h2>
               <p className="text-sm text-gray-500 mb-6">
-                Are you sure you want to delete order <span className="font-bold text-gray-700">#{deleteOrder.orderId || deleteOrder._id?.substring(deleteOrder._id.length - 6).toUpperCase()}</span>? This action cannot be undone.
+                Are you sure you want to delete order{" "}
+                <span className="font-bold text-gray-700">
+                  #
+                  {deleteOrder.orderId ||
+                    deleteOrder._id
+                      ?.substring(deleteOrder._id.length - 6)
+                      .toUpperCase()}
+                </span>
+                ? This action cannot be undone.
               </p>
             </div>
             <div className="p-5 border-t border-gray-100 bg-gray-50 flex gap-3">
-              <button 
+              <button
                 onClick={() => setDeleteOrder(null)}
                 className="flex-1 py-3 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleDelete}
                 className="flex-1 py-3 text-sm font-bold bg-red-600 text-white hover:bg-red-700 rounded-xl transition-colors shadow-md"
               >
@@ -757,17 +1026,25 @@ export default function OrdersPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl relative overflow-hidden">
             <div className="text-center mb-6">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                fraudResultModal.status === 'safe' ? 'bg-green-100 text-green-600' :
-                fraudResultModal.status === 'suspicious' ? 'bg-yellow-100 text-yellow-600' :
-                'bg-red-100 text-red-600'
-              }`}>
+              <div
+                className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                  fraudResultModal.status === "safe"
+                    ? "bg-green-100 text-green-600"
+                    : fraudResultModal.status === "suspicious"
+                      ? "bg-yellow-100 text-yellow-600"
+                      : "bg-red-100 text-red-600"
+                }`}
+              >
                 <ShieldCheck className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-1">Fraud Score: {fraudResultModal.score}</h3>
-              <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">{fraudResultModal.status}</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-1">
+                Fraud Score: {fraudResultModal.score}
+              </h3>
+              <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold">
+                {fraudResultModal.status}
+              </p>
             </div>
-            
+
             <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-100">
               <p className="text-sm text-gray-700 text-center leading-relaxed">
                 {fraudResultModal.details}
@@ -780,14 +1057,14 @@ export default function OrdersPage() {
             </div>
 
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={() => setFraudResultModal(null)}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold transition-colors"
               >
                 Close
               </button>
               {fraudResultModal.isCached && (
-                <button 
+                <button
                   onClick={() => {
                     handleFraudCheck(fraudResultModal.orderId, true);
                     setFraudResultModal(null);
@@ -810,22 +1087,24 @@ export default function OrdersPage() {
               <div className="w-16 h-16 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-5">
                 <ShieldCheck className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Action Required</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                Action Required
+              </h2>
               <p className="text-sm text-gray-500 mb-6">
                 {fraudErrorModal.message}
               </p>
             </div>
             <div className="p-5 border-t border-gray-100 bg-gray-50 flex gap-3">
-              <button 
+              <button
                 onClick={() => setFraudErrorModal(null)}
                 className="flex-1 py-3 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
               >
                 Close
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setFraudErrorModal(null);
-                  router.push('/dashboard/subscription/addons');
+                  router.push("/dashboard/subscription/addons");
                 }}
                 className="flex-1 py-3 text-sm font-bold bg-[#5022C3] text-white hover:bg-[#401b9c] rounded-xl transition-colors shadow-md"
               >
@@ -854,42 +1133,65 @@ export default function OrdersPage() {
               <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-5">
                 <Truck className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Order Forwarded</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                Order Forwarded
+              </h2>
               <p className="text-sm text-gray-500 mb-4">
-                This order has already been successfully forwarded to the courier.
+                This order has already been successfully forwarded to the
+                courier.
               </p>
               <div className="bg-gray-50 rounded-xl p-4 text-left border border-gray-100">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Provider</span>
-                  <span className="text-sm font-bold text-gray-900 capitalize">{forwardedInfoModal.order.courierProvider || 'Unknown'}</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Provider
+                  </span>
+                  <span className="text-sm font-bold text-gray-900 capitalize">
+                    {forwardedInfoModal.order.courierProvider || "Unknown"}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Consignment ID</span>
-                  <span className="text-sm font-mono text-[#5022C3] bg-purple-50 px-2 py-0.5 rounded">{forwardedInfoModal.order.consignmentId}</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Consignment ID
+                  </span>
+                  <span className="text-sm font-mono text-[#5022C3] bg-purple-50 px-2 py-0.5 rounded">
+                    {forwardedInfoModal.order.consignmentId}
+                  </span>
                 </div>
               </div>
             </div>
             <div className="p-5 border-t border-gray-100 bg-gray-50 flex gap-3">
-              <button 
+              <button
                 onClick={() => setForwardedInfoModal(null)}
                 className="flex-1 py-3 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
               >
                 Close
               </button>
-              <button 
+              <button
                 onClick={() => {
-                  const provider = forwardedInfoModal.order.courierProvider?.toLowerCase() || '';
+                  const provider =
+                    forwardedInfoModal.order.courierProvider?.toLowerCase() ||
+                    "";
                   const cid = forwardedInfoModal.order.consignmentId;
                   if (!cid) return;
-                  
+
                   const url = getCourierTrackingUrl(provider, cid);
                   setTrackingIframeUrl(url);
                 }}
                 className="flex-1 py-3 text-sm font-bold bg-[#5022C3] text-white hover:bg-[#401b9c] rounded-xl transition-colors shadow-md flex items-center justify-center gap-2"
               >
                 Track Order
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                  />
                 </svg>
               </button>
             </div>
@@ -906,7 +1208,7 @@ export default function OrdersPage() {
                 <Truck className="w-5 h-5 text-[#5022C3]" />
                 Live Tracking
               </h2>
-              <button 
+              <button
                 onClick={() => setTrackingIframeUrl(null)}
                 className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500 hover:text-gray-800"
               >
@@ -914,8 +1216,8 @@ export default function OrdersPage() {
               </button>
             </div>
             <div className="flex-1 w-full bg-gray-100 relative">
-              <iframe 
-                src={trackingIframeUrl} 
+              <iframe
+                src={trackingIframeUrl}
                 className="w-full h-full border-0"
                 title="Order Tracking"
                 allow="fullscreen"

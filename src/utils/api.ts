@@ -41,6 +41,32 @@ api.interceptors.response.use(
       url.includes('/auth/2fa') ||
       url.includes('/auth/refresh-token');
 
+    // Banned merchant: wipe session and send to login with a ban notice
+    if (error.response?.status === 403 && error.response?.data?.code === 'ACCOUNT_BANNED') {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('merchantUser');
+        sessionStorage.removeItem('merchantUser');
+        // The proxy clears auth cookies on any auth/logout call, even if the backend rejects it
+        axios.post('/api/auth/logout', {}, { withCredentials: true }).catch(() => {}).finally(() => {
+          if (!window.location.pathname.startsWith('/login')) {
+            window.location.href = '/login?banned=1';
+          }
+        });
+      }
+      return Promise.reject(error);
+    }
+
+    // Suspended merchant write attempt: show read-only toast alert
+    if (error.response?.status === 403 && error.response?.data?.code === 'ACCOUNT_SUSPENDED') {
+      if (typeof window !== 'undefined') {
+        try {
+          const toast = require('react-hot-toast').default || require('react-hot-toast');
+          toast.error(error.response.data.message || 'Account Suspended: Data modifications are disabled in read-only mode.');
+        } catch (e) {}
+      }
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !isAuthAction && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise(function (resolve, reject) {

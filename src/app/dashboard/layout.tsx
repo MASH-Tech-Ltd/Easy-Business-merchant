@@ -7,7 +7,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, ListTree, Users, Truck,
   Store, BarChart2, Palette, Paintbrush, LayoutTemplate, Smartphone, 
   Star, Tag, BadgeCheck, RefreshCw, Boxes, UserCog, CreditCard,
-  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, Menu, X, Banknote, Bell, Activity
+  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, AlertCircle, Clock, Menu, X, Banknote, Bell, Activity
 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { api } from '@/utils/api';
@@ -142,6 +142,7 @@ export default function DashboardLayout({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [merchantUser, setMerchantUser] = useState<any>(null);
   const [isAccountFrozen, setIsAccountFrozen] = useState(false);
+  const [storeStatus, setStoreStatus] = useState<string>('active');
   const [currentPlan, setCurrentPlan] = useState<string>('');
   const [fullSubscription, setFullSubscription] = useState<any>(null);
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
@@ -180,12 +181,27 @@ export default function DashboardLayout({
     const handleAccountStatus = async () => {
       try {
         const res = await api.get('/tenants/my-store');
-        if (res.data?.data?.status === 'suspended') {
-          setIsAccountFrozen(true);
-        } else {
-          setIsAccountFrozen(false);
+        const status = res.data?.data?.status;
+        if (status === 'banned') {
+          handleBanned();
+          return;
         }
-      } catch (e) {}
+        setStoreStatus(status || 'active');
+        setIsAccountFrozen(status === 'suspended');
+      } catch (e: any) {
+        if (e?.response?.status === 403 && e?.response?.data?.code === 'ACCOUNT_BANNED') {
+          handleBanned();
+        }
+      }
+    };
+
+    const handleBanned = () => {
+      localStorage.removeItem('merchantUser');
+      sessionStorage.removeItem('merchantUser');
+      // Proxy clears auth cookies on logout even if backend rejects the call
+      api.post('/auth/logout').catch(() => {}).finally(() => {
+        window.location.href = '/login?banned=1';
+      });
     };
 
     const handleSubscriptions = () => {
@@ -200,16 +216,45 @@ export default function DashboardLayout({
 
     socket.on('refresh_tickets', fetchTicketsCount);
     socket.on('account_status_changed', handleAccountStatus);
+    socket.on('account_banned', handleBanned);
     socket.on('refresh_subscriptions', handleSubscriptions);
     socket.on('new_order', handleNewOrder);
 
     return () => {
       socket.off('refresh_tickets', fetchTicketsCount);
       socket.off('account_status_changed', handleAccountStatus);
+      socket.off('account_banned', handleBanned);
       socket.off('refresh_subscriptions', handleSubscriptions);
       socket.off('new_order', handleNewOrder);
     };
   }, [isAuthenticated, socket]);
+
+  // Fallback to sockets: periodically re-check store status so a ban logs the merchant out automatically.
+  // A banned store makes this request return 403 ACCOUNT_BANNED, which the api interceptor turns into a logout.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const checkStatus = async () => {
+      try {
+        const res = await api.get('/tenants/my-store');
+        const status = res.data?.data?.status;
+        setStoreStatus(status || 'active');
+        setIsAccountFrozen(status === 'suspended');
+      } catch (e: any) {
+        if (e?.response?.status === 403 && e?.response?.data?.code === 'ACCOUNT_BANNED') {
+          localStorage.removeItem('merchantUser');
+          sessionStorage.removeItem('merchantUser');
+          window.location.href = '/login?banned=1';
+        }
+      }
+    };
+    const interval = setInterval(checkStatus, 15000);
+    const onFocus = () => checkStatus();
+    window.addEventListener('focus', onFocus);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('merchantUser') || sessionStorage.getItem('merchantUser');
@@ -241,7 +286,18 @@ export default function DashboardLayout({
   useEffect(() => {
     if (isAuthenticated) {
       const fetchSubscription = async () => {
-        try { const res = await api.get("/tenants/my-store"); if(res.data?.data?.status === "suspended") setIsAccountFrozen(true); } catch(e){}
+        try {
+          const res = await api.get("/tenants/my-store");
+          const st = res.data?.data?.status;
+          if (st === 'banned') {
+            localStorage.removeItem('merchantUser');
+            sessionStorage.removeItem('merchantUser');
+            window.location.href = '/login?banned=1';
+            return;
+          }
+          setStoreStatus(st || 'active');
+          setIsAccountFrozen(st === "suspended");
+        } catch(e){}
         try {
           const res = await api.get('/subscriptions/my-subscription');
           const sub = res.data?.data;
@@ -472,17 +528,58 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* Main Content */}
-      {isAccountFrozen && (
-        <div className="fixed inset-0 z-[100] bg-white bg-opacity-95 flex flex-col items-center justify-center backdrop-blur-sm">
-          <AlertTriangle className="w-16 h-16 text-red-500 mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Account Suspended</h1>
-          <p className="text-gray-500 text-center max-w-md mb-6">Your merchant account has been suspended by the administration. You have restricted access to the dashboard. Please contact support.</p>
-          <button onClick={() => { localStorage.removeItem("merchantUser"); sessionStorage.removeItem("merchantUser"); window.location.href="/login"; }} className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700">Logout</button>
-        </div>
-      )}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
         {banner}
+        {storeStatus === 'suspended' && (
+          <div className="px-5 py-3 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white flex flex-wrap items-center justify-between gap-3 shadow-md shrink-0 z-40">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-xs shrink-0">
+                <AlertTriangle className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-sm font-medium">
+                <strong className="font-bold">Account Suspended:</strong> Your dashboard is in <span className="underline decoration-white/50 underline-offset-2">Read-Only mode</span>. Data modifications are disabled.
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/dashboard/support" className="px-3.5 py-1.5 bg-white text-red-700 rounded-lg font-bold text-xs hover:bg-red-50 transition-all shadow-sm">
+                Contact Support
+              </Link>
+              <Link href="/dashboard/subscription" className="px-3.5 py-1.5 bg-red-900/80 text-white rounded-lg font-bold text-xs hover:bg-red-950 transition-all border border-red-400/30 shadow-sm">
+                Subscription
+              </Link>
+            </div>
+          </div>
+        )}
+        {storeStatus === 'pending' && (
+          <div className="px-5 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white flex flex-wrap items-center justify-between gap-3 shadow-md shrink-0 z-40">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-xs shrink-0">
+                <Clock className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-sm font-medium">
+                <strong className="font-bold">Account Pending Approval:</strong> Your Account is awaiting administration review. You can set up your account details and products.
+              </span>
+            </div>
+            <Link href="/dashboard/support" className="px-3.5 py-1.5 bg-white text-blue-700 rounded-lg font-bold text-xs hover:bg-blue-50 transition-all shadow-sm">
+              Contact Support
+            </Link>
+          </div>
+        )}
+        {storeStatus === 'inactive' && (
+          <div className="px-5 py-3 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white flex flex-wrap items-center justify-between gap-3 shadow-md shrink-0 z-40">
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-xs shrink-0">
+                <AlertCircle className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-sm font-medium">
+                <strong className="font-bold">Account Inactive:</strong> Your account is inactive. The store website is offline and customers cannot place orders. Contact support to reactivate it.
+              </span>
+            </div>
+            <Link href="/dashboard/support" className="px-3.5 py-1.5 bg-white text-orange-700 rounded-lg font-bold text-xs hover:bg-orange-50 transition-all shadow-sm">
+              Contact Support
+            </Link>
+          </div>
+        )}
         
         {/* Mobile Top Branding Bar */}
         <div className="lg:hidden h-12 px-3 border-b border-gray-100 flex flex-col items-center justify-center bg-white flex-shrink-0">

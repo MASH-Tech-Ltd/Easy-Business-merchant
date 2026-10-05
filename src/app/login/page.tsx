@@ -19,6 +19,12 @@ export default function LoginPage() {
   const [twoFactorCode, setTwoFactorCode] = useState("");
 
   useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("banned") === "1") {
+      setError("Your merchant account has been banned. Please contact support.");
+    }
+  }, []);
+
+  useEffect(() => {
     try {
       const storedUser = localStorage.getItem("merchantUser") || sessionStorage.getItem("merchantUser");
       if (storedUser) {

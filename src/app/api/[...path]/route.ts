@@ -108,7 +108,9 @@ async function handleProxy(req: NextRequest) {
     });
 
     const isProd = process.env.NODE_ENV === "production";
-    const isLogout = path.startsWith("auth/logout");
+    // A banned merchant must lose their session cookies as well, even for stale browser tabs
+    const isBanned = response.status === 403 && parsedData?.code === "ACCOUNT_BANNED";
+    const isLogout = path.startsWith("auth/logout") || isBanned;
 
     if (isLogout) {
       const cookieClearOpts = {
