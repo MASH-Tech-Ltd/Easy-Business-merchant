@@ -25,9 +25,9 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="py-16 lg:py-24 bg-gray-50/50">
+    <section id="features" className="py-10 sm:py-12 lg:py-14 bg-gray-50/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
           <h2 className="text-base font-semibold text-[hsl(var(--accent-primary))] tracking-wide uppercase">Features</h2>
           <p className="mt-2 text-xl sm:text-3xl lg:text-4xl leading-8 font-extrabold tracking-tight text-gray-900">
             Everything you need to succeed online

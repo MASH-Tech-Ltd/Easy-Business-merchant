@@ -73,12 +73,12 @@ export default function PricingSection({
     : packages;
 
   return (
-    <section id="pricing" className="py-16 lg:py-24 bg-white relative">
+    <section id="pricing" className="py-10 sm:py-12 lg:py-14 bg-white relative">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[hsl(var(--accent-primary))]/5 via-white to-white" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
           <h2 className="text-base font-semibold text-[hsl(var(--accent-primary))] tracking-wide uppercase">
             Pricing
           </h2>
@@ -93,7 +93,7 @@ export default function PricingSection({
 
         {/* Monthly / Yearly Toggle */}
         {showToggle && (
-          <div className="flex items-center justify-center gap-4 mb-14">
+          <div className="flex items-center justify-center gap-4 mb-8 sm:mb-10">
             <span
               className={`text-sm font-semibold transition-colors ${
                 billing === "monthly" ? "text-gray-900" : "text-gray-400"
