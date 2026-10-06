@@ -74,6 +74,7 @@ export default function OrdersPage() {
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
   const [editOrder, setEditOrder] = useState<Order | null>(null);
   const [deleteOrder, setDeleteOrder] = useState<Order | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [checkingFraud, setCheckingFraud] = useState<string | null>(null);
   const [fraudErrorModal, setFraudErrorModal] = useState<{
     show: boolean;
@@ -166,27 +167,32 @@ export default function OrdersPage() {
 
   const handleUpdateOrder = async (id: string, payload: any) => {
     try {
-      await api.patch(`/orders/update-order/${id}`, payload);
+      const response = await api.patch(`/orders/update-order/${id}`, payload);
       setEditOrder(null);
       fetchOrders();
-      toast.success("Order updated successfully");
+      toast.success(response.data?.message || "Order updated successfully");
     } catch (error: any) {
       console.error("Failed to update order", error);
       const errorMessage =
         error.response?.data?.message || "Failed to update order";
       toast.error(errorMessage);
+      throw error;
     }
   };
 
   const handleDelete = async () => {
     if (!deleteOrder) return;
+    setIsDeleting(true);
     try {
-      await api.delete(`/orders/delete-order/${deleteOrder._id}`);
+      const response = await api.delete(`/orders/delete-order/${deleteOrder._id}`);
       setDeleteOrder(null);
       fetchOrders();
-    } catch (error) {
+      toast.success(response.data?.message || "Order deleted successfully");
+    } catch (error: any) {
       console.error("Failed to delete order", error);
-      toast.error("Failed to delete order");
+      toast.error(error.response?.data?.message || "Failed to delete order");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1012,9 +1018,10 @@ export default function OrdersPage() {
               </button>
               <button
                 onClick={handleDelete}
-                className="flex-1 py-3 text-sm font-bold bg-red-600 text-white hover:bg-red-700 rounded-xl transition-colors shadow-md"
+                disabled={isDeleting}
+                className="flex-1 py-3 text-sm font-bold bg-red-600 text-white hover:bg-red-700 rounded-xl transition-colors shadow-md disabled:opacity-50"
               >
-                Yes, Delete
+                {isDeleting ? "Deleting..." : "Yes, Delete"}
               </button>
             </div>
           </div>

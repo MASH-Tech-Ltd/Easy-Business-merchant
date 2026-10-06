@@ -148,8 +148,8 @@ export default function SupportDetailsPage() {
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this ticket?')) return;
     try {
-      await api.delete(`/support/ticket/${id}`);
-      toast.success('Ticket deleted');
+      const response = await api.delete(`/support/ticket/${id}`);
+      toast.success(response.data?.message || 'Ticket deleted');
       router.push('/dashboard/support');
     } catch (error: any) {
       toast.error(extractBackendErrorMessage(error, 'Failed to delete ticket'));

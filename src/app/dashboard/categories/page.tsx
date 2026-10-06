@@ -36,6 +36,7 @@ export default function CategoriesPage() {
 
   // Modals
   const [deleteCategory, setDeleteCategory] = useState<Category | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -68,15 +69,18 @@ export default function CategoriesPage() {
 
   const handleDelete = async () => {
     if (!deleteCategory) return;
+    setIsDeleting(true);
     try {
       // Assuming a delete endpoint exists. If not, this might need adjustment.
-      await api.delete(`/categories/delete-category/${deleteCategory._id}`);
+      const response = await api.delete(`/categories/delete-category/${deleteCategory._id}`);
       setDeleteCategory(null);
-      toast.success('Category deleted successfully');
+      toast.success(response.data?.message || 'Category deleted successfully');
       fetchCategories();
     } catch (error: any) {
       console.error('Error deleting category:', error);
       toast.error(error.response?.data?.message || 'Failed to delete category');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -343,9 +347,10 @@ export default function CategoriesPage() {
               </button>
               <button 
                 onClick={handleDelete}
-                className="flex-1 py-3 text-sm font-bold bg-red-600 text-white hover:bg-red-700 rounded-xl transition-colors shadow-md"
+                disabled={isDeleting}
+                className="flex-1 py-3 text-sm font-bold bg-red-600 text-white hover:bg-red-700 rounded-xl transition-colors shadow-md disabled:opacity-50"
               >
-                Yes, Delete
+                {isDeleting ? "Deleting..." : "Yes, Delete"}
               </button>
             </div>
           </div>

@@ -56,6 +56,7 @@ export default function ProductsPage() {
 
   // Modals
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -88,14 +89,17 @@ export default function ProductsPage() {
 
   const handleDelete = async () => {
     if (!deleteProduct) return;
+    setIsDeleting(true);
     try {
-      await api.delete(`/products/delete-product/${deleteProduct._id}`);
+      const response = await api.delete(`/products/delete-product/${deleteProduct._id}`);
       setDeleteProduct(null);
-      toast.success('Product deleted successfully');
+      toast.success(response.data?.message || 'Product deleted successfully');
       fetchProducts();
     } catch (error: any) {
       console.error('Error deleting product:', error);
       toast.error(error.response?.data?.message || 'Failed to delete product');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -406,9 +410,10 @@ export default function ProductsPage() {
               </button>
               <button 
                 onClick={handleDelete}
-                className="flex-1 py-3 text-sm font-bold bg-red-600 text-white hover:bg-red-700 rounded-xl transition-colors shadow-md"
+                disabled={isDeleting}
+                className="flex-1 py-3 text-sm font-bold bg-red-600 text-white hover:bg-red-700 rounded-xl transition-colors shadow-md disabled:opacity-50"
               >
-                Yes, Delete
+                {isDeleting ? "Deleting..." : "Yes, Delete"}
               </button>
             </div>
           </div>

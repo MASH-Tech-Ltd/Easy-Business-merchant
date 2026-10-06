@@ -232,7 +232,7 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
             disabled={isSubmitting || items.length === 0}
             className="px-5 py-2.5 text-sm font-bold bg-[#5022C3] text-white hover:bg-[#401a9c] rounded-xl transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
+            {isSubmitting ? 'Updating...' : 'Save Changes'}
           </button>
         </div>
       </div>

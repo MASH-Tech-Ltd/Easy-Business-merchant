@@ -283,13 +283,13 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         });
       }
 
-      await api.patch(`/products/update-product/${resolvedParams.id}`, data, {
+      const response = await api.patch(`/products/update-product/${resolvedParams.id}`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      toast.success('Product updated successfully!');
+      toast.success(response.data?.message || 'Product updated successfully!');
       router.push('/dashboard/products');
     } catch (err: any) {
       const errMsg = err.response?.data?.message || err.message || 'Failed to update product';
@@ -326,7 +326,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             disabled={loading}
             className="px-3.5 sm:px-5 py-2 text-xs sm:text-sm font-medium text-white bg-[#5022C3] hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-70"
           >
-            <Save className="w-4 h-4" /> {loading ? 'Saving...' : 'Save Changes'}
+            <Save className="w-4 h-4" /> {loading ? 'Updating...' : 'Save Changes'}
           </button>
         </div>
       </div>
