@@ -253,7 +253,7 @@ export default function OrdersPage() {
 
   const handleForwardOrder = async (orderId: string, providerId: string) => {
     try {
-      await api.post("/courier/forward", { orderId, providerId });
+      await api.post("/courier/forward", { orderId, provider: providerId });
       toast.success(`Order forwarded to ${providerId} successfully!`);
       setCourierModal(null);
       fetchOrders(); // refresh order list
