@@ -115,6 +115,24 @@ const SidebarItem = ({ item, pathname }: { item: any, pathname: string }) => {
   }
 
   const isActive = pathname === item.path;
+  
+  if (item.isActive === false) {
+    return (
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          toast(item.message || 'It will be available very soon', { icon: '🔒' });
+        }}
+        className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors group text-gray-400 cursor-not-allowed`}
+      >
+        <item.icon className={`w-5 h-5 mr-3 text-slate-300 group-hover:text-slate-400`} />
+        <span>{item.name}</span>
+        {item.badge && <Badge type={item.badge}>{item.badge}</Badge>}
+        {item.hasArrow && <ChevronRight className="w-4 h-4 ml-auto text-slate-200" />}
+      </button>
+    );
+  }
+
   return (
     <Link
       href={item.path}
@@ -149,6 +167,8 @@ export default function DashboardLayout({
   const [openTicketsCount, setOpenTicketsCount] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [sidebarMenu, setSidebarMenu] = useState<any[] | null>(null);
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
 
   useEffect(() => {
     const handleNotificationUpdate = (e: any) => {
@@ -176,7 +196,29 @@ export default function DashboardLayout({
       } catch (err) {}
     };
 
+    const fetchPublicSettings = async () => {
+      try {
+        const cachedSettings = localStorage.getItem('publicSettings');
+        if (cachedSettings) {
+          const data = JSON.parse(cachedSettings);
+          if (data.sidebarMenu) setSidebarMenu(data.sidebarMenu);
+          setIsSettingsLoaded(true);
+        }
+
+        const res = await api.get('/system/public-settings');
+        if (res.data?.data) {
+          localStorage.setItem('publicSettings', JSON.stringify(res.data.data));
+          if (res.data.data.sidebarMenu) {
+            setSidebarMenu(res.data.data.sidebarMenu);
+          }
+        }
+      } catch (err) {} finally {
+        setIsSettingsLoaded(true);
+      }
+    };
+
     fetchTicketsCount();
+    fetchPublicSettings();
 
     const handleAccountStatus = async () => {
       try {
@@ -332,13 +374,24 @@ export default function DashboardLayout({
     }
   }, [isAuthenticated]);
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !isSettingsLoaded) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
         <div className="w-10 h-10 border-4 border-purple-200 border-t-[#5022C3] rounded-full animate-spin"></div>
       </div>
     );
   }
+
+  const getSidebarItemProps = (id: string, defaultBadge?: string, defaultBadgeType?: string) => {
+    const config = sidebarMenu?.find(item => item.id === id);
+    if (!config) return { badge: defaultBadge, badgeType: defaultBadgeType, isActive: true, message: '' };
+    return {
+      badge: config.badge !== 'none' ? config.badge.toUpperCase() : defaultBadge,
+      badgeType: config.badge !== 'none' ? config.badge.toUpperCase() : defaultBadgeType,
+      isActive: config.isActive,
+      message: config.message || '',
+    };
+  };
 
   const navGroups = [
     {
@@ -348,9 +401,9 @@ export default function DashboardLayout({
         { name: 'Products', path: '/dashboard/products', icon: Package },
         { name: 'Categories', path: '/dashboard/categories', icon: ListTree },
         { name: 'Customers', path: '/dashboard/customers', icon: Users },
-        { name: 'Courier', path: '/dashboard/courier-automation', icon: Truck, badge: 'BETA' },
-        { name: 'Fraud Check', path: '/dashboard/fraud-check', icon: ShieldCheck, badge: 'BETA' },
-        { name: 'Checkout Leads', path: '/dashboard/checkout-leads', icon: Users, badge: 'BETA' },
+        { name: 'Courier', path: '/dashboard/courier-automation', icon: Truck, ...getSidebarItemProps('courier') },
+        { name: 'Fraud Check', path: '/dashboard/fraud-check', icon: ShieldCheck, ...getSidebarItemProps('fraudCheck') },
+        { name: 'Checkout Leads', path: '/dashboard/checkout-leads', icon: Users, ...getSidebarItemProps('checkoutLeads') },
         { 
           name: 'Notifications', 
           path: '/dashboard/notifications', 
@@ -374,7 +427,7 @@ export default function DashboardLayout({
         { name: 'Profile', path: '/dashboard/profile', icon: UserCog },
         { name: 'Security & 2FA', path: '/dashboard/security', icon: ShieldCheck },
         { name: 'Domain', path: '/dashboard/domain', icon: Globe },
-        { name: 'API Keys', path: '/dashboard/api-keys', icon: Key, badge: 'BETA' },
+        { name: 'API Keys', path: '/dashboard/api-keys', icon: Key, ...getSidebarItemProps('apiKeys') },
         { name: 'Payment Methods', path: '/dashboard/payment-methods', icon: Banknote },
         { name: 'Support', path: '/dashboard/support', icon: LifeBuoy, badge: openTicketsCount > 0 ? String(openTicketsCount) : undefined, badgeType: 'OPEN' },
         { 

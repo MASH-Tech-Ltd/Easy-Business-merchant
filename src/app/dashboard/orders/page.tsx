@@ -86,6 +86,7 @@ export default function OrdersPage() {
     show: boolean;
     orderId: string;
     configuredProviders: string[];
+    providerDetails?: Record<string, { isConfigured: boolean; isActive: boolean }>;
   } | null>(null);
   const [checkingCourier, setCheckingCourier] = useState<string | null>(null);
   const [forwardedInfoModal, setForwardedInfoModal] = useState<{
@@ -233,6 +234,7 @@ export default function OrdersPage() {
           show: true,
           orderId: order._id,
           configuredProviders: response.data.data.configuredProviders || [],
+          providerDetails: response.data.data.providerDetails || {},
         });
       }
     } catch (error: any) {
