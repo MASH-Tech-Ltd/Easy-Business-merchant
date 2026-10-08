@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+// import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ShoppingCart, BarChart3, ArrowRight } from 'lucide-react';
 import { IPackage } from '@/components/landing/PricingSection';
@@ -9,32 +9,7 @@ interface HeroSectionProps {
   packages?: IPackage[];
 }
 
-export default function HeroSection({ packages: initialPackages = [] }: HeroSectionProps) {
-  const [packages, setPackages] = useState<IPackage[]>(initialPackages);
-
-  useEffect(() => {
-    if (initialPackages.length > 0) {
-      setPackages(initialPackages);
-    } else {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL ||
-        (typeof window !== "undefined" && window.location.hostname.includes("masheco.com")
-          ? "https://backapi.masheco.com/api/v1"
-          : "http://localhost:8000/api/v1");
-      fetch(`${apiUrl}/packages/public-packages`)
-        .then((res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.json();
-        })
-        .then((json) => {
-          const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
-          if (list.length > 0) {
-            setPackages(list);
-          }
-        })
-        .catch(() => {});
-    }
-  }, [initialPackages]);
+export default function HeroSection({ packages = [] }: HeroSectionProps) {
 
   const minPrice = packages && packages.length > 0
     ? Math.min(...packages.map((p) => p.price))

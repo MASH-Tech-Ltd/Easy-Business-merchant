@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, ThumbsUp, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export interface IPackage {
   _id: string;
@@ -23,44 +23,8 @@ interface PricingSectionProps {
 }
 
 export default function PricingSection({
-  packages: initialPackages = [],
+  packages = [],
 }: PricingSectionProps) {
-  const [packages, setPackages] = useState<IPackage[]>(initialPackages);
-  const [loading, setLoading] = useState<boolean>(initialPackages.length === 0);
-
-  useEffect(() => {
-    if (initialPackages.length === 0) {
-      setLoading(true);
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL ||
-        (typeof window !== "undefined" && window.location.hostname.includes("masheco.com")
-          ? "https://backapi.masheco.com/api/v1"
-          : "http://localhost:8000/api/v1");
-      fetch(`${apiUrl}/packages/public-packages`)
-        .then((res) => {
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          return res.json();
-        })
-        .then((json) => {
-          const list = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
-          if (list.length > 0) {
-            setPackages(list);
-          }
-        })
-        .catch((err) => {
-          console.error(
-            "[PricingSection] Client-side fallback fetch failed:",
-            err,
-          );
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      setPackages(initialPackages);
-      setLoading(false);
-    }
-  }, [initialPackages]);
 
   const hasYearly = packages.some((p) => p.billingCycle === "yearly");
   const hasMonthly = packages.some((p) => p.billingCycle === "monthly");
