@@ -16,7 +16,7 @@ export default function HeroSection({ packages = [] }: HeroSectionProps) {
     : 299;
 
   return (
-    <section className="relative pt-16 sm:pt-20 md:pt-20 lg:pt-24 pb-8 sm:pb-10 lg:pb-12 overflow-hidden">
+    <section className="relative pt-24 sm:pt-28 md:pt-32 lg:pt-36 pb-8 sm:pb-10 lg:pb-12 overflow-hidden">
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[hsl(var(--accent-primary))]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>

@@ -68,9 +68,7 @@ function ContactFormContent() {
     setLoading(true);
 
     try {
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-      const res = await fetch(`${apiUrl}/contact-inquiries/create-inquiry`, {
+      const res = await fetch(`/api/contact-inquiries/create-inquiry`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

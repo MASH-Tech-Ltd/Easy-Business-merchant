@@ -4,12 +4,20 @@ import { useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
+const isValidBDPhone = (phone: string): boolean => {
+  if (!phone || !phone.trim()) return false;
+  const cleanPhone = phone.replace(/[\s\-\(\)]/g, "");
+  return /^(?:\+?88|88)?01[3-9]\d{8}$/.test(cleanPhone);
+};
+
 export default function BookDemoForm() {
   const [loading, setLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
     businessName: "",
     monthlyRevenue: "Just starting out",
     challenges: "",
@@ -24,19 +32,26 @@ export default function BookDemoForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isValidBDPhone(formData.phone)) {
+      setPhoneError("Please enter a valid Bangladeshi mobile number (e.g.: 01XXXXXXXXX)");
+      return;
+    }
+
+    setPhoneError("");
     setLoading(true);
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
       const payload = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         email: formData.email.trim(),
+        phone: formData.phone.trim(),
         topic: "Demo Request",
         message: `Business: ${formData.businessName || "Not specified"} | Monthly Revenue: ${formData.monthlyRevenue} | Goals & Challenges: ${formData.challenges || "None provided"}`,
       };
 
-      const res = await fetch(`${apiUrl}/contact-inquiries/create-inquiry`, {
+      const res = await fetch(`/api/contact-inquiries/create-inquiry`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,6 +75,7 @@ export default function BookDemoForm() {
         firstName: "",
         lastName: "",
         email: "",
+        phone: "",
         businessName: "",
         monthlyRevenue: "Just starting out",
         challenges: "",
@@ -122,18 +138,41 @@ export default function BookDemoForm() {
           </div>
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">
-              Business Name *
+              Phone Number *
             </label>
             <input
-              type="text"
-              name="businessName"
-              value={formData.businessName}
-              onChange={handleChange}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all text-gray-800"
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={(e) => {
+                handleChange(e);
+                setPhoneError("");
+              }}
+              className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all text-gray-800 ${
+                phoneError ? "border-red-500 bg-red-50/50 text-red-900" : "border-gray-200"
+              }`}
               required
-              placeholder="Acme Store"
+              placeholder="017XXXXXXXX"
             />
+            {phoneError && (
+              <p className="text-xs text-red-600 font-medium mt-1">{phoneError}</p>
+            )}
           </div>
+        </div>
+        
+        <div>
+          <label className="block text-sm font-bold text-gray-700 mb-2">
+            Business Name *
+          </label>
+          <input
+            type="text"
+            name="businessName"
+            value={formData.businessName}
+            onChange={handleChange}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:bg-white transition-all text-gray-800"
+            required
+            placeholder="Acme Store"
+          />
         </div>
 
         <div>
