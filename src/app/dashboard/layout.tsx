@@ -15,9 +15,10 @@ import { useSocket } from '@/context/SocketContext';
 import NotificationBell from '@/components/NotificationBell';
 
 const Badge = ({ children, type = 'NEW' }: { children: React.ReactNode, type?: 'NEW' | 'BETA' | 'COUNT' | 'OPEN' }) => (
-  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ml-auto ${
-    type === 'BETA' ? 'bg-purple-100 text-purple-700' : 
-    type === 'COUNT' ? 'bg-red-500 text-white rounded-full px-2' :
+  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ml-auto ${
+    type === 'BETA' ? 'bg-purple-200 text-purple-800' : 
+    type === 'NEW' ? 'bg-emerald-200 text-emerald-900' :
+    (type === 'COUNT' || type === 'OPEN') ? 'bg-red-500 text-white min-w-[20px] text-center' :
     'bg-[#5022C3] text-white'
   }`}>
     {children}
@@ -85,10 +86,10 @@ const SidebarItem = ({ item, pathname }: { item: any, pathname: string }) => {
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className={`flex items-center px-3 py-2 w-full rounded-lg text-sm transition-colors group ${
-            isActive ? 'bg-purple-50 text-[#5022C3] font-medium' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            isActive ? 'bg-white/10 text-white font-medium' : 'text-slate-300 hover:bg-white/5 hover:text-white'
           }`}
         >
-          <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-[#5022C3]' : 'text-slate-400 group-hover:text-slate-600'}`} />
+          <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
           <span>{item.name}</span>
           <ChevronRight className={`w-4 h-4 ml-auto text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
         </button>
@@ -101,7 +102,7 @@ const SidebarItem = ({ item, pathname }: { item: any, pathname: string }) => {
                   key={sub.name}
                   href={sub.path}
                   className={`flex items-center px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                    subActive ? 'text-[#5022C3] font-medium bg-purple-50/50' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                    subActive ? 'text-white font-medium bg-white/10' : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
                   <span>{sub.name}</span>
@@ -123,12 +124,12 @@ const SidebarItem = ({ item, pathname }: { item: any, pathname: string }) => {
           e.preventDefault();
           toast(item.message || 'It will be available very soon', { icon: '🔒' });
         }}
-        className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors group text-gray-400 cursor-not-allowed`}
+        className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors group text-slate-500 cursor-not-allowed`}
       >
-        <item.icon className={`w-5 h-5 mr-3 text-slate-300 group-hover:text-slate-400`} />
+        <item.icon className={`w-5 h-5 mr-3 text-slate-500 group-hover:text-slate-400`} />
         <span>{item.name}</span>
-        {item.badge && <Badge type={item.badge}>{item.badge}</Badge>}
-        {item.hasArrow && <ChevronRight className="w-4 h-4 ml-auto text-slate-200" />}
+        {item.badge && <Badge type={item.badgeType || item.badge}>{item.badge}</Badge>}
+        {item.hasArrow && <ChevronRight className="w-4 h-4 ml-auto text-slate-500" />}
       </button>
     );
   }
@@ -138,14 +139,14 @@ const SidebarItem = ({ item, pathname }: { item: any, pathname: string }) => {
       href={item.path}
       className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors group ${
         isActive 
-          ? 'bg-purple-50 text-[#5022C3] font-medium' 
-          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+          ? 'bg-white/10 text-white font-medium' 
+          : 'text-slate-300 hover:bg-white/5 hover:text-white'
       }`}
     >
-      <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-[#5022C3]' : 'text-slate-400 group-hover:text-slate-600'}`} />
+      <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
       <span>{item.name}</span>
-      {item.badge && <Badge type={item.badge}>{item.badge}</Badge>}
-      {item.hasArrow && <ChevronRight className="w-4 h-4 ml-auto text-slate-300" />}
+      {item.badge && <Badge type={item.badgeType || item.badge}>{item.badge}</Badge>}
+      {item.hasArrow && <ChevronRight className="w-4 h-4 ml-auto text-slate-500" />}
     </Link>
   );
 };
@@ -500,26 +501,26 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-50 w-[260px] flex-shrink-0 border-r border-gray-200 bg-white flex flex-col h-full overflow-hidden transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-[260px] flex-shrink-0 border-r border-[#122846] bg-[#122846] flex flex-col h-full overflow-hidden transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-100 flex-shrink-0">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-white/10 flex-shrink-0">
           <div className="flex flex-col justify-center">
             <div className="flex items-center gap-2">
               <img src="/masheco-logo.png" alt="MASH ECO" className="w-8 h-8 object-contain" />
-              <h1 className="text-2xl font-righteous text-gray-900 tracking-tight leading-none mt-0.5">
+              <h1 className="text-2xl font-righteous text-white tracking-tight leading-none mt-0.5">
                 MASH ECO
               </h1>
             </div>
             <div className="pl-10 -mt-0.5">
-              <span className="text-[8px] font-bold text-gray-500 tracking-[0.25em] uppercase leading-none">
+              <span className="text-[8px] font-bold text-slate-400 tracking-[0.25em] uppercase leading-none">
                 MERCHANT HUB
               </span>
             </div>
           </div>
           <button 
-            className="lg:hidden p-1 text-gray-500 hover:bg-gray-100 rounded-md"
+            className="lg:hidden p-1 text-slate-400 hover:bg-white/10 hover:text-white rounded-md"
             onClick={() => setIsSidebarOpen(false)}
           >
             <X className="w-5 h-5" />
@@ -530,7 +531,7 @@ export default function DashboardLayout({
             <div key={idx} className={idx > 0 ? 'mt-6' : ''}>
               {group.title && (
                 <div className="flex items-center px-3 mb-2">
-                  <h3 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                  <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                     {group.title}
                   </h3>
                   {(group as any).titleBadge && <Badge>{(group as any).titleBadge}</Badge>}
@@ -546,32 +547,32 @@ export default function DashboardLayout({
         </div>
         
         {/* Subscription Status Card */}
-        <div className="p-4 border-t border-gray-200 bg-white">
+        <div className="p-4 border-t border-white/10 bg-[#122846]">
           {subscriptionExpired ? (
-            <div className="border border-red-200 rounded-xl p-3 bg-red-50 shadow-sm">
+            <div className="border border-red-500/30 rounded-xl p-3 bg-red-500/10 shadow-sm">
               <div className="flex items-center gap-2 mb-1">
-                <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
-                <span className="font-semibold text-sm text-red-700 truncate">{currentPlan}</span>
+                <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
+                <span className="font-semibold text-sm text-red-400 truncate">{currentPlan}</span>
                 <div className="w-1.5 h-1.5 bg-red-500 rounded-full ml-auto flex-shrink-0"></div>
               </div>
-              <p className="text-xs text-red-600 mb-3">Your store is currently offline.</p>
+              <p className="text-xs text-red-300 mb-3">Your store is currently offline.</p>
               <Link href="/dashboard/subscription" className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center">
                 Subscribe Now
               </Link>
             </div>
           ) : (
-            <div className="border border-purple-100 rounded-xl p-3 bg-white shadow-sm relative overflow-hidden">
+            <div className="border border-white/10 rounded-xl p-3 bg-white/5 shadow-sm relative overflow-hidden">
               <div className="flex items-center gap-2 mb-1">
-                <div className="w-4 h-4 text-[#5022C3] flex items-center justify-center">
+                <div className="w-4 h-4 text-purple-400 flex items-center justify-center">
                   <Star className="w-3.5 h-3.5 fill-current" />
                 </div>
-                <span className="font-semibold text-sm text-gray-900 truncate">{currentPlan || '...'}</span>
+                <span className="font-semibold text-sm text-white truncate">{currentPlan || '...'}</span>
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full ml-auto flex-shrink-0"></div>
               </div>
               {(currentPlan.toLowerCase().includes('trial') || currentPlan.toLowerCase().includes('free')) && (
                 <>
-                  <p className="text-xs text-gray-500 mb-3">Upgrade to unlock all features.</p>
-                  <Link href="/dashboard/subscription" className="w-full bg-[#5022C3] hover:bg-purple-700 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center">
+                  <p className="text-xs text-slate-400 mb-3">Upgrade to unlock all features.</p>
+                  <Link href="/dashboard/subscription" className="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center">
                     Upgrade Plan
                   </Link>
                 </>

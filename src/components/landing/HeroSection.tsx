@@ -76,8 +76,9 @@ export default function HeroSection({ packages = [] }: HeroSectionProps) {
             </div>
 
             <img 
-              src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2426&q=80" 
-              alt="Dashboard Preview" 
+              src="/landing_image/Merchant Analytics Dashboard.png" 
+              alt="MASH ECO Merchant Analytics Dashboard - E-commerce platform analytics and insights" 
+              title="MASH ECO Merchant Analytics Dashboard"
               className="w-full h-auto rounded-xl md:rounded-2xl shadow-sm object-cover max-h-[500px]"
             />
           </div>
