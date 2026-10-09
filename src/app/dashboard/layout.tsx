@@ -1,32 +1,73 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { 
-  LayoutDashboard, ShoppingBag, Package, ListTree, Users, Truck,
-  Store, BarChart2, Palette, Paintbrush, LayoutTemplate, Smartphone, 
-  Star, Tag, BadgeCheck, RefreshCw, Boxes, UserCog, CreditCard,
-  GraduationCap, ShieldCheck, Handshake, ChevronRight, Globe, Key, LifeBuoy, AlertTriangle, AlertCircle, Clock, Menu, X, Banknote, Bell, Activity
-} from 'lucide-react';
-import { Toaster, toast } from 'react-hot-toast';
-import { api } from '@/utils/api';
-import { useSocket } from '@/context/SocketContext';
-import NotificationBell from '@/components/NotificationBell';
+import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import {
+  LayoutDashboard,
+  ShoppingBag,
+  Package,
+  ListTree,
+  Users,
+  Truck,
+  Store,
+  BarChart2,
+  Palette,
+  Paintbrush,
+  LayoutTemplate,
+  Smartphone,
+  Star,
+  Tag,
+  BadgeCheck,
+  RefreshCw,
+  Boxes,
+  UserCog,
+  CreditCard,
+  GraduationCap,
+  ShieldCheck,
+  Handshake,
+  ChevronRight,
+  Globe,
+  Key,
+  LifeBuoy,
+  AlertTriangle,
+  AlertCircle,
+  Clock,
+  Menu,
+  X,
+  Banknote,
+  Bell,
+  Activity,
+} from "lucide-react";
+import { Toaster, toast } from "react-hot-toast";
+import { api } from "@/utils/api";
+import { useSocket } from "@/context/SocketContext";
+import NotificationBell from "@/components/NotificationBell";
 
-const Badge = ({ children, type = 'NEW' }: { children: React.ReactNode, type?: 'NEW' | 'BETA' | 'COUNT' | 'OPEN' }) => (
-  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ml-auto ${
-    type === 'BETA' ? 'bg-purple-200 text-purple-800' : 
-    type === 'NEW' ? 'bg-emerald-200 text-emerald-900' :
-    (type === 'COUNT' || type === 'OPEN') ? 'bg-red-500 text-white min-w-[20px] text-center' :
-    'bg-[#5022C3] text-white'
-  }`}>
+const Badge = ({
+  children,
+  type = "NEW",
+}: {
+  children: React.ReactNode;
+  type?: "NEW" | "BETA" | "COUNT" | "OPEN";
+}) => (
+  <span
+    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ml-auto ${
+      type === "BETA"
+        ? "bg-purple-200 text-purple-800"
+        : type === "NEW"
+          ? "bg-emerald-200 text-emerald-900"
+          : type === "COUNT" || type === "OPEN"
+            ? "bg-red-500 text-white min-w-[20px] text-center"
+            : "bg-[#5022C3] text-white"
+    }`}
+  >
     {children}
   </span>
 );
 
 let audioCtx: AudioContext | null = null;
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   const unlockAudio = () => {
     if (!audioCtx) {
       const AC = window.AudioContext || (window as any).webkitAudioContext;
@@ -35,9 +76,9 @@ if (typeof window !== 'undefined') {
         audioCtx.resume();
       }
     }
-    window.removeEventListener('click', unlockAudio);
+    window.removeEventListener("click", unlockAudio);
   };
-  window.addEventListener('click', unlockAudio);
+  window.addEventListener("click", unlockAudio);
 }
 
 const playNotificationSound = () => {
@@ -48,35 +89,40 @@ const playNotificationSound = () => {
     }
     if (!audioCtx) return;
 
-    if (audioCtx.state === 'suspended') {
+    if (audioCtx.state === "suspended") {
       audioCtx.resume();
     }
-    
+
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    
-    osc.type = 'sine';
+
+    osc.type = "sine";
     osc.frequency.setValueAtTime(880, audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
-    
+
     gain.gain.setValueAtTime(0, audioCtx.currentTime);
     gain.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-    
+
     osc.connect(gain);
     gain.connect(audioCtx.destination);
-    
+
     osc.start(audioCtx.currentTime);
     osc.stop(audioCtx.currentTime + 0.5);
-  } catch(e) { console.error('Audio play error', e) }
+  } catch (e) {
+    console.error("Audio play error", e);
+  }
 };
 
-const SidebarItem = ({ item, pathname }: { item: any, pathname: string }) => {
+const SidebarItem = ({ item, pathname }: { item: any; pathname: string }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   if (item.subItems) {
-    const isActive = item.subItems.some((sub: any) => pathname === sub.path || pathname.startsWith(sub.path + '/'));
-    
+    const isActive = item.subItems.some(
+      (sub: any) =>
+        pathname === sub.path || pathname.startsWith(sub.path + "/"),
+    );
+
     useEffect(() => {
       if (isActive) setIsExpanded(true);
     }, [isActive]);
@@ -86,12 +132,18 @@ const SidebarItem = ({ item, pathname }: { item: any, pathname: string }) => {
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className={`flex items-center px-3 py-2 w-full rounded-lg text-sm transition-colors group ${
-            isActive ? 'bg-white/10 text-white font-medium' : 'text-slate-300 hover:bg-white/5 hover:text-white'
+            isActive
+              ? "bg-gradient-to-r from-blue-600 via-blue-600 to-blue-700 text-white font-medium"
+              : "text-slate-300 hover:bg-white/5 hover:text-white"
           }`}
         >
-          <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+          <item.icon
+            className={`w-5 h-5 mr-3 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}
+          />
           <span>{item.name}</span>
-          <ChevronRight className={`w-4 h-4 ml-auto text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+          <ChevronRight
+            className={`w-4 h-4 ml-auto text-slate-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+          />
         </button>
         {isExpanded && (
           <div className="flex flex-col gap-0.5 pl-11 pr-2 py-1">
@@ -102,7 +154,9 @@ const SidebarItem = ({ item, pathname }: { item: any, pathname: string }) => {
                   key={sub.name}
                   href={sub.path}
                   className={`flex items-center px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                    subActive ? 'text-white font-medium bg-white/10' : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    subActive
+                      ? "bg-gradient-to-r from-blue-600 via-blue-600 to-blue-700 text-white font-medium"
+                      : "text-slate-400 hover:text-white hover:bg-white/5"
                   }`}
                 >
                   <span>{sub.name}</span>
@@ -116,20 +170,28 @@ const SidebarItem = ({ item, pathname }: { item: any, pathname: string }) => {
   }
 
   const isActive = pathname === item.path;
-  
+
   if (item.isActive === false) {
     return (
       <button
         onClick={(e) => {
           e.preventDefault();
-          toast(item.message || 'It will be available very soon', { icon: '🔒' });
+          toast(item.message || "It will be available very soon", {
+            icon: "🔒",
+          });
         }}
         className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors group text-slate-500 cursor-not-allowed`}
       >
-        <item.icon className={`w-5 h-5 mr-3 text-slate-500 group-hover:text-slate-400`} />
+        <item.icon
+          className={`w-5 h-5 mr-3 text-slate-500 group-hover:text-slate-400`}
+        />
         <span>{item.name}</span>
-        {item.badge && <Badge type={item.badgeType || item.badge}>{item.badge}</Badge>}
-        {item.hasArrow && <ChevronRight className="w-4 h-4 ml-auto text-slate-500" />}
+        {item.badge && (
+          <Badge type={item.badgeType || item.badge}>{item.badge}</Badge>
+        )}
+        {item.hasArrow && (
+          <ChevronRight className="w-4 h-4 ml-auto text-slate-500" />
+        )}
       </button>
     );
   }
@@ -138,15 +200,21 @@ const SidebarItem = ({ item, pathname }: { item: any, pathname: string }) => {
     <Link
       href={item.path}
       className={`flex items-center px-3 py-2 rounded-lg text-sm transition-colors group ${
-        isActive 
-          ? 'bg-white/10 text-white font-medium' 
-          : 'text-slate-300 hover:bg-white/5 hover:text-white'
+        isActive
+          ? "bg-gradient-to-r from-blue-600 via-blue-600 to-blue-700 text-white font-medium"
+          : "text-slate-300 hover:bg-white/5 hover:text-white"
       }`}
     >
-      <item.icon className={`w-5 h-5 mr-3 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-white'}`} />
+      <item.icon
+        className={`w-5 h-5 mr-3 ${isActive ? "text-white" : "text-slate-400 group-hover:text-white"}`}
+      />
       <span>{item.name}</span>
-      {item.badge && <Badge type={item.badgeType || item.badge}>{item.badge}</Badge>}
-      {item.hasArrow && <ChevronRight className="w-4 h-4 ml-auto text-slate-500" />}
+      {item.badge && (
+        <Badge type={item.badgeType || item.badge}>{item.badge}</Badge>
+      )}
+      {item.hasArrow && (
+        <ChevronRight className="w-4 h-4 ml-auto text-slate-500" />
+      )}
     </Link>
   );
 };
@@ -161,8 +229,8 @@ export default function DashboardLayout({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [merchantUser, setMerchantUser] = useState<any>(null);
   const [isAccountFrozen, setIsAccountFrozen] = useState(false);
-  const [storeStatus, setStoreStatus] = useState<string>('active');
-  const [currentPlan, setCurrentPlan] = useState<string>('');
+  const [storeStatus, setStoreStatus] = useState<string>("active");
+  const [currentPlan, setCurrentPlan] = useState<string>("");
   const [fullSubscription, setFullSubscription] = useState<any>(null);
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
   const [openTicketsCount, setOpenTicketsCount] = useState(0);
@@ -175,10 +243,17 @@ export default function DashboardLayout({
     const handleNotificationUpdate = (e: any) => {
       setUnreadNotifications(e.detail);
     };
-    window.addEventListener('notificationCountUpdate', handleNotificationUpdate);
-    return () => window.removeEventListener('notificationCountUpdate', handleNotificationUpdate);
+    window.addEventListener(
+      "notificationCountUpdate",
+      handleNotificationUpdate,
+    );
+    return () =>
+      window.removeEventListener(
+        "notificationCountUpdate",
+        handleNotificationUpdate,
+      );
   }, []);
-  
+
   // Close sidebar when route changes on mobile
   useEffect(() => {
     setIsSidebarOpen(false);
@@ -191,29 +266,32 @@ export default function DashboardLayout({
 
     const fetchTicketsCount = async () => {
       try {
-        const res = await api.get('/support/my-tickets');
-        const openTickets = res.data.data.filter((t: any) => t.status === 'OPEN' || t.status === 'PENDING');
+        const res = await api.get("/support/my-tickets");
+        const openTickets = res.data.data.filter(
+          (t: any) => t.status === "OPEN" || t.status === "PENDING",
+        );
         setOpenTicketsCount(openTickets.length);
       } catch (err) {}
     };
 
     const fetchPublicSettings = async () => {
       try {
-        const cachedSettings = localStorage.getItem('publicSettings');
+        const cachedSettings = localStorage.getItem("publicSettings");
         if (cachedSettings) {
           const data = JSON.parse(cachedSettings);
           if (data.sidebarMenu) setSidebarMenu(data.sidebarMenu);
           setIsSettingsLoaded(true);
         }
 
-        const res = await api.get('/system/public-settings');
+        const res = await api.get("/system/public-settings");
         if (res.data?.data) {
-          localStorage.setItem('publicSettings', JSON.stringify(res.data.data));
+          localStorage.setItem("publicSettings", JSON.stringify(res.data.data));
           if (res.data.data.sidebarMenu) {
             setSidebarMenu(res.data.data.sidebarMenu);
           }
         }
-      } catch (err) {} finally {
+      } catch (err) {
+      } finally {
         setIsSettingsLoaded(true);
       }
     };
@@ -223,52 +301,61 @@ export default function DashboardLayout({
 
     const handleAccountStatus = async () => {
       try {
-        const res = await api.get('/tenants/my-store');
+        const res = await api.get("/tenants/my-store");
         const status = res.data?.data?.status;
-        if (status === 'banned') {
+        if (status === "banned") {
           handleBanned();
           return;
         }
-        setStoreStatus(status || 'active');
-        setIsAccountFrozen(status === 'suspended');
+        setStoreStatus(status || "active");
+        setIsAccountFrozen(status === "suspended");
       } catch (e: any) {
-        if (e?.response?.status === 403 && e?.response?.data?.code === 'ACCOUNT_BANNED') {
+        if (
+          e?.response?.status === 403 &&
+          e?.response?.data?.code === "ACCOUNT_BANNED"
+        ) {
           handleBanned();
         }
       }
     };
 
     const handleBanned = () => {
-      localStorage.removeItem('merchantUser');
-      sessionStorage.removeItem('merchantUser');
+      localStorage.removeItem("merchantUser");
+      sessionStorage.removeItem("merchantUser");
       // Proxy clears auth cookies on logout even if backend rejects the call
-      api.post('/auth/logout').catch(() => {}).finally(() => {
-        window.location.href = '/login?banned=1';
-      });
+      api
+        .post("/auth/logout")
+        .catch(() => {})
+        .finally(() => {
+          window.location.href = "/login?banned=1";
+        });
     };
 
     const handleSubscriptions = () => {
-      window.dispatchEvent(new Event('dashboard:refresh'));
+      window.dispatchEvent(new Event("dashboard:refresh"));
     };
 
     const handleNewOrder = (order: any) => {
       playNotificationSound();
-      toast.success(`New order received from ${order.customerName || 'a customer'}!`, { duration: 4000 });
-      window.dispatchEvent(new Event('dashboard:refresh'));
+      toast.success(
+        `New order received from ${order.customerName || "a customer"}!`,
+        { duration: 4000 },
+      );
+      window.dispatchEvent(new Event("dashboard:refresh"));
     };
 
-    socket.on('refresh_tickets', fetchTicketsCount);
-    socket.on('account_status_changed', handleAccountStatus);
-    socket.on('account_banned', handleBanned);
-    socket.on('refresh_subscriptions', handleSubscriptions);
-    socket.on('new_order', handleNewOrder);
+    socket.on("refresh_tickets", fetchTicketsCount);
+    socket.on("account_status_changed", handleAccountStatus);
+    socket.on("account_banned", handleBanned);
+    socket.on("refresh_subscriptions", handleSubscriptions);
+    socket.on("new_order", handleNewOrder);
 
     return () => {
-      socket.off('refresh_tickets', fetchTicketsCount);
-      socket.off('account_status_changed', handleAccountStatus);
-      socket.off('account_banned', handleBanned);
-      socket.off('refresh_subscriptions', handleSubscriptions);
-      socket.off('new_order', handleNewOrder);
+      socket.off("refresh_tickets", fetchTicketsCount);
+      socket.off("account_status_changed", handleAccountStatus);
+      socket.off("account_banned", handleBanned);
+      socket.off("refresh_subscriptions", handleSubscriptions);
+      socket.off("new_order", handleNewOrder);
     };
   }, [isAuthenticated, socket]);
 
@@ -278,50 +365,55 @@ export default function DashboardLayout({
     if (!isAuthenticated) return;
     const checkStatus = async () => {
       try {
-        const res = await api.get('/tenants/my-store');
+        const res = await api.get("/tenants/my-store");
         const status = res.data?.data?.status;
-        setStoreStatus(status || 'active');
-        setIsAccountFrozen(status === 'suspended');
+        setStoreStatus(status || "active");
+        setIsAccountFrozen(status === "suspended");
       } catch (e: any) {
-        if (e?.response?.status === 403 && e?.response?.data?.code === 'ACCOUNT_BANNED') {
-          localStorage.removeItem('merchantUser');
-          sessionStorage.removeItem('merchantUser');
-          window.location.href = '/login?banned=1';
+        if (
+          e?.response?.status === 403 &&
+          e?.response?.data?.code === "ACCOUNT_BANNED"
+        ) {
+          localStorage.removeItem("merchantUser");
+          sessionStorage.removeItem("merchantUser");
+          window.location.href = "/login?banned=1";
         }
       }
     };
     const interval = setInterval(checkStatus, 15000);
     const onFocus = () => checkStatus();
-    window.addEventListener('focus', onFocus);
+    window.addEventListener("focus", onFocus);
     return () => {
       clearInterval(interval);
-      window.removeEventListener('focus', onFocus);
+      window.removeEventListener("focus", onFocus);
     };
   }, [isAuthenticated]);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('merchantUser') || sessionStorage.getItem('merchantUser');
+    const storedUser =
+      localStorage.getItem("merchantUser") ||
+      sessionStorage.getItem("merchantUser");
     if (!storedUser) {
-      router.push('/login');
+      router.push("/login");
     } else {
       try {
         const user = JSON.parse(storedUser);
-        if (user.role !== 'tenant_admin') {
-          localStorage.removeItem('merchantUser');
-          sessionStorage.removeItem('merchantUser');
-          router.push('/login');
+        if (user.role !== "tenant_admin") {
+          localStorage.removeItem("merchantUser");
+          sessionStorage.removeItem("merchantUser");
+          router.push("/login");
           return;
         }
         // Keep both storages synced
-        localStorage.setItem('merchantUser', storedUser);
-        sessionStorage.setItem('merchantUser', storedUser);
+        localStorage.setItem("merchantUser", storedUser);
+        sessionStorage.setItem("merchantUser", storedUser);
         setMerchantUser(user);
         setIsAuthenticated(true);
       } catch (e) {
-        console.error('Error parsing user data', e);
-        localStorage.removeItem('merchantUser');
-        sessionStorage.removeItem('merchantUser');
-        router.push('/login');
+        console.error("Error parsing user data", e);
+        localStorage.removeItem("merchantUser");
+        sessionStorage.removeItem("merchantUser");
+        router.push("/login");
       }
     }
   }, [router]);
@@ -332,17 +424,17 @@ export default function DashboardLayout({
         try {
           const res = await api.get("/tenants/my-store");
           const st = res.data?.data?.status;
-          if (st === 'banned') {
-            localStorage.removeItem('merchantUser');
-            sessionStorage.removeItem('merchantUser');
-            window.location.href = '/login?banned=1';
+          if (st === "banned") {
+            localStorage.removeItem("merchantUser");
+            sessionStorage.removeItem("merchantUser");
+            window.location.href = "/login?banned=1";
             return;
           }
-          setStoreStatus(st || 'active');
+          setStoreStatus(st || "active");
           setIsAccountFrozen(st === "suspended");
-        } catch(e){}
+        } catch (e) {}
         try {
-          const res = await api.get('/subscriptions/my-subscription');
+          const res = await api.get("/subscriptions/my-subscription");
           const sub = res.data?.data;
           if (sub) {
             setFullSubscription(sub);
@@ -350,25 +442,31 @@ export default function DashboardLayout({
             if (sub.packageId?.name) {
               setCurrentPlan(sub.packageId.name);
             } else if (sub.isTrial) {
-              setCurrentPlan('Free Trial');
+              setCurrentPlan("Free Trial");
             }
           } else {
             setSubscriptionExpired(true);
             try {
-              const lastRes = await api.get('/subscriptions/my-subscription?includeExpired=true');
+              const lastRes = await api.get(
+                "/subscriptions/my-subscription?includeExpired=true",
+              );
               const lastSub = lastRes.data?.data;
               if (lastSub) {
-                setFullSubscription({ ...lastSub, status: 'expired' });
-                setCurrentPlan(lastSub.isTrial ? 'Free Trial (Expired)' : `${lastSub.packageId?.name || 'Plan'} (Expired)`);
+                setFullSubscription({ ...lastSub, status: "expired" });
+                setCurrentPlan(
+                  lastSub.isTrial
+                    ? "Free Trial (Expired)"
+                    : `${lastSub.packageId?.name || "Plan"} (Expired)`,
+                );
               } else {
-                setCurrentPlan('No Active Plan');
+                setCurrentPlan("No Active Plan");
               }
             } catch {
-              setCurrentPlan('No Active Plan');
+              setCurrentPlan("No Active Plan");
             }
           }
         } catch (error) {
-          console.error('Error fetching subscription in layout', error);
+          console.error("Error fetching subscription in layout", error);
         }
       };
       fetchSubscription();
@@ -383,66 +481,124 @@ export default function DashboardLayout({
     );
   }
 
-  const getSidebarItemProps = (id: string, defaultBadge?: string, defaultBadgeType?: string) => {
-    const config = sidebarMenu?.find(item => item.id === id);
-    if (!config) return { badge: defaultBadge, badgeType: defaultBadgeType, isActive: true, message: '' };
+  const getSidebarItemProps = (
+    id: string,
+    defaultBadge?: string,
+    defaultBadgeType?: string,
+  ) => {
+    const config = sidebarMenu?.find((item) => item.id === id);
+    if (!config)
+      return {
+        badge: defaultBadge,
+        badgeType: defaultBadgeType,
+        isActive: true,
+        message: "",
+      };
     return {
-      badge: config.badge !== 'none' ? config.badge.toUpperCase() : defaultBadge,
-      badgeType: config.badge !== 'none' ? config.badge.toUpperCase() : defaultBadgeType,
+      badge:
+        config.badge !== "none" ? config.badge.toUpperCase() : defaultBadge,
+      badgeType:
+        config.badge !== "none" ? config.badge.toUpperCase() : defaultBadgeType,
       isActive: config.isActive,
-      message: config.message || '',
+      message: config.message || "",
     };
   };
 
   const navGroups = [
     {
       items: [
-        { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-        { name: 'Orders', path: '/dashboard/orders', icon: ShoppingBag },
-        { name: 'Products', path: '/dashboard/products', icon: Package },
-        { name: 'Categories', path: '/dashboard/categories', icon: ListTree },
-        { name: 'Customers', path: '/dashboard/customers', icon: Users },
-        { name: 'Courier', path: '/dashboard/courier-automation', icon: Truck, ...getSidebarItemProps('courier') },
-        { name: 'Fraud Check', path: '/dashboard/fraud-check', icon: ShieldCheck, ...getSidebarItemProps('fraudCheck') },
-        { name: 'Checkout Leads', path: '/dashboard/checkout-leads', icon: Users, ...getSidebarItemProps('checkoutLeads') },
-        { 
-          name: 'Notifications', 
-          path: '/dashboard/notifications', 
-          icon: Bell, 
-          badge: unreadNotifications > 0 ? (unreadNotifications > 99 ? '99+' : String(unreadNotifications)) : undefined, 
-          badgeType: 'COUNT' 
+        { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+        { name: "Orders", path: "/dashboard/orders", icon: ShoppingBag },
+        { name: "Products", path: "/dashboard/products", icon: Package },
+        { name: "Categories", path: "/dashboard/categories", icon: ListTree },
+        { name: "Customers", path: "/dashboard/customers", icon: Users },
+        {
+          name: "Courier",
+          path: "/dashboard/courier-automation",
+          icon: Truck,
+          ...getSidebarItemProps("courier"),
         },
-      ]
+        {
+          name: "Fraud Check",
+          path: "/dashboard/fraud-check",
+          icon: ShieldCheck,
+          ...getSidebarItemProps("fraudCheck"),
+        },
+        {
+          name: "Checkout Leads",
+          path: "/dashboard/checkout-leads",
+          icon: Users,
+          ...getSidebarItemProps("checkoutLeads"),
+        },
+        {
+          name: "Notifications",
+          path: "/dashboard/notifications",
+          icon: Bell,
+          badge:
+            unreadNotifications > 0
+              ? unreadNotifications > 99
+                ? "99+"
+                : String(unreadNotifications)
+              : undefined,
+          badgeType: "COUNT",
+        },
+      ],
     },
     {
-      title: 'Shop & Growth',
+      title: "Shop & Growth",
       items: [
-        { name: 'Analytics', path: '/dashboard/analytics', icon: BarChart2 },
-        { name: 'Tracking & Pixels', path: '/dashboard/pixels', icon: Activity },
-        { name: 'Themes', path: '/dashboard/themes', icon: Palette },
-      ]
+        { name: "Analytics", path: "/dashboard/analytics", icon: BarChart2 },
+        {
+          name: "Tracking & Pixels",
+          path: "/dashboard/pixels",
+          icon: Activity,
+        },
+        { name: "Themes", path: "/dashboard/themes", icon: Palette },
+      ],
     },
     {
-      title: 'Settings',
+      title: "Settings",
       items: [
-        { name: 'Profile', path: '/dashboard/profile', icon: UserCog },
-        { name: 'Security & 2FA', path: '/dashboard/security', icon: ShieldCheck },
-        { name: 'Domain', path: '/dashboard/domain', icon: Globe },
-        { name: 'API Keys', path: '/dashboard/api-keys', icon: Key, ...getSidebarItemProps('apiKeys') },
-        { name: 'Payment Methods', path: '/dashboard/payment-methods', icon: Banknote },
-        { name: 'Support', path: '/dashboard/support', icon: LifeBuoy, badge: openTicketsCount > 0 ? String(openTicketsCount) : undefined, badgeType: 'OPEN' },
-        { 
-          name: 'Subscription', 
+        { name: "Profile", path: "/dashboard/profile", icon: UserCog },
+        {
+          name: "Security & 2FA",
+          path: "/dashboard/security",
+          icon: ShieldCheck,
+        },
+        { name: "Domain", path: "/dashboard/domain", icon: Globe },
+        {
+          name: "API Keys",
+          path: "/dashboard/api-keys",
+          icon: Key,
+          ...getSidebarItemProps("apiKeys"),
+        },
+        {
+          name: "Payment Methods",
+          path: "/dashboard/payment-methods",
+          icon: Banknote,
+        },
+        {
+          name: "Support",
+          path: "/dashboard/support",
+          icon: LifeBuoy,
+          badge: openTicketsCount > 0 ? String(openTicketsCount) : undefined,
+          badgeType: "OPEN",
+        },
+        {
+          name: "Subscription",
           icon: CreditCard,
           subItems: [
-            { name: 'My Plan', path: '/dashboard/subscription' },
-            { name: 'Add-ons', path: '/dashboard/subscription/addons' },
-            { name: 'Payment History', path: '/dashboard/subscription/payment' },
+            { name: "My Plan", path: "/dashboard/subscription" },
+            { name: "Add-ons", path: "/dashboard/subscription/addons" },
+            {
+              name: "Payment History",
+              path: "/dashboard/subscription/payment",
+            },
             // { name: 'Make Payment', path: '/dashboard/subscription/payment?tab=manual' }
-          ]
+          ],
         },
-      ]
-    }
+      ],
+    },
   ];
 
   let banner = null;
@@ -451,39 +607,86 @@ export default function DashboardLayout({
     banner = (
       <div className="bg-red-50 text-red-600 px-4 py-2 flex items-center justify-center gap-2 border-b border-red-100 text-sm font-medium z-50">
         <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-        <span>{isTrial ? '⏱️ Your free trial has ended.' : '🔴 Your subscription has expired.'} Your store is currently <strong>offline</strong>.</span>
-        <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-red-700 whitespace-nowrap">
-          {isTrial ? 'Upgrade Now' : 'Subscribe Now'}
+        <span>
+          {isTrial
+            ? "⏱️ Your free trial has ended."
+            : "🔴 Your subscription has expired."}{" "}
+          Your store is currently <strong>offline</strong>.
+        </span>
+        <Link
+          href="/dashboard/subscription"
+          className="underline font-bold ml-2 hover:text-red-700 whitespace-nowrap"
+        >
+          {isTrial ? "Upgrade Now" : "Subscribe Now"}
         </Link>
       </div>
     );
   } else if (fullSubscription) {
     const end = new Date(fullSubscription.endDate);
     const now = new Date();
-    const daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-    
-    if (fullSubscription.status === 'expired' || fullSubscription.status === 'cancelled' || daysLeft <= 0) {
+    const daysLeft = Math.max(
+      0,
+      Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
+    );
+
+    if (
+      fullSubscription.status === "expired" ||
+      fullSubscription.status === "cancelled" ||
+      daysLeft <= 0
+    ) {
       banner = (
         <div className="bg-red-50 text-red-600 px-4 py-2 flex items-center justify-center gap-2 border-b border-red-100 text-sm font-medium z-50">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-          <span>{fullSubscription.isTrial ? '⏱️ Your free trial has ended.' : '🔴 Your subscription has expired.'} Your store is currently <strong>offline</strong>.</span>
-          <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-red-700 whitespace-nowrap">{fullSubscription.isTrial ? 'Upgrade Now' : 'Subscribe Now'}</Link>
+          <span>
+            {fullSubscription.isTrial
+              ? "⏱️ Your free trial has ended."
+              : "🔴 Your subscription has expired."}{" "}
+            Your store is currently <strong>offline</strong>.
+          </span>
+          <Link
+            href="/dashboard/subscription"
+            className="underline font-bold ml-2 hover:text-red-700 whitespace-nowrap"
+          >
+            {fullSubscription.isTrial ? "Upgrade Now" : "Subscribe Now"}
+          </Link>
         </div>
       );
     } else if (daysLeft <= 5 && fullSubscription.isTrial) {
       banner = (
         <div className="bg-amber-50 text-amber-700 px-4 py-2 flex items-center justify-center gap-2 border-b border-amber-100 text-sm font-medium z-50">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-          <span>⏱️ Your free trial expires in <strong>{daysLeft} {daysLeft === 1 ? 'day' : 'days'}</strong>. Upgrade now to keep your store live after the trial.</span>
-          <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-amber-800 whitespace-nowrap">View Plans</Link>
+          <span>
+            ⏱️ Your free trial expires in{" "}
+            <strong>
+              {daysLeft} {daysLeft === 1 ? "day" : "days"}
+            </strong>
+            . Upgrade now to keep your store live after the trial.
+          </span>
+          <Link
+            href="/dashboard/subscription"
+            className="underline font-bold ml-2 hover:text-amber-800 whitespace-nowrap"
+          >
+            View Plans
+          </Link>
         </div>
       );
     } else if (daysLeft <= 5 && !fullSubscription.isTrial) {
       banner = (
         <div className="bg-orange-50 text-orange-700 px-4 py-2 flex items-center justify-center gap-2 border-b border-orange-100 text-sm font-medium z-50">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-          <span>⚠️ Your subscription expires in <strong>{daysLeft} {daysLeft === 1 ? 'day' : 'days'}</strong>. Renew now to avoid any downtime.</span>
-          <Link href="/dashboard/subscription" className="underline font-bold ml-2 hover:text-orange-800 whitespace-nowrap">Renew Now</Link>
+          <span>
+            ⚠️ Your subscription expires in{" "}
+            <strong>
+              {daysLeft} {daysLeft === 1 ? "day" : "days"}
+            </strong>
+            . Renew now to avoid any downtime.
+          </span>
+          <Link
+            href="/dashboard/subscription"
+            className="underline font-bold ml-2 hover:text-orange-800 whitespace-nowrap"
+          >
+            Renew Now
+          </Link>
         </div>
       );
     }
@@ -493,22 +696,26 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-gray-50 text-gray-800 font-sans overflow-hidden">
       {/* Mobile overlay */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-gray-900/50 z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside 
+      <aside
         className={`fixed inset-y-0 left-0 z-50 w-[260px] flex-shrink-0 border-r border-[#122846] bg-[#122846] flex flex-col h-full overflow-hidden transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="h-16 flex items-center justify-between px-6 border-b border-white/10 flex-shrink-0">
           <div className="flex flex-col justify-center">
             <div className="flex items-center gap-2">
-              <img src="/masheco-logo.png" alt="MASH ECO" className="w-8 h-8 object-contain" />
+              <img
+                src="/masheco-logo.png"
+                alt="MASH ECO"
+                className="w-8 h-8 object-contain"
+              />
               <h1 className="text-2xl font-righteous text-white tracking-tight leading-none mt-0.5">
                 MASH ECO
               </h1>
@@ -519,7 +726,7 @@ export default function DashboardLayout({
               </span>
             </div>
           </div>
-          <button 
+          <button
             className="lg:hidden p-1 text-slate-400 hover:bg-white/10 hover:text-white rounded-md"
             onClick={() => setIsSidebarOpen(false)}
           >
@@ -528,35 +735,48 @@ export default function DashboardLayout({
         </div>
         <div className="p-4 overflow-y-auto flex-1 custom-scrollbar">
           {navGroups.map((group, idx) => (
-            <div key={idx} className={idx > 0 ? 'mt-6' : ''}>
+            <div key={idx} className={idx > 0 ? "mt-6" : ""}>
               {group.title && (
                 <div className="flex items-center px-3 mb-2">
                   <h3 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
                     {group.title}
                   </h3>
-                  {(group as any).titleBadge && <Badge>{(group as any).titleBadge}</Badge>}
+                  {(group as any).titleBadge && (
+                    <Badge>{(group as any).titleBadge}</Badge>
+                  )}
                 </div>
               )}
               <nav className="flex flex-col gap-0.5">
                 {group.items.map((item) => (
-                  <SidebarItem key={item.name} item={item} pathname={pathname} />
+                  <SidebarItem
+                    key={item.name}
+                    item={item}
+                    pathname={pathname}
+                  />
                 ))}
               </nav>
             </div>
           ))}
         </div>
-        
+
         {/* Subscription Status Card */}
         <div className="p-4 border-t border-white/10 bg-[#122846]">
           {subscriptionExpired ? (
             <div className="border border-red-500/30 rounded-xl p-3 bg-red-500/10 shadow-sm">
               <div className="flex items-center gap-2 mb-1">
                 <AlertTriangle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
-                <span className="font-semibold text-sm text-red-400 truncate">{currentPlan}</span>
+                <span className="font-semibold text-sm text-red-400 truncate">
+                  {currentPlan}
+                </span>
                 <div className="w-1.5 h-1.5 bg-red-500 rounded-full ml-auto flex-shrink-0"></div>
               </div>
-              <p className="text-xs text-red-300 mb-3">Your store is currently offline.</p>
-              <Link href="/dashboard/subscription" className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center">
+              <p className="text-xs text-red-300 mb-3">
+                Your store is currently offline.
+              </p>
+              <Link
+                href="/dashboard/subscription"
+                className="w-full bg-red-600 hover:bg-red-700 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center"
+              >
                 Subscribe Now
               </Link>
             </div>
@@ -566,13 +786,21 @@ export default function DashboardLayout({
                 <div className="w-4 h-4 text-purple-400 flex items-center justify-center">
                   <Star className="w-3.5 h-3.5 fill-current" />
                 </div>
-                <span className="font-semibold text-sm text-white truncate">{currentPlan || '...'}</span>
+                <span className="font-semibold text-sm text-white truncate">
+                  {currentPlan || "..."}
+                </span>
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full ml-auto flex-shrink-0"></div>
               </div>
-              {(currentPlan.toLowerCase().includes('trial') || currentPlan.toLowerCase().includes('free')) && (
+              {(currentPlan.toLowerCase().includes("trial") ||
+                currentPlan.toLowerCase().includes("free")) && (
                 <>
-                  <p className="text-xs text-slate-400 mb-3">Upgrade to unlock all features.</p>
-                  <Link href="/dashboard/subscription" className="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center">
+                  <p className="text-xs text-slate-400 mb-3">
+                    Upgrade to unlock all features.
+                  </p>
+                  <Link
+                    href="/dashboard/subscription"
+                    className="w-full bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium py-2 rounded-lg transition-colors flex items-center justify-center"
+                  >
                     Upgrade Plan
                   </Link>
                 </>
@@ -584,61 +812,86 @@ export default function DashboardLayout({
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
         {banner}
-        {storeStatus === 'suspended' && (
+        {storeStatus === "suspended" && (
           <div className="px-5 py-3 bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white flex flex-wrap items-center justify-between gap-3 shadow-md shrink-0 z-40">
             <div className="flex items-center gap-3">
               <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-xs shrink-0">
                 <AlertTriangle className="w-5 h-5 text-white" />
               </div>
               <span className="text-sm font-medium">
-                <strong className="font-bold">Account Suspended:</strong> Your dashboard is in <span className="underline decoration-white/50 underline-offset-2">Read-Only mode</span>. Data modifications are disabled.
+                <strong className="font-bold">Account Suspended:</strong> Your
+                dashboard is in{" "}
+                <span className="underline decoration-white/50 underline-offset-2">
+                  Read-Only mode
+                </span>
+                . Data modifications are disabled.
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Link href="/dashboard/support" className="px-3.5 py-1.5 bg-white text-red-700 rounded-lg font-bold text-xs hover:bg-red-50 transition-all shadow-sm">
+              <Link
+                href="/dashboard/support"
+                className="px-3.5 py-1.5 bg-white text-red-700 rounded-lg font-bold text-xs hover:bg-red-50 transition-all shadow-sm"
+              >
                 Contact Support
               </Link>
-              <Link href="/dashboard/subscription" className="px-3.5 py-1.5 bg-red-900/80 text-white rounded-lg font-bold text-xs hover:bg-red-950 transition-all border border-red-400/30 shadow-sm">
+              <Link
+                href="/dashboard/subscription"
+                className="px-3.5 py-1.5 bg-red-900/80 text-white rounded-lg font-bold text-xs hover:bg-red-950 transition-all border border-red-400/30 shadow-sm"
+              >
                 Subscription
               </Link>
             </div>
           </div>
         )}
-        {storeStatus === 'pending' && (
+        {storeStatus === "pending" && (
           <div className="px-5 py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white flex flex-wrap items-center justify-between gap-3 shadow-md shrink-0 z-40">
             <div className="flex items-center gap-3">
               <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-xs shrink-0">
                 <Clock className="w-5 h-5 text-white" />
               </div>
               <span className="text-sm font-medium">
-                <strong className="font-bold">Account Pending Approval:</strong> Your Account is awaiting administration review. You can set up your account details and products.
+                <strong className="font-bold">Account Pending Approval:</strong>{" "}
+                Your Account is awaiting administration review. You can set up
+                your account details and products.
               </span>
             </div>
-            <Link href="/dashboard/support" className="px-3.5 py-1.5 bg-white text-blue-700 rounded-lg font-bold text-xs hover:bg-blue-50 transition-all shadow-sm">
+            <Link
+              href="/dashboard/support"
+              className="px-3.5 py-1.5 bg-white text-blue-700 rounded-lg font-bold text-xs hover:bg-blue-50 transition-all shadow-sm"
+            >
               Contact Support
             </Link>
           </div>
         )}
-        {storeStatus === 'inactive' && (
+        {storeStatus === "inactive" && (
           <div className="px-5 py-3 bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white flex flex-wrap items-center justify-between gap-3 shadow-md shrink-0 z-40">
             <div className="flex items-center gap-3">
               <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-xs shrink-0">
                 <AlertCircle className="w-5 h-5 text-white" />
               </div>
               <span className="text-sm font-medium">
-                <strong className="font-bold">Account Inactive:</strong> Your account is inactive. The store website is offline and customers cannot place orders. Contact support to reactivate it.
+                <strong className="font-bold">Account Inactive:</strong> Your
+                account is inactive. The store website is offline and customers
+                cannot place orders. Contact support to reactivate it.
               </span>
             </div>
-            <Link href="/dashboard/support" className="px-3.5 py-1.5 bg-white text-orange-700 rounded-lg font-bold text-xs hover:bg-orange-50 transition-all shadow-sm">
+            <Link
+              href="/dashboard/support"
+              className="px-3.5 py-1.5 bg-white text-orange-700 rounded-lg font-bold text-xs hover:bg-orange-50 transition-all shadow-sm"
+            >
               Contact Support
             </Link>
           </div>
         )}
-        
+
         {/* Mobile Top Branding Bar */}
         <div className="lg:hidden h-12 px-3 border-b border-gray-100 flex flex-col items-center justify-center bg-white flex-shrink-0">
           <div className="flex items-center gap-1.5">
-            <img src="/masheco-logo.png" alt="MASH ECO" className="w-6 h-6 object-contain" />
+            <img
+              src="/masheco-logo.png"
+              alt="MASH ECO"
+              className="w-6 h-6 object-contain"
+            />
             <h1 className="text-lg font-righteous text-gray-900 tracking-tight leading-none mt-0.5">
               MASH ECO
             </h1>
@@ -653,7 +906,7 @@ export default function DashboardLayout({
         {/* Header */}
         <header className="h-14 sm:h-16 flex items-center justify-between px-2.5 sm:px-6 border-b border-gray-100 flex-shrink-0 bg-white min-w-0">
           <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
-            <button 
+            <button
               className="lg:hidden p-1.5 text-gray-500 hover:bg-gray-100 rounded-md shrink-0"
               onClick={() => setIsSidebarOpen(true)}
             >
@@ -662,52 +915,104 @@ export default function DashboardLayout({
 
             {/* Desktop Page Title (and mobile page title) */}
             <div className="flex flex-col justify-center min-w-0">
-               <h2 className="text-sm sm:text-lg font-bold text-gray-900 truncate">
-                 {pathname === '/dashboard/orders' ? 'Orders Management' : 
-                  pathname === '/dashboard/products' ? 'Products Management' : 
-                  pathname === '/dashboard/categories' ? 'Categories Management' : 
-                  pathname === '/dashboard/customers' ? 'Customers Management' : 
-                  pathname === '/dashboard/security' ? 'Security Settings' : 
-                  pathname === '/dashboard/profile' ? 'Merchant Profile' : 
-                  pathname === '/dashboard/courier-automation' ? 'Courier' : 
-                  pathname === '/dashboard/fraud-check' ? 'Fraud Check & Risk' : 
-                  pathname === '/dashboard/checkout-leads' ? 'Checkout Leads' : 
-                  pathname === '/dashboard/themes' ? 'Store Themes & Branding' : 
-                  pathname === '/dashboard/subscription' ? 'Subscription & Plan' : 
-                  pathname === '/dashboard/subscription/addons' ? 'Subscription Add-ons' : 
-                  pathname === '/dashboard/notifications' ? 'Notifications' : 
-                  pathname === '/dashboard/payment-methods' ? 'Payment Methods' : 
-                  pathname === '/dashboard/api-keys' ? 'API Keys & Integrations' : 
-                  pathname === '/dashboard/domain' ? 'Domain Management' : 
-                  pathname === '/dashboard/analytics' ? 'Analytics' : 
-                  pathname === '/dashboard/pixels' ? 'Marketing & Tracking' : 
-                  pathname === '/dashboard/support' ? 'Support' : 
-                  'Dashboard'}
-               </h2>
-               {pathname !== '/dashboard' && (
-                 <p className="text-xs text-gray-500 hidden sm:block truncate">
-                 {pathname === '/dashboard/orders' ? 'View and process customer orders' : 
-                  pathname === '/dashboard/products' ? "Manage your store's inventory" : 
-                  pathname === '/dashboard/categories' ? 'Organize your products into categories' : 
-                  pathname === '/dashboard/customers' ? 'Manage your customer relationships' : 
-                  pathname === '/dashboard/security' ? 'Manage security settings and account password' :
-                  pathname === '/dashboard/profile' ? 'Manage your merchant profile and store settings' :
-                  pathname === '/dashboard/courier-automation' ? 'Automate courier integration and shipments' : 
-                  pathname === '/dashboard/fraud-check' ? 'Monitor orders for fraud detection' : 
-                  pathname === '/dashboard/checkout-leads' ? 'Track abandoned checkout leads and recovered sales' :
-                  pathname === '/dashboard/themes' ? 'Customize your storefront appearance' :
-                  pathname === '/dashboard/subscription' ? 'Manage your subscription plan and billing' :
-                  pathname === '/dashboard/subscription/addons' ? 'Browse and activate add-on services' :
-                  pathname === '/dashboard/notifications' ? "Stay updated with your store's activity (auto-clears after 30 days)" : 
-                  pathname === '/dashboard/payment-methods' ? 'Configure mobile banking and manual payment options for your customers' : 
-                  pathname === '/dashboard/api-keys' ? 'Manage your third-party integrations securely. These keys allow your store to send emails and process payments.' : 
-                  pathname === '/dashboard/domain' ? 'Enter your custom domain below and configure your DNS. Our system will automatically verify the records and issue a free SSL certificate.' : 
-                  pathname === '/dashboard/analytics' ? "Track your store's performance" : 
-                  pathname === '/dashboard/pixels' ? 'Configure analytics and marketing tracking IDs for your store' : 
-                  pathname === '/dashboard/support' ? 'Contact the super admin for assistance with your store.' : 
-                  ''}
-               </p>
-             )}
+              <h2 className="text-sm sm:text-lg font-bold text-gray-900 truncate">
+                {pathname === "/dashboard/orders"
+                  ? "Orders Management"
+                  : pathname === "/dashboard/products"
+                    ? "Products Management"
+                    : pathname === "/dashboard/categories"
+                      ? "Categories Management"
+                      : pathname === "/dashboard/customers"
+                        ? "Customers Management"
+                        : pathname === "/dashboard/security"
+                          ? "Security Settings"
+                          : pathname === "/dashboard/profile"
+                            ? "Merchant Profile"
+                            : pathname === "/dashboard/courier-automation"
+                              ? "Courier"
+                              : pathname === "/dashboard/fraud-check"
+                                ? "Fraud Check & Risk"
+                                : pathname === "/dashboard/checkout-leads"
+                                  ? "Checkout Leads"
+                                  : pathname === "/dashboard/themes"
+                                    ? "Store Themes & Branding"
+                                    : pathname === "/dashboard/subscription"
+                                      ? "Subscription & Plan"
+                                      : pathname ===
+                                          "/dashboard/subscription/addons"
+                                        ? "Subscription Add-ons"
+                                        : pathname ===
+                                            "/dashboard/notifications"
+                                          ? "Notifications"
+                                          : pathname ===
+                                              "/dashboard/payment-methods"
+                                            ? "Payment Methods"
+                                            : pathname === "/dashboard/api-keys"
+                                              ? "API Keys & Integrations"
+                                              : pathname === "/dashboard/domain"
+                                                ? "Domain Management"
+                                                : pathname ===
+                                                    "/dashboard/analytics"
+                                                  ? "Analytics"
+                                                  : pathname ===
+                                                      "/dashboard/pixels"
+                                                    ? "Marketing & Tracking"
+                                                    : pathname ===
+                                                        "/dashboard/support"
+                                                      ? "Support"
+                                                      : "Dashboard"}
+              </h2>
+              {pathname !== "/dashboard" && (
+                <p className="text-xs text-gray-500 hidden sm:block truncate">
+                  {pathname === "/dashboard/orders"
+                    ? "View and process customer orders"
+                    : pathname === "/dashboard/products"
+                      ? "Manage your store's inventory"
+                      : pathname === "/dashboard/categories"
+                        ? "Organize your products into categories"
+                        : pathname === "/dashboard/customers"
+                          ? "Manage your customer relationships"
+                          : pathname === "/dashboard/security"
+                            ? "Manage security settings and account password"
+                            : pathname === "/dashboard/profile"
+                              ? "Manage your merchant profile and store settings"
+                              : pathname === "/dashboard/courier-automation"
+                                ? "Automate courier integration and shipments"
+                                : pathname === "/dashboard/fraud-check"
+                                  ? "Monitor orders for fraud detection"
+                                  : pathname === "/dashboard/checkout-leads"
+                                    ? "Track abandoned checkout leads and recovered sales"
+                                    : pathname === "/dashboard/themes"
+                                      ? "Customize your storefront appearance"
+                                      : pathname === "/dashboard/subscription"
+                                        ? "Manage your subscription plan and billing"
+                                        : pathname ===
+                                            "/dashboard/subscription/addons"
+                                          ? "Browse and activate add-on services"
+                                          : pathname ===
+                                              "/dashboard/notifications"
+                                            ? "Stay updated with your store's activity (auto-clears after 30 days)"
+                                            : pathname ===
+                                                "/dashboard/payment-methods"
+                                              ? "Configure mobile banking and manual payment options for your customers"
+                                              : pathname ===
+                                                  "/dashboard/api-keys"
+                                                ? "Manage your third-party integrations securely. These keys allow your store to send emails and process payments."
+                                                : pathname ===
+                                                    "/dashboard/domain"
+                                                  ? "Enter your custom domain below and configure your DNS. Our system will automatically verify the records and issue a free SSL certificate."
+                                                  : pathname ===
+                                                      "/dashboard/analytics"
+                                                    ? "Track your store's performance"
+                                                    : pathname ===
+                                                        "/dashboard/pixels"
+                                                      ? "Configure analytics and marketing tracking IDs for your store"
+                                                      : pathname ===
+                                                          "/dashboard/support"
+                                                        ? "Contact the super admin for assistance with your store."
+                                                        : ""}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
@@ -715,42 +1020,64 @@ export default function DashboardLayout({
             {merchantUser && (
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="text-sm text-right hidden sm:block">
-                  <div className="font-medium text-gray-900">{merchantUser.name || 'Merchant'}</div>
-                  <div className="text-xs text-gray-500">{merchantUser.email}</div>
+                  <div className="font-medium text-gray-900">
+                    {merchantUser.name || "Merchant"}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {merchantUser.email}
+                  </div>
                 </div>
                 <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-100 text-[#5022C3] flex items-center justify-center font-bold overflow-hidden border border-purple-200 shrink-0">
                   {merchantUser.avatar?.secure_url ? (
-                    <img src={merchantUser.avatar.secure_url} alt="Profile" className="w-full h-full object-cover" />
+                    <img
+                      src={merchantUser.avatar.secure_url}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
-                    (merchantUser.name || merchantUser.email || 'M').charAt(0).toUpperCase()
+                    (merchantUser.name || merchantUser.email || "M")
+                      .charAt(0)
+                      .toUpperCase()
                   )}
                 </div>
               </div>
             )}
-            <button 
+            <button
               onClick={async () => {
                 try {
-                  await api.post('/auth/logout');
+                  await api.post("/auth/logout");
                 } catch (err) {
-                  console.error('Logout error', err);
+                  console.error("Logout error", err);
                 }
-                localStorage.removeItem('merchantUser');
-                sessionStorage.removeItem('merchantUser');
-                window.location.href = '/login';
+                localStorage.removeItem("merchantUser");
+                sessionStorage.removeItem("merchantUser");
+                window.location.href = "/login";
               }}
               className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0"
               title="Logout"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
             </button>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto">{children}</div>
       </main>
-      
+
       <Toaster position="top-right" />
 
       <style jsx global>{`
