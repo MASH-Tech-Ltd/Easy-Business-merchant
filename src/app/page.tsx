@@ -10,27 +10,19 @@ import { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "MASH ECO | Launch Your E-Commerce Store – Zero Coding Required",
+  title: { absolute: "MASH ECO | Launch Your E-Commerce Store – Zero Coding Required" },
   description:
     "MASH ECO (MashEco / Mash Eco) — Bangladesh's leading multi-tenant SaaS e-commerce platform. Create your branded online store in minutes with seller verification, courier automation, fraud protection, and beautiful premium themes.",
   keywords: [
     "MASH ECO",
     "MashEco",
     "Mash Eco",
-    "mashe co",
     "masheco bangladesh",
-    "mash eco ecommerce",
-    "mash eco store",
-    "mash eco merchant",
     "ecommerce SaaS Bangladesh",
     "multi-tenant ecommerce platform",
     "online store builder Bangladesh",
     "sell online Bangladesh",
     "ecommerce platform",
-    "merchant dashboard Bangladesh",
-    "MASH TECH",
-    "mash tech ltd",
-    "courier automation ecommerce",
   ],
   icons: {
     icon: "/masheco-logo.png",
@@ -44,7 +36,7 @@ export const metadata: Metadata = {
     siteName: "MASH ECO",
     images: [
       {
-        url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+        url: "https://www.masheco.com/masheco-logo.png",
         width: 1200,
         height: 630,
         alt: "MASH ECO - E-Commerce Platform Dashboard",
@@ -59,7 +51,7 @@ export const metadata: Metadata = {
     description:
       "Launch and scale your store today with MASH ECO. Zero coding required.",
     images: [
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
+      "https://www.masheco.com/masheco-logo.png",
     ],
     site: "@masheco",
   },
@@ -137,6 +129,8 @@ export default async function LandingPage() {
     name: "MASH ECO",
     applicationCategory: "BusinessApplication",
     operatingSystem: "Any",
+    url: "https://www.masheco.com",
+    image: "https://www.masheco.com/masheco-logo.png",
     offers: packages.map((pkg) => ({
       "@type": "Offer",
       name: pkg.name,
@@ -147,24 +141,21 @@ export default async function LandingPage() {
       "A comprehensive multi-tenant e-commerce platform specifically optimized for merchants.",
   };
 
+
+
   const websiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "MASH ECO",
-    alternateName: ["MashEco", "Mash Eco", "mashe co", "MASH TECH"],
+    alternateName: ["MashEco", "Mash Eco"],
     url: "https://www.masheco.com/",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: "https://www.masheco.com/search?q={search_term_string}",
-      "query-input": "required name=search_term_string",
-    },
   };
 
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "MASH ECO",
-    alternateName: ["MashEco", "Mash Eco", "mashe co", "MASH TECH LTD"],
+    alternateName: ["MashEco", "Mash Eco"],
     url: "https://www.masheco.com",
     logo: "https://www.masheco.com/masheco-logo.png",
     description:
@@ -174,7 +165,6 @@ export default async function LandingPage() {
       contactType: "customer support",
       availableLanguage: ["English", "Bengali"],
     },
-    sameAs: ["https://www.masheco.com"],
   };
 
   return (

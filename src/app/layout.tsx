@@ -8,6 +8,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const righteous = Righteous({ weight: '400', subsets: ['latin'], variable: '--font-righteous' });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.masheco.com'),
   applicationName: 'MASH ECO',
   title: {
     default: 'MASH ECO | Multi-Tenant E-Commerce Platform for Merchants',
@@ -45,7 +46,6 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'MASH ECO | Multi-Tenant E-Commerce Platform',
     description: 'Launch and scale your business with MASH ECO. Zero coding required. Premium themes, courier automation & fraud protection.',
-    url: 'https://www.masheco.com',
     siteName: 'MASH ECO',
     locale: 'en_US',
     type: 'website',
@@ -56,9 +56,6 @@ export const metadata: Metadata = {
     description: 'Launch your online store with MASH ECO. Zero coding required.',
     site: '@masheco',
   },
-  alternates: {
-    canonical: 'https://www.masheco.com',
-  },
 };
 
 
@@ -67,23 +64,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // WebSite schema — tells Google to display "MASH ECO" as the site name
-  // in search results instead of the raw domain "masheco.com"
-  const websiteJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'MASH ECO',
-    alternateName: ['MashEco', 'Mash Eco', 'MASH TECH'],
-    url: 'https://www.masheco.com/',
-  };
-
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${righteous.variable} h-full antialiased`}>
       <body suppressHydrationWarning className="min-h-full flex flex-col font-sans">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
-        />
         <Toaster position="top-right" />
         <SocketProvider>
           {children}
