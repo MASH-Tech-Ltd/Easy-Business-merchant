@@ -131,14 +131,18 @@ export default async function LandingPage() {
     operatingSystem: "Any",
     url: "https://www.masheco.com",
     image: "https://www.masheco.com/masheco-logo.png",
-    offers: packages.map((pkg) => ({
-      "@type": "Offer",
-      name: pkg.name,
-      price: pkg.price.toString(),
-      priceCurrency: "BDT",
-    })),
+    offers: packages.map((pkg) => {
+      const label = pkg.billingCycle === "yearly" ? "Yearly" : pkg.billingCycle === "monthly" ? "Monthly" : "";
+      return {
+        "@type": "Offer",
+        name: label ? `${pkg.name} (${label})` : pkg.name,
+        price: pkg.price.toString(),
+        priceCurrency: "BDT",
+        url: "https://www.masheco.com/#pricing",
+      };
+    }),
     description:
-      "A comprehensive multi-tenant e-commerce platform specifically optimized for merchants.",
+      "MASH ECO is an all-in-one platform for Bangladeshi merchants to build, manage, and scale an online store with inventory, courier automation, and fraud checks, no coding required.",
   };
 
 
