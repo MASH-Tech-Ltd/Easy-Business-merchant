@@ -104,7 +104,8 @@ async function getPublicPackages(): Promise<IPackage[]> {
       // Ignore if outside request context
     }
 
-    const res = await fetch(`${apiUrl}/packages/public-packages`, {
+    const fetchUrl = `${apiUrl}/packages/public-packages`.replace('localhost', '127.0.0.1');
+    const res = await fetch(fetchUrl, {
       cache: "no-store", // Always fetch fresh — package pricing changes must reflect immediately
       headers: headersInit,
     });
