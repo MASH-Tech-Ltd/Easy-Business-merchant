@@ -16,6 +16,7 @@ import {
   Printer,
   ShieldCheck,
   Truck,
+  ExternalLink,
 } from "lucide-react";
 import { api } from "@/utils/api";
 import { toast } from "react-hot-toast";
@@ -48,6 +49,7 @@ interface Order {
   isDeliveryChargePaid?: boolean;
   consignmentId?: string;
   courierProvider?: string;
+  courierTrackingUrl?: string;
 }
 
 let globalOrdersCache: Order[] = [];
@@ -1183,8 +1185,15 @@ export default function OrdersPage() {
                   const cid = forwardedInfoModal.order.consignmentId;
                   if (!cid) return;
 
-                  const url = getCourierTrackingUrl(provider, cid);
-                  setTrackingIframeUrl(url);
+                  const url =
+                    forwardedInfoModal.order.courierTrackingUrl ||
+                    getCourierTrackingUrl(provider, cid);
+
+                  if (provider === "redx") {
+                    window.open(url, "_blank", "noopener,noreferrer");
+                  } else {
+                    setTrackingIframeUrl(url);
+                  }
                 }}
                 className="flex-1 py-3 text-sm font-bold bg-[#5022C3] text-white hover:bg-[#401b9c] rounded-xl transition-colors shadow-md flex items-center justify-center gap-2"
               >
@@ -1217,12 +1226,23 @@ export default function OrdersPage() {
                 <Truck className="w-5 h-5 text-[#5022C3]" />
                 Live Tracking
               </h2>
-              <button
-                onClick={() => setTrackingIframeUrl(null)}
-                className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500 hover:text-gray-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <a
+                  href={trackingIframeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-[#5022C3] hover:bg-purple-50 px-3 py-1.5 rounded-lg border border-[#5022C3]/20 flex items-center gap-1.5 transition-colors"
+                >
+                  <span>Open in new tab</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+                <button
+                  onClick={() => setTrackingIframeUrl(null)}
+                  className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500 hover:text-gray-800"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             <div className="flex-1 w-full bg-gray-100 relative">
               <iframe

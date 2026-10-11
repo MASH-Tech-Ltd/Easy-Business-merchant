@@ -22,7 +22,7 @@ export const COURIER_PROVIDERS: CourierProvider[] = [
     id: "redx",
     name: "REDX",
     icon: "/Courier_images/redx-logo.png",
-    trackingUrl: (cid: string) => `https://redx.com.bd/track/${cid}`,
+    trackingUrl: (cid: string) => `https://redx.com.bd/track-parcel/?trackingId=${cid}`,
   },
 ];
 

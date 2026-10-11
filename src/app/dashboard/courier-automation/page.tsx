@@ -313,6 +313,8 @@ export default function CourierAutomation() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {activeProvider === "steadfast"
                       ? "API key (Leave blank to keep existing)"
+                      : activeProvider === "redx"
+                      ? "REDX Pickup Store ID (Leave blank to keep existing)"
                       : "Client ID (Leave blank to keep existing)"}
                   </label>
                   <input
@@ -323,6 +325,8 @@ export default function CourierAutomation() {
                     placeholder={
                       activeProvider === "steadfast"
                         ? "Enter API key"
+                        : activeProvider === "redx"
+                        ? "Enter your REDX Pickup Store ID"
                         : "Enter Client ID"
                     }
                   />
@@ -331,6 +335,8 @@ export default function CourierAutomation() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {activeProvider === "steadfast"
                       ? "Secret key (Leave blank to keep existing)"
+                      : activeProvider === "redx"
+                      ? "REDX API Access Token (Leave blank to keep existing)"
                       : "Client Secret (Leave blank to keep existing)"}
                   </label>
                   <div className="relative">
@@ -339,7 +345,11 @@ export default function CourierAutomation() {
                       value={apiSecret}
                       onChange={(e) => setApiSecret(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#5022C3] focus:outline-none"
-                      placeholder="••••••••••••shme"
+                      placeholder={
+                        activeProvider === "redx"
+                          ? "Enter your REDX API Access Token"
+                          : "••••••••••••shme"
+                      }
                     />
                   </div>
                 </div>
