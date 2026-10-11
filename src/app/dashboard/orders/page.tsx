@@ -22,7 +22,7 @@ import { api } from "@/utils/api";
 import { toast } from "react-hot-toast";
 import { EditOrderModal } from "./EditOrderModal";
 import { CourierModal } from "./CourierModal";
-import { getCourierTrackingUrl } from "@/config/couriers";
+import { getCourierTrackingUrl, getCourierIcon } from "@/config/couriers";
 
 interface OrderItem {
   productId: string;
@@ -226,6 +226,10 @@ export default function OrdersPage() {
   const handleCourierCheck = async (order: Order) => {
     if (order.consignmentId) {
       setForwardedInfoModal({ show: true, order });
+      return;
+    }
+    if (order.status === "cancelled") {
+      toast.error("This order is cancelled and cannot be forwarded to courier.");
       return;
     }
     setCheckingCourier(order._id);
@@ -586,16 +590,24 @@ export default function OrdersPage() {
                         </button>
                         <button
                           onClick={() => handleCourierCheck(order)}
-                          disabled={checkingCourier === order._id}
+                          disabled={checkingCourier === order._id || (!order.consignmentId && order.status === "cancelled")}
                           className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors tooltip ${
-                            order.consignmentId
-                              ? "bg-green-100 text-green-600"
-                              : "bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100"
+                            order.consignmentId && order.status === "cancelled"
+                              ? "bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200"
+                              : order.consignmentId
+                                ? "bg-green-100 text-green-600 hover:bg-green-200"
+                                : order.status === "cancelled"
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100"
                           }`}
                           title={
-                            order.consignmentId
-                              ? "Already forwarded"
-                              : "Forward to Courier"
+                            order.consignmentId && order.status === "cancelled"
+                              ? `Courier: ${order.courierProvider?.toUpperCase() || "Courier"} (Cancelled)`
+                              : order.consignmentId
+                                ? `Courier: ${order.courierProvider?.toUpperCase() || "Courier"} (Forwarded)`
+                                : order.status === "cancelled"
+                                  ? "Order is cancelled"
+                                  : "Forward to Courier"
                           }
                         >
                           {checkingCourier === order._id ? (
@@ -1141,30 +1153,65 @@ export default function OrdersPage() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl text-center">
             <div className="p-8">
-              <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-5">
+              <div
+                className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 ${
+                  forwardedInfoModal.order.status === "cancelled"
+                    ? "bg-rose-50 text-rose-500 border border-rose-100"
+                    : "bg-green-50 text-green-500"
+                }`}
+              >
                 <Truck className="w-8 h-8" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">
-                Order Forwarded
+                {forwardedInfoModal.order.status === "cancelled"
+                  ? "Courier Parcel Cancelled"
+                  : "Order Forwarded"}
               </h2>
               <p className="text-sm text-gray-500 mb-4">
-                This order has already been successfully forwarded to the
-                courier.
+                {forwardedInfoModal.order.status === "cancelled"
+                  ? "This parcel was forwarded to the courier but is currently cancelled or deleted."
+                  : "This order has already been successfully forwarded to the courier."}
               </p>
-              <div className="bg-gray-50 rounded-xl p-4 text-left border border-gray-100">
-                <div className="flex justify-between items-center mb-2">
+              <div className="bg-gray-50 rounded-xl p-4 text-left border border-gray-100 space-y-2.5">
+                <div className="flex justify-between items-center">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                    Provider
+                    Courier
                   </span>
-                  <span className="text-sm font-bold text-gray-900 capitalize">
-                    {forwardedInfoModal.order.courierProvider || "Unknown"}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <img
+                      src={getCourierIcon(forwardedInfoModal.order.courierProvider)}
+                      alt={forwardedInfoModal.order.courierProvider || "Courier"}
+                      className="w-4 h-4 object-contain rounded"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = "none";
+                      }}
+                    />
+                    <span className="text-sm font-bold text-gray-900 uppercase">
+                      {forwardedInfoModal.order.courierProvider || "Unknown"}
+                    </span>
+                  </div>
                 </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    Courier Status
+                  </span>
+                  {forwardedInfoModal.order.status === "cancelled" ? (
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+                      Cancelled
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200 capitalize">
+                      {forwardedInfoModal.order.status || "Forwarded"}
+                    </span>
+                  )}
+                </div>
+
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                     Consignment ID
                   </span>
-                  <span className="text-sm font-mono text-[#5022C3] bg-purple-50 px-2 py-0.5 rounded">
+                  <span className="text-sm font-mono text-[#5022C3] bg-purple-50 px-2 py-0.5 rounded font-semibold">
                     {forwardedInfoModal.order.consignmentId}
                   </span>
                 </div>
