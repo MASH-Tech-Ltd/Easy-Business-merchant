@@ -147,14 +147,6 @@ export default async function LandingPage() {
 
 
 
-  const websiteJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: "MASH ECO",
-    alternateName: ["MashEco", "Mash Eco"],
-    url: "https://www.masheco.com/",
-  };
-
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -176,10 +168,6 @@ export default async function LandingPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
       />
       <script
         type="application/ld+json"

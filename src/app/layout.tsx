@@ -38,6 +38,14 @@ export const metadata: Metadata = {
   verification: {
     google: 'googlee9d71bb183a3b7f7',
   },
+  alternates: {
+    canonical: 'https://www.masheco.com',
+  },
+  appleWebApp: {
+    title: 'MASH ECO',
+    capable: true,
+    statusBarStyle: 'default',
+  },
   icons: {
     icon: '/masheco-logo.png',
     apple: '/masheco-logo.png',
@@ -58,6 +66,13 @@ export const metadata: Metadata = {
   },
 };
 
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'MASH ECO',
+  alternateName: ['Mash Eco', 'MashEco'],
+  url: 'https://www.masheco.com/',
+};
 
 export default function RootLayout({
   children,
@@ -66,6 +81,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${righteous.variable} h-full antialiased`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+      </head>
       <body suppressHydrationWarning className="min-h-full flex flex-col font-sans">
         <Toaster position="top-right" />
         <SocketProvider>

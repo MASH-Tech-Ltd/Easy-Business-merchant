@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     ?? `Learn about ${title} at MASH ECO — the multi-tenant e-commerce platform built for merchants in Bangladesh.`;
 
   return {
-    title: `${title} | MASH ECO`,
+    title,
     description,
     keywords: ['MASH ECO', 'MashEco', title, 'ecommerce Bangladesh', 'merchant platform'].join(', '),
     openGraph: {
@@ -74,8 +74,31 @@ export default async function LandingContentPage({ params }: { params: Promise<{
 
   const content = contentMap[slug];
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'MASH ECO',
+        item: 'https://www.masheco.com/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: title,
+        item: `https://www.masheco.com/landing/${slug}`,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Navbar />
       
       <main className="flex-1 pt-32 pb-24">
