@@ -179,6 +179,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
                 onChange={handleChange}
                 options={[
                   { label: 'ACTIVE', value: 'ACTIVE' },
+                  { label: 'INACTIVE', value: 'INACTIVE' },
                   { label: 'DRAFT', value: 'DRAFT' },
                 ]}
               />

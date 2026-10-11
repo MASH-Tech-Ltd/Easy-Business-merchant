@@ -146,6 +146,7 @@ export default function AddCategoryPage() {
                 onChange={handleChange}
                 options={[
                   { label: 'ACTIVE', value: 'ACTIVE' },
+                  { label: 'INACTIVE', value: 'INACTIVE' },
                   { label: 'DRAFT', value: 'DRAFT' },
                 ]}
               />

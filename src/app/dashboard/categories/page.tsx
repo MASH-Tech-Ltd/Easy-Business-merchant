@@ -1,10 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, ListTree, ChevronLeft, ChevronRight, X } from 'lucide-react';
-import Link from 'next/link';
-import { api } from '@/utils/api';
-import toast from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  ListTree,
+  ChevronLeft,
+  ChevronRight,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { api } from "@/utils/api";
+import toast from "react-hot-toast";
 
 interface Category {
   _id: string;
@@ -22,7 +31,9 @@ let globalTotalPages = 1;
 let globalTotalRecords = 0;
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>(globalCategoriesCache);
+  const [categories, setCategories] = useState<Category[]>(
+    globalCategoriesCache,
+  );
   const [loading, setLoading] = useState(globalCategoriesCache.length === 0);
 
   // Pagination
@@ -32,7 +43,7 @@ export default function CategoriesPage() {
   const [totalRecords, setTotalRecords] = useState(globalTotalRecords);
 
   // Filters
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   // Modals
   const [deleteCategory, setDeleteCategory] = useState<Category | null>(null);
@@ -45,8 +56,8 @@ export default function CategoriesPage() {
   const fetchCategories = async () => {
     if (categories.length === 0) setLoading(true);
     try {
-      const response = await api.get('/categories/my-categories', {
-        params: { page, limit, search }
+      const response = await api.get("/categories/my-categories", {
+        params: { page, limit, search },
       });
       const newCategories = response.data.data || [];
       const newTotalPages = response.data.meta?.totalPages || 1;
@@ -60,8 +71,8 @@ export default function CategoriesPage() {
       setTotalPages(newTotalPages);
       setTotalRecords(newTotalRecords);
     } catch (error) {
-      console.error('Error fetching categories:', error);
-      toast.error('Failed to load categories');
+      console.error("Error fetching categories:", error);
+      toast.error("Failed to load categories");
     } finally {
       setLoading(false);
     }
@@ -72,13 +83,15 @@ export default function CategoriesPage() {
     setIsDeleting(true);
     try {
       // Assuming a delete endpoint exists. If not, this might need adjustment.
-      const response = await api.delete(`/categories/delete-category/${deleteCategory._id}`);
+      const response = await api.delete(
+        `/categories/delete-category/${deleteCategory._id}`,
+      );
       setDeleteCategory(null);
-      toast.success(response.data?.message || 'Category deleted successfully');
+      toast.success(response.data?.message || "Category deleted successfully");
       fetchCategories();
     } catch (error: any) {
-      console.error('Error deleting category:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete category');
+      console.error("Error deleting category:", error);
+      toast.error(error.response?.data?.message || "Failed to delete category");
     } finally {
       setIsDeleting(false);
     }
@@ -91,12 +104,12 @@ export default function CategoriesPage() {
         <div className="p-3 sm:p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3 bg-[#fcfcfc] shrink-0">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input 
+            <input
               type="text"
               placeholder="Search categories by name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && fetchCategories()}
+              onKeyDown={(e) => e.key === "Enter" && fetchCategories()}
               className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
             />
           </div>
@@ -104,7 +117,10 @@ export default function CategoriesPage() {
             <select className="border border-gray-300 rounded-lg text-xs sm:text-sm px-3 py-2 sm:py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium flex-1 sm:flex-none min-w-0">
               <option>Sort by: Newest</option>
             </select>
-            <Link href="/dashboard/categories/new" className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap flex-1 sm:flex-none">
+            <Link
+              href="/dashboard/categories/new"
+              className="bg-[#5022C3] hover:bg-[#401a9c] text-white px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors flex items-center justify-center gap-1.5 shadow-sm whitespace-nowrap flex-1 sm:flex-none"
+            >
               <Plus className="w-4 h-4 sm:w-5 sm:h-5" /> Add Category
             </Link>
           </div>
@@ -122,19 +138,35 @@ export default function CategoriesPage() {
               <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-4 mx-auto">
                 <ListTree className="w-8 h-8" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-1">No categories found</h3>
-              <p className="text-gray-500 text-sm mb-4">You haven't created any categories or none match your search.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-1">
+                No categories found
+              </h3>
+              <p className="text-gray-500 text-sm mb-4">
+                You haven't created any categories or none match your search.
+              </p>
               {!search && (
-                <Link href="/dashboard/categories/new" className="text-[#5022C3] font-bold text-sm hover:underline">Create your first category</Link>
+                <Link
+                  href="/dashboard/categories/new"
+                  className="text-[#5022C3] font-bold text-sm hover:underline"
+                >
+                  Create your first category
+                </Link>
               )}
             </div>
           ) : (
             categories.map((category) => (
-              <div key={category._id} className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 relative">
+              <div
+                key={category._id}
+                className="bg-white border border-gray-200 rounded-xl p-3 shadow-sm flex flex-col gap-2 relative"
+              >
                 <div className="flex gap-3 items-start pr-16">
                   {category.image?.secure_url ? (
                     <div className="w-12 h-12 rounded-lg border border-gray-200 bg-white p-0.5 shrink-0 overflow-hidden">
-                      <img src={category.image.secure_url} alt={category.name} className="w-full h-full object-cover rounded mix-blend-multiply" />
+                      <img
+                        src={category.image.secure_url}
+                        alt={category.name}
+                        className="w-full h-full object-cover rounded mix-blend-multiply"
+                      />
                     </div>
                   ) : (
                     <div className="w-12 h-12 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0">
@@ -142,26 +174,36 @@ export default function CategoriesPage() {
                     </div>
                   )}
                   <div className="flex-1 pt-0.5">
-                    <div className="font-bold text-gray-900 text-sm mb-1 line-clamp-1">{category.name}</div>
-                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold ${
-                      (!category.status || category.status === 'ACTIVE')
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {(!category.status || category.status === 'ACTIVE') ? 'Active' : 'Inactive'}
+                    <div className="font-bold text-gray-900 text-sm mb-1 line-clamp-1">
+                      {category.name}
+                    </div>
+                    <span
+                      className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold ${
+                        category.status === "DRAFT"
+                          ? "bg-amber-100 text-amber-800"
+                          : category.status === "INACTIVE"
+                            ? "bg-rose-100 text-rose-800"
+                            : "bg-green-100 text-green-800"
+                      }`}
+                    >
+                      {category.status === "DRAFT"
+                        ? "Draft"
+                        : category.status === "INACTIVE"
+                          ? "Inactive"
+                          : "Active"}
                     </span>
                   </div>
                 </div>
-                
+
                 {/* Action Buttons Top Right */}
                 <div className="absolute top-3 right-3 flex justify-end gap-1.5">
-                  <Link 
+                  <Link
                     href={`/dashboard/categories/${category._id}/edit`}
                     className="w-7 h-7 flex items-center justify-center bg-[#fff4ed] text-[#f97316] hover:bg-orange-100 rounded-lg transition-colors"
                   >
                     <Edit className="w-3.5 h-3.5" />
                   </Link>
-                  <button 
+                  <button
                     onClick={() => setDeleteCategory(category)}
                     className="w-7 h-7 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] hover:bg-red-100 rounded-lg transition-colors"
                   >
@@ -171,12 +213,20 @@ export default function CategoriesPage() {
 
                 <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-gray-100 mt-1">
                   <div>
-                    <div className="text-[9px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Products</div>
-                    <div className="font-bold text-gray-900 text-xs">{category.productCount || 0}</div>
+                    <div className="text-[9px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">
+                      Products
+                    </div>
+                    <div className="font-bold text-gray-900 text-xs">
+                      {category.productCount || 0}
+                    </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[9px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">Created At</div>
-                    <div className="text-xs font-medium text-gray-700">{new Date(category.createdAt).toLocaleDateString('en-GB')}</div>
+                    <div className="text-[9px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">
+                      Created At
+                    </div>
+                    <div className="text-xs font-medium text-gray-700">
+                      {new Date(category.createdAt).toLocaleDateString("en-GB")}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -211,20 +261,37 @@ export default function CategoriesPage() {
                     <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-4 mx-auto">
                       <ListTree className="w-8 h-8" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-1">No categories found</h3>
-                    <p className="text-gray-500 text-sm mb-4">You haven't created any categories or none match your search.</p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">
+                      No categories found
+                    </h3>
+                    <p className="text-gray-500 text-sm mb-4">
+                      You haven't created any categories or none match your
+                      search.
+                    </p>
                     {!search && (
-                      <Link href="/dashboard/categories/new" className="text-[#5022C3] font-bold text-sm hover:underline">Create your first category</Link>
+                      <Link
+                        href="/dashboard/categories/new"
+                        className="text-[#5022C3] font-bold text-sm hover:underline"
+                      >
+                        Create your first category
+                      </Link>
                     )}
                   </td>
                 </tr>
               ) : (
                 categories.map((category) => (
-                  <tr key={category._id} className="hover:bg-gray-50/80 transition-colors group">
+                  <tr
+                    key={category._id}
+                    className="hover:bg-gray-50/80 transition-colors group"
+                  >
                     <td className="px-6 py-4">
                       {category.image?.secure_url ? (
                         <div className="w-12 h-12 rounded-lg border border-gray-200 bg-white p-1 overflow-hidden">
-                           <img src={category.image.secure_url} alt={category.name} className="w-full h-full object-cover rounded mix-blend-multiply" />
+                          <img
+                            src={category.image.secure_url}
+                            alt={category.name}
+                            className="w-full h-full object-cover rounded mix-blend-multiply"
+                          />
                         </div>
                       ) : (
                         <div className="w-12 h-12 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400">
@@ -233,33 +300,49 @@ export default function CategoriesPage() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-bold text-gray-900 text-sm">{category.name}</div>
+                      <div className="font-bold text-gray-900 text-sm">
+                        {category.name}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                        (!category.status || category.status === 'ACTIVE')
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {(!category.status || category.status === 'ACTIVE') ? 'Active' : 'Inactive'}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          category.status === "DRAFT"
+                            ? "bg-amber-100 text-amber-800"
+                            : category.status === "INACTIVE"
+                              ? "bg-rose-100 text-rose-800"
+                              : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {category.status === "DRAFT"
+                          ? "Draft"
+                          : category.status === "INACTIVE"
+                            ? "Inactive"
+                            : "Active"}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-600">{category.productCount || 0} Products</div>
+                      <div className="text-sm font-medium text-gray-600">
+                        {category.productCount || 0} Products
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{new Date(category.createdAt).toLocaleDateString('en-GB')}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {new Date(category.createdAt).toLocaleDateString(
+                          "en-GB",
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
-                        <Link 
+                        <Link
                           href={`/dashboard/categories/${category._id}/edit`}
                           className="w-8 h-8 flex items-center justify-center bg-[#fff4ed] text-[#f97316] hover:bg-orange-100 rounded-xl transition-colors tooltip"
                           title="Edit Category"
                         >
                           <Edit className="w-4 h-4" />
                         </Link>
-                        <button 
+                        <button
                           onClick={() => setDeleteCategory(category)}
                           className="w-8 h-8 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] hover:bg-red-100 rounded-xl transition-colors tooltip"
                           title="Delete Category"
@@ -279,21 +362,39 @@ export default function CategoriesPage() {
         {!loading && categories.length > 0 && (
           <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 mt-auto">
             <div className="text-sm text-gray-500 font-medium whitespace-nowrap">
-              Showing <span className="font-bold text-gray-900">{(page - 1) * limit + 1}</span> to <span className="font-bold text-gray-900">{Math.min(page * limit, totalRecords)}</span> of <span className="font-bold text-gray-900">{totalRecords}</span> results
+              Showing{" "}
+              <span className="font-bold text-gray-900">
+                {(page - 1) * limit + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-bold text-gray-900">
+                {Math.min(page * limit, totalRecords)}
+              </span>{" "}
+              of <span className="font-bold text-gray-900">{totalRecords}</span>{" "}
+              results
             </div>
             <div className="flex gap-1.5 overflow-x-auto pb-1 max-w-full">
-              <button 
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              
+
               {[...Array(totalPages)].map((_, i) => {
                 if (totalPages > 10) {
-                  if (i !== 0 && i !== totalPages - 1 && (i < page - 3 || i > page + 1)) {
-                    if (i === page - 4 || i === page + 2) return <span key={i} className="px-1 flex items-end">...</span>;
+                  if (
+                    i !== 0 &&
+                    i !== totalPages - 1 &&
+                    (i < page - 3 || i > page + 1)
+                  ) {
+                    if (i === page - 4 || i === page + 2)
+                      return (
+                        <span key={i} className="px-1 flex items-end">
+                          ...
+                        </span>
+                      );
                     return null;
                   }
                 }
@@ -303,9 +404,9 @@ export default function CategoriesPage() {
                     key={i}
                     onClick={() => setPage(i + 1)}
                     className={`w-8 h-8 shrink-0 flex items-center justify-center rounded-lg border text-sm font-semibold transition-colors ${
-                      page === i + 1 
-                        ? 'bg-[#5022C3] border-[#5022C3] text-white shadow-sm' 
-                        : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                      page === i + 1
+                        ? "bg-[#5022C3] border-[#5022C3] text-white shadow-sm"
+                        : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
                     }`}
                   >
                     {i + 1}
@@ -313,8 +414,8 @@ export default function CategoriesPage() {
                 );
               })}
 
-              <button 
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
                 className="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
@@ -333,19 +434,25 @@ export default function CategoriesPage() {
               <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5">
                 <Trash2 className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Delete Category?</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                Delete Category?
+              </h2>
               <p className="text-sm text-gray-500">
-                Are you sure you want to delete <span className="font-bold text-gray-700">{deleteCategory.name}</span>? This action cannot be undone.
+                Are you sure you want to delete{" "}
+                <span className="font-bold text-gray-700">
+                  {deleteCategory.name}
+                </span>
+                ? This action cannot be undone.
               </p>
             </div>
             <div className="p-5 border-t border-gray-100 bg-gray-50 flex gap-3">
-              <button 
+              <button
                 onClick={() => setDeleteCategory(null)}
                 className="flex-1 py-3 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleDelete}
                 disabled={isDeleting}
                 className="flex-1 py-3 text-sm font-bold bg-red-600 text-white hover:bg-red-700 rounded-xl transition-colors shadow-md disabled:opacity-50"
