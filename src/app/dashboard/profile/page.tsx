@@ -108,6 +108,12 @@ export default function ProfilePage() {
         if (data) {
           setIsOnline(data.isOnline !== false);
           setIsOnlineByAdmin(data.isOnlineByAdmin !== false);
+          if (data.name) {
+            setFormData((prev) => ({
+              ...prev,
+              storeName: data.name || prev.storeName,
+            }));
+          }
           if (data.settings?.checkoutNote) {
             setCheckoutNote(data.settings.checkoutNote);
           }

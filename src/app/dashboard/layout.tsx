@@ -12,6 +12,8 @@ import {
   Truck,
   Store,
   BarChart2,
+  Gift,
+  Coins,
   Palette,
   Paintbrush,
   LayoutTemplate,
@@ -236,8 +238,20 @@ export default function DashboardLayout({
   const [openTicketsCount, setOpenTicketsCount] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [referralPoints, setReferralPoints] = useState<number | null>(null);
   const [sidebarMenu, setSidebarMenu] = useState<any[] | null>(null);
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+
+  const fetchReferralPoints = async () => {
+    try {
+      const res = await api.get("/referrals/merchant/my-referral");
+      if (res.data?.data?.wallet?.usablePoints !== undefined) {
+        setReferralPoints(res.data.data.wallet.usablePoints);
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     const handleNotificationUpdate = (e: any) => {
@@ -331,6 +345,17 @@ export default function DashboardLayout({
         });
     };
 
+    const handleDeleted = () => {
+      localStorage.removeItem("merchantUser");
+      sessionStorage.removeItem("merchantUser");
+      api
+        .post("/auth/logout")
+        .catch(() => {})
+        .finally(() => {
+          window.location.href = "/login";
+        });
+    };
+
     const handleSubscriptions = () => {
       window.dispatchEvent(new Event("dashboard:refresh"));
     };
@@ -347,6 +372,7 @@ export default function DashboardLayout({
     socket.on("refresh_tickets", fetchTicketsCount);
     socket.on("account_status_changed", handleAccountStatus);
     socket.on("account_banned", handleBanned);
+    socket.on("account_deleted", handleDeleted);
     socket.on("refresh_subscriptions", handleSubscriptions);
     socket.on("new_order", handleNewOrder);
 
@@ -354,19 +380,25 @@ export default function DashboardLayout({
       socket.off("refresh_tickets", fetchTicketsCount);
       socket.off("account_status_changed", handleAccountStatus);
       socket.off("account_banned", handleBanned);
+      socket.off("account_deleted", handleDeleted);
       socket.off("refresh_subscriptions", handleSubscriptions);
       socket.off("new_order", handleNewOrder);
     };
   }, [isAuthenticated, socket]);
 
-  // Fallback to sockets: periodically re-check store status so a ban logs the merchant out automatically.
-  // A banned store makes this request return 403 ACCOUNT_BANNED, which the api interceptor turns into a logout.
+  // Fallback to sockets: periodically re-check store status so a ban or deletion logs the merchant out automatically.
   useEffect(() => {
     if (!isAuthenticated) return;
     const checkStatus = async () => {
       try {
         const res = await api.get("/tenants/my-store");
         const status = res.data?.data?.status;
+        if (!res.data?.data) {
+          localStorage.removeItem("merchantUser");
+          sessionStorage.removeItem("merchantUser");
+          window.location.href = "/login";
+          return;
+        }
         setStoreStatus(status || "active");
         setIsAccountFrozen(status === "suspended");
       } catch (e: any) {
@@ -377,6 +409,14 @@ export default function DashboardLayout({
           localStorage.removeItem("merchantUser");
           sessionStorage.removeItem("merchantUser");
           window.location.href = "/login?banned=1";
+        } else if (
+          e?.response?.status === 404 ||
+          e?.response?.status === 401 ||
+          e?.response?.data?.code === "ACCOUNT_DELETED"
+        ) {
+          localStorage.removeItem("merchantUser");
+          sessionStorage.removeItem("merchantUser");
+          window.location.href = "/login";
         }
       }
     };
@@ -424,15 +464,26 @@ export default function DashboardLayout({
         try {
           const res = await api.get("/tenants/my-store");
           const st = res.data?.data?.status;
-          if (st === "banned") {
+          if (!st || st === "banned") {
             localStorage.removeItem("merchantUser");
             sessionStorage.removeItem("merchantUser");
-            window.location.href = "/login?banned=1";
+            window.location.href = st === "banned" ? "/login?banned=1" : "/login";
             return;
           }
           setStoreStatus(st || "active");
           setIsAccountFrozen(st === "suspended");
-        } catch (e) {}
+        } catch (e: any) {
+          if (
+            e?.response?.status === 404 ||
+            e?.response?.status === 401 ||
+            e?.response?.data?.code === "ACCOUNT_DELETED"
+          ) {
+            localStorage.removeItem("merchantUser");
+            sessionStorage.removeItem("merchantUser");
+            window.location.href = "/login";
+            return;
+          }
+        }
         try {
           const res = await api.get("/subscriptions/my-subscription");
           const sub = res.data?.data;
@@ -470,6 +521,15 @@ export default function DashboardLayout({
         }
       };
       fetchSubscription();
+      fetchReferralPoints();
+
+      const handlePointsUpdate = () => fetchReferralPoints();
+      window.addEventListener("referralPointsUpdate", handlePointsUpdate);
+      window.addEventListener("focus", handlePointsUpdate);
+      return () => {
+        window.removeEventListener("referralPointsUpdate", handlePointsUpdate);
+        window.removeEventListener("focus", handlePointsUpdate);
+      };
     }
   }, [isAuthenticated]);
 
@@ -554,6 +614,13 @@ export default function DashboardLayout({
           icon: Activity,
         },
         { name: "Themes", path: "/dashboard/themes", icon: Palette },
+        {
+          name: "Refer & Earn (৳)",
+          path: "/dashboard/refer-and-earn",
+          icon: Gift,
+          badge: referralPoints !== null ? `${referralPoints} PTS` : "20 PTS",
+          badgeType: "NEW",
+        },
       ],
     },
     {
@@ -1016,6 +1083,25 @@ export default function DashboardLayout({
             </div>
           </div>
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            <Link
+              href="/dashboard/refer-and-earn"
+              className="flex items-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 border border-amber-200/90 hover:border-amber-300 shadow-xs hover:shadow-sm transition-all group shrink-0"
+              title="Referral Points (1 Point = ৳1). Click to visit Refer & Earn."
+            >
+              <div className="w-5 h-5 rounded-full bg-amber-400/20 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Coins className="w-3.5 h-3.5 fill-amber-400" />
+              </div>
+              <span className="font-black text-amber-900 text-xs sm:text-sm">
+                {referralPoints !== null ? referralPoints : 0}
+              </span>
+              <span className="text-[10px] sm:text-xs font-bold text-amber-700/80">
+                Pts
+              </span>
+              <span className="hidden md:inline-block text-[10px] font-bold text-amber-700 bg-amber-200/60 px-1.5 py-0.2 rounded-full">
+                ৳{referralPoints !== null ? referralPoints : 0}
+              </span>
+            </Link>
+
             <NotificationBell userId={merchantUser?._id} />
             {merchantUser && (
               <div className="flex items-center gap-2 sm:gap-3">

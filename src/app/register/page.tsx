@@ -1,20 +1,117 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Gift, CheckCircle2, AlertCircle, Loader2, Sparkles } from "lucide-react";
+import toast from "react-hot-toast";
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [name, setName] = useState("");
   const [storeName, setStoreName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+  const [referralStatus, setReferralStatus] = useState<"idle" | "validating" | "valid" | "invalid">("idle");
+  const [referralBonusText, setReferralBonusText] = useState("");
+  const [referralOffer, setReferralOffer] = useState<{
+    offerType: "trial_extension" | "subscription_discount" | "both";
+    extraDays: number;
+    discountType: "percentage" | "fixed";
+    discountValue: number;
+    referrerName: string;
+    totalDays: number;
+  } | null>(null);
+  const [referralError, setReferralError] = useState("");
+
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+
+  // Auto-detect referral code from URL query params: ?ref=CODE or ?referral=CODE
+  useEffect(() => {
+    let refParam = searchParams?.get("ref") || searchParams?.get("referral");
+    if (!refParam && typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      refParam = urlParams.get("ref") || urlParams.get("referral");
+    }
+    if (refParam) {
+      const codeUpper = refParam.trim().toUpperCase();
+      setReferralCode(codeUpper);
+    }
+  }, [searchParams]);
+
+  // Real-time verification with debounce whenever referralCode changes
+  useEffect(() => {
+    const trimmed = referralCode.trim().toUpperCase();
+    if (!trimmed) {
+      setReferralStatus("idle");
+      setReferralBonusText("");
+      setReferralOffer(null);
+      setReferralError("");
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      validateReferralCode(trimmed);
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [referralCode]);
+
+  // Real-time verification for referral code
+  const validateReferralCode = async (codeToVerify: string) => {
+    const trimmed = codeToVerify.trim().toUpperCase();
+    if (!trimmed) {
+      setReferralStatus("idle");
+      setReferralBonusText("");
+      setReferralOffer(null);
+      setReferralError("");
+      return;
+    }
+
+    setReferralStatus("validating");
+    setReferralError("");
+
+    try {
+      const res = await fetch(`/api/referrals/validate/${encodeURIComponent(trimmed)}`);
+      const data = await res.json();
+
+      if (res.ok && (data.status === "ok" || data.success) && data.data?.valid) {
+        setReferralStatus("valid");
+        const offerType = data.data.offerType || "trial_extension";
+        const extra = Number(data.data.extraDays) || 0;
+        const total = 5 + extra;
+        const discountType = data.data.discountType || "percentage";
+        const discountValue = Number(data.data.discountValue) || 0;
+        const referrer = data.data.referrerName || "";
+        
+        setReferralOffer({
+          offerType,
+          extraDays: extra,
+          discountType,
+          discountValue,
+          referrerName: referrer,
+          totalDays: total,
+        });
+        setReferralError("");
+      } else {
+        setReferralStatus("invalid");
+        setReferralBonusText("");
+        setReferralOffer(null);
+        setReferralError(data.message || "Invalid or expired referral code.");
+      }
+    } catch {
+      setReferralStatus("invalid");
+      setReferralBonusText("");
+      setReferralOffer(null);
+      setReferralError("Could not verify referral code.");
+    }
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,16 +145,22 @@ export default function RegisterPage() {
     }
 
     try {
+      const payload: Record<string, any> = {
+        name: name.trim(),
+        storeName: storeName.trim(),
+        email: email.trim(),
+        password,
+        role: "tenant_admin",
+      };
+
+      if (referralCode.trim()) {
+        payload.referralCode = referralCode.trim().toUpperCase();
+      }
+
       const res = await fetch(`/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          storeName: storeName.trim(),
-          email: email.trim(),
-          password,
-          role: "tenant_admin",
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -74,7 +177,14 @@ export default function RegisterPage() {
         throw new Error(data.message || "Registration failed");
       }
 
-      router.push("/login");
+      const user = data.data?.user || data.data;
+      if (user) {
+        localStorage.setItem("merchantUser", JSON.stringify(user));
+        sessionStorage.setItem("merchantUser", JSON.stringify(user));
+      }
+
+      toast.success("Registration successful! Welcome to your dashboard.");
+      window.location.href = "/dashboard";
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -184,24 +294,24 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Panel - Registration Form */}
-      <div className="flex-1 flex flex-col justify-center items-center lg:items-start p-6 sm:p-12 lg:p-16 xl:p-24 relative overflow-y-auto">
-        <div className="absolute top-6 left-6 lg:hidden flex items-center gap-2">
+      <div className="flex-1 flex flex-col justify-center items-center lg:items-start p-4 xs:p-6 sm:p-12 lg:p-16 xl:p-24 relative overflow-y-auto">
+        <div className="lg:hidden flex items-center gap-2 mb-6 self-start">
           <img
             src="/masheco-logo.png"
             alt="MASH ECO"
-            className="w-9 h-9 sm:w-13 sm:h-13 object-contain"
+            className="w-8 h-8 xs:w-9 xs:h-9 sm:w-12 sm:h-12 object-contain"
           />
-          <span className="text-2xl sm:text-3xl font-righteous text-gray-900 tracking-tight">
+          <span className="text-xl xs:text-2xl sm:text-3xl font-righteous text-gray-900 tracking-tight">
             MASH ECO
           </span>
         </div>
 
-        <div className="w-full max-w-md mt-10 lg:mt-0">
-          <div className="mb-8 text-center lg:text-left">
-            <h2 className="text-3xl font-extrabold text-gray-900 mb-2 tracking-tight">
+        <div className="w-full max-w-md">
+          <div className="mb-6 xs:mb-8 text-left">
+            <h2 className="text-2xl xs:text-3xl font-extrabold text-gray-900 mb-1.5 xs:mb-2 tracking-tight">
               Create your store
             </h2>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-xs xs:text-sm">
               Fill in your details below to get started on MASH ECO.
             </p>
           </div>
@@ -336,9 +446,187 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Optional Referral Code Field */}
+            <div className="flex flex-col gap-2 p-3 xs:p-3.5 rounded-2xl bg-gray-50/80 border border-gray-100 hover:border-gray-200 transition-all">
+              <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                <label
+                  htmlFor="referralCode"
+                  className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5"
+                >
+                  <Gift className="w-3.5 h-3.5 text-[hsl(var(--accent-primary))]" />
+                  <span>Referral Code</span>
+                  <span className="text-gray-400 font-normal lowercase">(optional)</span>
+                </label>
+                <span className={`inline-flex items-center gap-1 text-[10px] xs:text-[11px] font-bold px-2 xs:px-2.5 py-0.5 rounded-full transition-all max-w-full truncate ${
+                  referralStatus === "valid"
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : referralStatus === "validating"
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-slate-100 text-slate-600 border border-slate-200"
+                }`}>
+                  <Sparkles className={`w-3 h-3 shrink-0 ${referralStatus === "valid" ? "fill-white text-white" : "text-emerald-600"}`} />
+                  <span className="truncate">
+                    {referralStatus === "valid" && referralOffer
+                      ? referralOffer.offerType === "subscription_discount"
+                        ? `${referralOffer.discountValue}${referralOffer.discountType === "fixed" ? "৳" : "%"} Off 1st Sub`
+                        : referralOffer.offerType === "both"
+                        ? `+${referralOffer.extraDays}d & ${referralOffer.discountValue}${referralOffer.discountType === "fixed" ? "৳" : "%"} Off`
+                        : `+${referralOffer.extraDays} Days Extra Trial`
+                      : referralStatus === "validating"
+                      ? "Checking Offer..."
+                      : "Bonus Offer Available"}
+                  </span>
+                </span>
+              </div>
+
+              <div className="relative">
+                <input
+                  type="text"
+                  id="referralCode"
+                  className={`w-full px-4 py-2.5 pr-10 rounded-xl border-2 transition-all outline-none font-mono tracking-wide text-sm uppercase ${
+                    referralStatus === "valid"
+                      ? "border-emerald-500 bg-emerald-50/40 text-emerald-950 font-bold shadow-xs"
+                      : referralStatus === "invalid"
+                      ? "border-amber-400 bg-amber-50/20 text-gray-900"
+                      : "border-gray-200 bg-white text-gray-900 focus:border-[hsl(var(--accent-primary))] focus:ring-2 focus:ring-[hsl(var(--accent-primary))]"
+                  } placeholder:normal-case placeholder:font-sans placeholder:text-gray-400`}
+                  placeholder="e.g. GET10"
+                  value={referralCode}
+                  onChange={(e) => {
+                    const val = e.target.value.toUpperCase();
+                    setReferralCode(val);
+                  }}
+                  onBlur={() => {
+                    if (referralCode.trim()) {
+                      validateReferralCode(referralCode);
+                    }
+                  }}
+                />
+
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  {referralStatus === "validating" && (
+                    <Loader2 className="w-4 h-4 text-blue-500 animate-spin" />
+                  )}
+                  {referralStatus === "valid" && (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  )}
+                  {referralStatus === "invalid" && (
+                    <AlertCircle className="w-4 h-4 text-amber-500" />
+                  )}
+                  {referralStatus === "idle" && (
+                    <Gift className="w-4 h-4 text-gray-400" />
+                  )}
+                </div>
+              </div>
+
+              {/* Status & Feedback messages */}
+              {referralStatus === "valid" && referralOffer && (
+                <div className="p-3 xs:p-3.5 rounded-xl bg-gradient-to-br from-emerald-50 via-teal-50/50 to-emerald-50 border-2 border-emerald-500 text-emerald-950 text-xs shadow-sm animate-in fade-in duration-200">
+                  <div className="flex items-start gap-2 xs:gap-2.5">
+                    <div className="p-1 rounded-full bg-emerald-600 text-white shrink-0 mt-0.5">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="space-y-1.5 flex-1 min-w-0">
+                      {referralOffer.offerType === "subscription_discount" ? (
+                        <>
+                          <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                            <span className="font-extrabold text-emerald-900 text-xs sm:text-sm flex items-center gap-1 flex-wrap">
+                              <span>Offer Applied:</span>
+                              <span className="text-emerald-700 underline decoration-emerald-400 decoration-2">
+                                {referralOffer.discountValue}{referralOffer.discountType === "fixed" ? "৳ BDT" : "%"} Discount on 1st Subscription!
+                              </span>
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] xs:text-[10px] font-extrabold tracking-wider uppercase shadow-2xs">
+                              1st Package Discount
+                            </span>
+                          </div>
+
+                          <p className="text-emerald-800 text-[11px] font-medium leading-relaxed">
+                            {referralOffer.referrerName ? (
+                              <>Special invite from <strong className="text-emerald-950 font-bold">{referralOffer.referrerName}</strong>! </>
+                            ) : (
+                              <>Promotional offer applied! </>
+                            )}
+                            You will get <strong className="text-emerald-950 font-bold">{referralOffer.discountValue}{referralOffer.discountType === "fixed" ? "৳" : "%"} off</strong> your very first paid subscription plan. Standard 5-day free trial applies now to build your store.
+                          </p>
+                        </>
+                      ) : referralOffer.offerType === "both" ? (
+                        <>
+                          <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                            <span className="font-extrabold text-emerald-900 text-xs sm:text-sm flex items-center gap-1 flex-wrap">
+                              <span>Double Offer Applied:</span>
+                              <span className="text-emerald-700 underline decoration-emerald-400 decoration-2">
+                                +{referralOffer.extraDays}d Trial + {referralOffer.discountValue}{referralOffer.discountType === "fixed" ? "৳" : "%"} Off!
+                              </span>
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] xs:text-[10px] font-extrabold tracking-wider uppercase shadow-2xs">
+                              Total {referralOffer.totalDays} Days Trial
+                            </span>
+                          </div>
+
+                          <p className="text-emerald-800 text-[11px] font-medium leading-relaxed">
+                            {referralOffer.referrerName ? (
+                              <>Special invite from <strong className="text-emerald-950 font-bold">{referralOffer.referrerName}</strong>! </>
+                            ) : (
+                              <>Promotional offer applied! </>
+                            )}
+                            You get <strong className="text-emerald-950 font-bold">+{referralOffer.extraDays} bonus trial days</strong> ({referralOffer.totalDays} days total trial) <strong className="text-emerald-950 font-bold">AND {referralOffer.discountValue}{referralOffer.discountType === "fixed" ? "৳" : "%"} discount</strong> on your first subscription purchase!
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                            <span className="font-extrabold text-emerald-900 text-xs sm:text-sm flex items-center gap-1 flex-wrap">
+                              <span>Offer Applied:</span>
+                              <span className="text-emerald-700 underline decoration-emerald-400 decoration-2">
+                                +{referralOffer.extraDays} Days Extra Free Trial
+                              </span>
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[9px] xs:text-[10px] font-extrabold tracking-wider uppercase shadow-2xs">
+                              Total {referralOffer.totalDays} Days Trial
+                            </span>
+                          </div>
+
+                          {referralOffer.referrerName ? (
+                            <p className="text-emerald-800 text-[11px] font-medium leading-relaxed">
+                              Special invite from <strong className="text-emerald-950 font-bold">{referralOffer.referrerName}</strong>! You get <strong className="text-emerald-950">+{referralOffer.extraDays} bonus trial days</strong> added on top of the standard 5 days, giving you <strong className="text-emerald-950">{referralOffer.totalDays} full days</strong> of free access.
+                            </p>
+                          ) : (
+                            <p className="text-emerald-800 text-[11px] font-medium leading-relaxed">
+                              Verified promotional offer! You get <strong className="text-emerald-950">+{referralOffer.extraDays} bonus trial days</strong> added on top of the standard 5 days, giving you <strong className="text-emerald-950">{referralOffer.totalDays} full days</strong> of free access.
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {referralStatus === "validating" && (
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-xs font-medium animate-in fade-in duration-150">
+                  <Loader2 className="w-4 h-4 text-blue-600 animate-spin shrink-0" />
+                  <span>Verifying referral code offer details...</span>
+                </div>
+              )}
+
+              {referralStatus === "invalid" && (
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium animate-in fade-in duration-150">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>{referralError} (Standard 5-day trial will apply)</span>
+                </div>
+              )}
+
+              {referralStatus === "idle" && (
+                <p className="text-[11px] text-gray-500 leading-relaxed">
+                  Enter a referral code to get extra free trial days for your store. Standard trial is 5 days. Leave blank if you don&apos;t have one.
+                </p>
+              )}
+            </div>
+
             <button
               type="submit"
-              className="mt-3 w-full bg-[hsl(var(--accent-primary))] text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-[hsl(var(--accent-primary))]/25 hover:shadow-[hsl(var(--accent-primary))]/40 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+              className="mt-2 w-full bg-[hsl(var(--accent-primary))] text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-[hsl(var(--accent-primary))]/25 hover:shadow-[hsl(var(--accent-primary))]/40 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               disabled={loading}
             >
               {loading ? (
@@ -368,3 +656,18 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-white">
+          <div className="w-8 h-8 border-3 border-[hsl(var(--accent-primary))] border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      }
+    >
+      <RegisterContent />
+    </Suspense>
+  );
+}
+

@@ -41,6 +41,23 @@ api.interceptors.response.use(
       url.includes('/auth/2fa') ||
       url.includes('/auth/refresh-token');
 
+    // Deleted or non-existent merchant: wipe session and redirect to login immediately
+    if (
+      error.response?.data?.code === 'ACCOUNT_DELETED' ||
+      (error.response?.status === 404 && url.includes('/tenants/my-store'))
+    ) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('merchantUser');
+        sessionStorage.removeItem('merchantUser');
+        axios.post('/api/auth/logout', {}, { withCredentials: true }).catch(() => {}).finally(() => {
+          if (!window.location.pathname.startsWith('/login')) {
+            window.location.href = '/login';
+          }
+        });
+      }
+      return Promise.reject(error);
+    }
+
     // Banned merchant: wipe session and send to login with a ban notice
     if (error.response?.status === 403 && error.response?.data?.code === 'ACCOUNT_BANNED') {
       if (typeof window !== 'undefined') {
