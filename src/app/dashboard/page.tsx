@@ -26,6 +26,8 @@ import {
   X,
   CheckCircle2,
   AlertTriangle,
+  Zap,
+  AlertCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "../../utils/api";
@@ -97,6 +99,20 @@ export default function DashboardOverview() {
   const [seedType, setSeedType] = useState<
     "electronics" | "fashion" | "lifestyle" | "all"
   >("electronics");
+  const [activatingEarly, setActivatingEarly] = useState(false);
+
+  const handleActivateEarly = async () => {
+    setActivatingEarly(true);
+    try {
+      await api.post("/subscriptions/activate-early");
+      toast.success("Subscription activated immediately with zero time gap!");
+      fetchData();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to activate subscription early");
+    } finally {
+      setActivatingEarly(false);
+    }
+  };
 
   // Previous code:
   // const seedTypeData = {
@@ -314,6 +330,66 @@ export default function DashboardOverview() {
   return (
     <div className="relative min-h-full pb-20 bg-[#F8FAFC]">
       <div className="w-full max-w-[1800px] mx-auto pt-4 sm:pt-8 px-3 sm:px-6">
+        {/* Store Down / No Active Subscription Warning Banner */}
+        {!loading && (!subscription || subscription.isUpcomingOnly || subscription.status !== "active") && (
+          <div className="mb-6 rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 via-rose-50 to-amber-50 p-4 sm:p-5 shadow-sm">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-100 border border-red-200 flex items-center justify-center shrink-0 text-red-600 mt-0.5">
+                  <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="font-extrabold text-red-950 text-sm sm:text-base flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                      Your Store is Currently Offline (Store Down)
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-700 border border-red-200">
+                      No Active Plan Running Right Now
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-red-800 leading-relaxed font-medium">
+                    {subscription?.isUpcomingOnly ? (
+                      <>
+                        Your store is currently <strong>offline</strong> because your current subscription ended or was cancelled. Your confirmed next plan (<strong>{subscription.packageId?.name}</strong>) is scheduled to start on <strong>{formatDate(subscription.startDate)}</strong>. Customers cannot visit your store or place orders until your plan is active.
+                      </>
+                    ) : subscription?.status === "pending" ? (
+                      <>
+                        Your store is currently <strong>offline</strong> because your subscription request for <strong>{subscription.packageId?.name}</strong> is awaiting Super Admin approval. Once approved, your store will go live immediately.
+                      </>
+                    ) : (
+                      <>
+                        Your store is currently <strong>offline</strong> because there is no active subscription at this time. Customers cannot browse products or place orders. Please subscribe or renew your plan to bring your storefront back online.
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-end">
+                {subscription?.isUpcomingOnly ? (
+                  <button
+                    onClick={handleActivateEarly}
+                    disabled={activatingEarly}
+                    className="w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                  >
+                    <Zap className="w-4 h-4 text-yellow-300" />
+                    {activatingEarly ? "Activating..." : "Activate Plan Now (Go Live Today)"}
+                  </button>
+                ) : (
+                  <Link
+                    href="/dashboard/subscription"
+                    className="w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-red-600 hover:bg-red-700 text-white shadow-md flex items-center justify-center gap-2 transition-all"
+                  >
+                    <Crown className="w-4 h-4 text-yellow-300" />
+                    Subscribe / Renew Plan
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 sm:mb-8">
           <div>
@@ -627,67 +703,156 @@ export default function DashboardOverview() {
                 </div>
               ) : subscription ? (
                 <div className="relative z-10">
-                  <div className="flex justify-between items-start mb-3 sm:mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-lg shrink-0">
-                        <Crown className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400" />
-                      </div>
-                      <h3 className="text-lg sm:text-xl font-bold">
-                        {subscription.packageId?.name ||
-                          (subscription.isTrial
-                            ? "Free Trial"
-                            : "Unknown Plan")}
-                      </h3>
-                    </div>
-                    <span
-                      className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider rounded-full mt-1 ${
-                        subscription.status === "active"
-                          ? "bg-green-500/20 text-green-300 border border-green-500/30"
-                          : subscription.status === "pending"
-                            ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                            : subscription.status === "expired" ||
-                                subscription.status === "cancelled"
-                              ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                              : "bg-white/20 text-white border border-white/10"
-                      }`}
-                    >
-                      {subscription.status}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 sm:space-y-4 mt-4 sm:mt-6">
-                    <div className="flex items-center gap-2 sm:gap-3 text-indigo-100 bg-white/5 p-2 sm:p-3 rounded-xl border border-white/10">
-                      <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-300 shrink-0" />
-                      <div className="flex flex-col">
-                        <span className="text-[9px] sm:text-[10px] text-indigo-300 uppercase tracking-wider font-semibold">
-                          Start Date
-                        </span>
-                        <span className="text-xs sm:text-sm font-medium">
-                          {formatDate(subscription.startDate)}
+                  {subscription.isUpcomingOnly ? (
+                    <>
+                      <div className="flex justify-between items-start mb-3 sm:mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-lg shrink-0">
+                            <Crown className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg sm:text-xl font-bold">
+                              {subscription.packageId?.name || "Upcoming Plan"}
+                            </h3>
+                            <span className="text-[11px] text-amber-300 font-semibold block">
+                              Upcoming Plan Queued
+                            </span>
+                          </div>
+                        </div>
+                        <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-amber-300 animate-pulse" /> Starts in {subscription.daysUntilStart || 1} Days
                         </span>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-2 sm:gap-3 text-indigo-100 bg-white/5 p-2 sm:p-3 rounded-xl border border-white/10">
-                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-300 shrink-0" />
-                      <div className="flex flex-col">
-                        <span className="text-[9px] sm:text-[10px] text-indigo-300 uppercase tracking-wider font-semibold">
-                          Expires Date
-                        </span>
-                        <span className="text-xs sm:text-sm font-medium">
-                          {formatDate(subscription.endDate)}
-                        </span>
+                      <div className="space-y-2 sm:space-y-3 mt-4 sm:mt-5">
+                        <div className="bg-amber-500/10 border border-amber-400/20 rounded-xl p-3 text-xs text-amber-200">
+                          <div className="font-bold flex items-center gap-1.5 mb-1 text-amber-300">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Current Plan Inactive / Cancelled
+                          </div>
+                          <p className="text-[11px] text-amber-200/80 leading-relaxed">
+                            Your current plan was cancelled or ended. Your next plan ({subscription.packageId?.name || "Package"}) is scheduled to start on {formatDate(subscription.startDate)}.
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 sm:gap-3 text-indigo-100 bg-white/5 p-2 sm:p-3 rounded-xl border border-white/10">
+                          <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-300 shrink-0" />
+                          <div className="flex flex-col">
+                            <span className="text-[9px] sm:text-[10px] text-indigo-300 uppercase tracking-wider font-semibold">
+                              Scheduled Start Date
+                            </span>
+                            <span className="text-xs sm:text-sm font-medium">
+                              {formatDate(subscription.startDate)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 sm:gap-3 text-indigo-100 bg-white/5 p-2 sm:p-3 rounded-xl border border-white/10">
+                          <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-300 shrink-0" />
+                          <div className="flex flex-col">
+                            <span className="text-[9px] sm:text-[10px] text-indigo-300 uppercase tracking-wider font-semibold">
+                              Cycle Ends Date
+                            </span>
+                            <span className="text-xs sm:text-sm font-medium">
+                              {formatDate(subscription.endDate)}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
 
-                  <a
-                    href="/dashboard/subscription"
-                    className="mt-4 sm:mt-6 w-full flex items-center justify-center gap-2 bg-white text-indigo-900 font-bold py-2 sm:py-3 text-sm sm:text-base rounded-xl shadow-lg hover:bg-gray-50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
-                  >
-                    <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Manage
-                    Subscription
-                  </a>
+                      <button
+                        onClick={handleActivateEarly}
+                        disabled={activatingEarly}
+                        className="mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50"
+                      >
+                        <Zap className="w-4 h-4 text-yellow-300" />
+                        {activatingEarly ? "Activating..." : "Activate Plan Now (Start Today)"}
+                      </button>
+
+                      <a
+                        href="/dashboard/subscription"
+                        className="mt-2.5 w-full flex items-center justify-center gap-2 bg-white/10 text-white hover:bg-white/20 font-bold py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl border border-white/20 transition-all duration-300"
+                      >
+                        <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Manage Subscription
+                      </a>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-start mb-3 sm:mb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 shadow-lg shrink-0">
+                            <Crown className="w-4 h-4 sm:w-6 sm:h-6 text-yellow-400" />
+                          </div>
+                          <h3 className="text-lg sm:text-xl font-bold">
+                            {subscription.packageId?.name ||
+                              (subscription.isTrial
+                                ? "Free Trial"
+                                : "Unknown Plan")}
+                          </h3>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 mt-1">
+                          <span
+                            className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider rounded-full ${
+                              subscription.status === "active"
+                                ? "bg-green-500/20 text-green-300 border border-green-500/30"
+                                : subscription.status === "pending"
+                                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                  : subscription.status === "expired" ||
+                                      subscription.status === "cancelled"
+                                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                                    : "bg-white/20 text-white border border-white/10"
+                            }`}
+                          >
+                            {subscription.status}
+                          </span>
+                          {subscription.isRenewed && (
+                            <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-purple-500/30 text-purple-200 border border-purple-400/30 flex items-center gap-1">
+                              <CheckCircle2 className="w-2.5 h-2.5 text-purple-300" /> Renewed
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 sm:space-y-4 mt-4 sm:mt-6">
+                        <div className="flex items-center gap-2 sm:gap-3 text-indigo-100 bg-white/5 p-2 sm:p-3 rounded-xl border border-white/10">
+                          <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-300 shrink-0" />
+                          <div className="flex flex-col">
+                            <span className="text-[9px] sm:text-[10px] text-indigo-300 uppercase tracking-wider font-semibold">
+                              Current Cycle Started
+                            </span>
+                            <span className="text-xs sm:text-sm font-medium">
+                              {formatDate(subscription.startDate)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 sm:gap-3 text-indigo-100 bg-white/5 p-2 sm:p-3 rounded-xl border border-white/10">
+                          <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-300 shrink-0" />
+                          <div className="flex flex-col">
+                            <span className="text-[9px] sm:text-[10px] text-indigo-300 uppercase tracking-wider font-semibold">
+                              {subscription.isRenewed ? "Current Cycle Ends" : "Expires Date"}
+                            </span>
+                            <span className="text-xs sm:text-sm font-medium">
+                              {formatDate(subscription.endDate)}
+                            </span>
+                            {subscription.isRenewed && (
+                              <span className="text-[11px] text-emerald-300 font-bold mt-1 flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-300 shrink-0" />
+                                Extended through {formatDate(subscription.extendedEndDate || subscription.renewalEndDate)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <a
+                        href="/dashboard/subscription"
+                        className="mt-4 sm:mt-6 w-full flex items-center justify-center gap-2 bg-white text-indigo-900 font-bold py-2 sm:py-3 text-sm sm:text-base rounded-xl shadow-lg hover:bg-gray-50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+                      >
+                        <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Manage
+                        Subscription
+                      </a>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="relative z-10">

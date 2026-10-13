@@ -36,6 +36,17 @@ interface Subscription {
     discountAmount?: number;
     reason?: string;
   };
+  isRenewed?: boolean;
+  renewalEndDate?: string;
+  extendedEndDate?: string;
+  renewalStatus?: string;
+  queuedSubscription?: any;
+  hasPendingRequest?: boolean;
+  pendingSubscription?: any;
+  isUpcomingOnly?: boolean;
+  daysUntilStart?: number;
+  upcomingStartDate?: string;
+  upcomingEndDate?: string;
 }
 
 interface ReferralDiscountInfo {
@@ -61,7 +72,21 @@ export default function SubscriptionPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [confirmModal, setConfirmModal] = useState<(Package & { isRenewal?: boolean; finalPrice?: number }) | null>(null);
   const [activationType, setActivationType] = useState<'immediate' | 'queue'>('immediate');
+  const [activatingEarly, setActivatingEarly] = useState(false);
   const { socket } = useSocket();
+
+  const handleActivateEarly = async () => {
+    setActivatingEarly(true);
+    try {
+      await api.post('/subscriptions/activate-early');
+      toast.success('Subscription activated immediately with zero time gap!');
+      fetchData();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to activate subscription early');
+    } finally {
+      setActivatingEarly(false);
+    }
+  };
 
   useEffect(() => {
     fetchData();
@@ -170,7 +195,7 @@ export default function SubscriptionPage() {
 
   const displayedPackages = packages.filter(p => p.billingCycle.toLowerCase() === billingCycle);
   const activePackageId = subscription?.packageId?._id;
-  const isPending = subscription?.status === 'pending';
+  const isPending = subscription?.status === 'pending' || Boolean(subscription?.hasPendingRequest);
   const isTrialActive = subscription?.isTrial && subscription?.status === 'active';
   const trialDaysLeft = isTrialActive
     ? Math.max(0, Math.ceil((new Date(subscription!.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
@@ -182,6 +207,25 @@ export default function SubscriptionPage() {
   const expiredDate = expiredSubscription
     ? new Date(expiredSubscription.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
     : '';
+
+  const isSubDiscountValid = Boolean(
+    subscription &&
+    !subscription.isTrial &&
+    subscription.discountApplied &&
+    (Number(subscription.discountApplied.discountValue || 0) > 0 || Number(subscription.discountApplied.discountAmount || 0) > 0) &&
+    subscription.originalPrice &&
+    subscription.paidAmount !== undefined &&
+    subscription.paidAmount !== null &&
+    Number(subscription.paidAmount) > 0 &&
+    Number(subscription.paidAmount) < Number(subscription.originalPrice)
+  );
+
+  const isEligibleForReferral = Boolean(
+    (!subscription || subscription.isTrial || subscription.status !== 'active') &&
+    referralDiscount &&
+    !referralDiscount.used &&
+    Number(referralDiscount.discountValue || 0) > 0
+  );
 
   return (
     <div className="p-3 sm:p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)] bg-[#f8f9fc]">
@@ -223,7 +267,7 @@ export default function SubscriptionPage() {
       </div>
 
       {/* Referral Discount Promo Banner */}
-      {!loading && referralDiscount && !referralDiscount.used && (referralDiscount.discountValue || 0) > 0 && (
+      {!loading && isEligibleForReferral && (
         <div className="max-w-6xl mx-auto px-4 mb-6">
           <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-green-50 border-2 border-emerald-500 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-3.5">
@@ -236,14 +280,14 @@ export default function SubscriptionPage() {
                     Exclusive First-Time Referral Offer Applied!
                   </span>
                   <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider">
-                    {referralDiscount.discountValue}{referralDiscount.discountType === 'fixed' ? '৳' : '%'} Off 1st Plan
+                    {referralDiscount?.discountValue}{referralDiscount?.discountType === 'fixed' ? '৳' : '%'} Off 1st Plan
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-emerald-800 font-medium mt-1 leading-relaxed">
-                  Referral code <span className="font-mono font-bold text-emerald-900 bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-300">{referralDiscount.referralCode}</span> unlocks special savings on your first purchase:
+                  Referral code <span className="font-mono font-bold text-emerald-900 bg-emerald-100/90 px-1.5 py-0.5 rounded border border-emerald-300">{referralDiscount?.referralCode}</span> unlocks special savings on your first purchase:
                   <span className="block mt-1 sm:inline sm:mt-0 font-semibold text-emerald-950">
-                    {' '}• <strong>Yearly Plans:</strong> Enjoy <strong>20% Platform Annual Savings + {referralDiscount.discountValue}{referralDiscount.discountType === 'fixed' ? '৳' : '%'} First-Time Extra Off</strong>.
-                    {' '}• <strong>Monthly Plans:</strong> <strong>{referralDiscount.discountValue}{referralDiscount.discountType === 'fixed' ? '৳' : '%'} Off</strong> your first month.
+                    {' '}• <strong>Yearly Plans:</strong> Enjoy <strong>20% Platform Annual Savings + {referralDiscount?.discountValue}{referralDiscount?.discountType === 'fixed' ? '৳' : '%'} First-Time Extra Off</strong>.
+                    {' '}• <strong>Monthly Plans:</strong> <strong>{referralDiscount?.discountValue}{referralDiscount?.discountType === 'fixed' ? '৳' : '%'} Off</strong> your first month.
                   </span>
                 </p>
               </div>
@@ -281,8 +325,47 @@ export default function SubscriptionPage() {
         </div>
       )}
 
+      {/* Upcoming / Scheduled Subscription Banner (e.g. current was cancelled) */}
+      {!loading && subscription && subscription.isUpcomingOnly && (
+        <div className="max-w-6xl mx-auto px-4 mb-8">
+          <div className="bg-gradient-to-r from-amber-50 via-purple-50 to-blue-50 border border-amber-300 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Clock className="w-6 h-6 text-amber-600" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  <span className="font-bold text-gray-900 text-base">
+                    Upcoming Plan: {subscription.packageId?.name || 'Scheduled Plan'}
+                  </span>
+                  <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-amber-300">
+                    <Clock className="w-3 h-3" /> Starts in {subscription.daysUntilStart || 1} Days
+                  </span>
+                  <span className="inline-flex items-center gap-1 bg-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-rose-200">
+                    Current Plan Cancelled
+                  </span>
+                </div>
+                <div className="text-xs text-gray-600 font-medium">
+                  Your current period is cancelled or inactive. Your next plan is scheduled to begin on <strong>{new Date(subscription.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</strong>.
+                </div>
+              </div>
+            </div>
+            <div className="shrink-0 flex items-center gap-2">
+              <button
+                onClick={handleActivateEarly}
+                disabled={activatingEarly}
+                className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <Zap className="w-4 h-4 text-yellow-300" />
+                {activatingEarly ? "Activating..." : "Activate Plan Today (Start Now)"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Active Paid Subscription Banner */}
-      {!loading && subscription && !subscription.isTrial && subscription.status === 'active' && (
+      {!loading && subscription && !subscription.isTrial && subscription.status === 'active' && !subscription.isUpcomingOnly && (
         <div className="max-w-6xl mx-auto px-4 mb-8">
           <div className="bg-gradient-to-r from-purple-50 via-indigo-50 to-blue-50 border border-purple-200 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-4">
@@ -297,24 +380,34 @@ export default function SubscriptionPage() {
                   <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-green-200">
                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Active
                   </span>
-                  {subscription.discountApplied && (
+                  {subscription.isRenewed && (
+                    <span className="inline-flex items-center gap-1 bg-purple-100 text-[#5022C3] text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-purple-200">
+                      <Check className="w-3 h-3" strokeWidth={3} /> Plan Renewed
+                    </span>
+                  )}
+                  {subscription.hasPendingRequest && (
+                    <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border border-amber-200">
+                      <Clock className="w-3 h-3" /> Renewal Request Pending
+                    </span>
+                  )}
+                  {isSubDiscountValid && (
                     <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border border-emerald-200">
                       <Sparkles className="w-3 h-3" />
-                      {subscription.discountApplied.discountType === 'fixed'
-                        ? `৳${subscription.discountApplied.discountValue || subscription.discountApplied.discountAmount} Discount`
-                        : `${subscription.discountApplied.discountValue}% Referral Discount`}
+                      {subscription.discountApplied?.discountType === 'fixed'
+                        ? `৳${subscription.discountApplied?.discountValue || subscription.discountApplied?.discountAmount} ${subscription.discountApplied?.reason || 'Discount'}`
+                        : `${subscription.discountApplied?.discountValue}% ${subscription.discountApplied?.reason || 'Referral Discount'}`}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-700 font-medium flex-wrap">
-                  {subscription.discountApplied || (subscription.paidAmount !== undefined && subscription.paidAmount < (subscription.originalPrice || subscription.packageId?.price || 0)) ? (
+                  {isSubDiscountValid ? (
                     <>
                       <span>You Paid:</span>
                       <span className="line-through text-gray-400 font-semibold">
                         ৳{(subscription.originalPrice || subscription.packageId?.price || 0).toLocaleString()}
                       </span>
                       <span className="text-emerald-700 font-bold bg-emerald-100/70 px-2 py-0.5 rounded text-sm">
-                        ৳{(subscription.paidAmount ?? 0).toLocaleString()}
+                        ৳{Number(subscription.paidAmount).toLocaleString()}
                       </span>
                       <span className="text-gray-500 text-xs">
                         ({subscription.discountApplied?.reason || 'Discount Applied'})
@@ -322,17 +415,31 @@ export default function SubscriptionPage() {
                     </>
                   ) : (
                     <span>
-                      Package Price: <strong>৳{(subscription.paidAmount ?? subscription.packageId?.price ?? 0).toLocaleString()}</strong> / {subscription.packageId?.billingCycle || 'month'}
+                      Plan Price: <strong>৳{Number(subscription.paidAmount && Number(subscription.paidAmount) > 0 ? subscription.paidAmount : (subscription.originalPrice || subscription.packageId?.price || 0)).toLocaleString()}</strong> / {subscription.packageId?.billingCycle || 'month'}
                     </span>
                   )}
                 </div>
               </div>
             </div>
             <div className="text-right shrink-0">
-              <div className="text-xs text-gray-400 font-semibold mb-0.5">Renews / Expires</div>
+              <div className="text-xs text-gray-400 font-semibold mb-0.5">
+                {subscription.isRenewed ? 'Current Cycle Ends' : 'Renews / Expires'}
+              </div>
               <div className="text-sm font-bold text-purple-900">
                 {new Date(subscription.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
               </div>
+              {subscription.isRenewed && (subscription.extendedEndDate || subscription.renewalEndDate) && (
+                <div className="text-[11px] font-bold text-emerald-600 mt-1 flex items-center justify-end gap-1">
+                  <Check className="w-3 h-3" strokeWidth={3} />
+                  Covered until {new Date(subscription.extendedEndDate || subscription.renewalEndDate!).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </div>
+              )}
+              {subscription.hasPendingRequest && (
+                <div className="text-[11px] font-bold text-amber-600 mt-1 flex items-center justify-end gap-1">
+                  <Clock className="w-3 h-3" />
+                  Renewal awaiting approval
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -405,8 +512,23 @@ export default function SubscriptionPage() {
                 </div>
                 
                 {isCurrentActive && (
-                  <div className="absolute top-5 right-5 bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-green-200 z-20">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Active
+                  <div className="absolute top-5 right-5 flex items-center gap-1.5 z-20">
+                    {subscription?.isUpcomingOnly ? (
+                      <span className="bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-amber-200">
+                        <Clock className="w-3 h-3 text-amber-600" /> Starts in {subscription.daysUntilStart || 1}d
+                      </span>
+                    ) : (
+                      <>
+                        <span className="bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full flex items-center gap-1.5 border border-green-200">
+                          <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Active
+                        </span>
+                        {subscription?.isRenewed && (
+                          <span className="bg-purple-100 text-[#5022C3] text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-full flex items-center gap-1 border border-purple-200 shadow-xs">
+                            <Check className="w-3 h-3" strokeWidth={3} /> Renewed
+                          </span>
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
                 
@@ -421,22 +543,22 @@ export default function SubscriptionPage() {
                   </div>
                   <div className="mb-2">
                     {(() => {
-                      const isThisActiveWithDiscount = isCurrentActive && (subscription?.discountApplied || (subscription?.paidAmount !== undefined && subscription.paidAmount < (subscription.originalPrice || pkg.price)));
-                      const hasDiscount = isThisActiveWithDiscount || (referralDiscount && !referralDiscount.used && (referralDiscount.discountValue || 0) > 0);
-                      const discountedPrice = isThisActiveWithDiscount
-                        ? (subscription?.paidAmount ?? calculateFinalPrice(pkg.price))
-                        : calculateFinalPrice(pkg.price);
-                      const discountBadgeText = isThisActiveWithDiscount
-                        ? (subscription?.discountApplied?.discountType === 'fixed'
-                            ? `৳${subscription?.discountApplied?.discountValue || subscription?.discountApplied?.discountAmount} Off Applied`
-                            : `${subscription?.discountApplied?.discountValue || 10}% Off Applied`)
-                        : `${referralDiscount?.discountValue}${referralDiscount?.discountType === 'fixed' ? '৳' : '%'} Off Applied`;
-                      
                       const isYearly = pkg.billingCycle === 'yearly';
                       const matchingMonthly = isYearly ? packages.find(p => p.billingCycle === 'monthly' && p.name.toLowerCase() === pkg.name.toLowerCase()) : null;
                       const regularAnnualPrice = matchingMonthly ? (matchingMonthly.price * 12) : Math.round(pkg.price * 1.2);
+
+                      // Referral discount only applies to first-time eligible users who haven't claimed it yet.
+                      // Once claimed or for existing active plans, future renewals/upgrades always use the real package price.
+                      const hasReferralDiscount = isEligibleForReferral;
+                      const discountedPrice = hasReferralDiscount ? calculateFinalPrice(pkg.price) : pkg.price;
+
                       const totalSavedOnYearly = regularAnnualPrice - discountedPrice;
                       const monthlySaved = pkg.price - discountedPrice;
+                      const hasDiscount = hasReferralDiscount && (isYearly ? totalSavedOnYearly > 0 : monthlySaved > 0);
+
+                      const discountBadgeText = hasReferralDiscount
+                        ? `${referralDiscount?.discountValue}${referralDiscount?.discountType === 'fixed' ? '৳' : '%'} Off Applied`
+                        : '';
 
                       return (
                         <>
@@ -458,7 +580,7 @@ export default function SubscriptionPage() {
                           ) : hasDiscount ? (
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <span className="text-sm sm:text-base font-bold text-gray-400 line-through decoration-red-400 decoration-2">
-                                ৳{(isThisActiveWithDiscount ? (subscription?.originalPrice || pkg.price) : pkg.price).toLocaleString()}
+                                ৳{pkg.price.toLocaleString()}
                               </span>
                               <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-200 flex items-center gap-1">
                                 <Sparkles className="w-2.5 h-2.5" />
@@ -491,7 +613,7 @@ export default function SubscriptionPage() {
                               <span className="font-extrabold text-[#5022C3] whitespace-nowrap">Save ৳{(regularAnnualPrice - pkg.price).toLocaleString()}</span>
                             </div>
                           )}
-                          {!isYearly && hasDiscount && (
+                          {!isYearly && hasDiscount && monthlySaved > 0 && (
                             <div className="mt-2 text-[11px] leading-tight text-emerald-800 font-medium bg-emerald-50/90 border border-emerald-200 rounded-xl px-2.5 py-1.5 flex items-center justify-between gap-1">
                               <span>First-Time Offer Applied</span>
                               <span className="font-extrabold text-emerald-700 whitespace-nowrap">Save ৳{monthlySaved.toLocaleString()}</span>
@@ -545,23 +667,48 @@ export default function SubscriptionPage() {
                   </ul>
                   
                   {isCurrentActive ? (
-                    <button 
-                      onClick={() => setConfirmModal({ ...pkg, isRenewal: true, finalPrice: calculateFinalPrice(pkg.price) })}
-                      disabled={isPending}
-                      className={`w-full py-2.5 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
-                        isPending ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
-                        'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
-                      }`}
-                    >
-                      <Check className="w-4 h-4 inline-block mr-1 -mt-0.5" /> Renew Plan
-                    </button>
+                    subscription?.isUpcomingOnly ? (
+                      <button 
+                        onClick={handleActivateEarly}
+                        disabled={activatingEarly}
+                        className="w-full py-2.5 px-4 rounded-xl font-bold text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white flex items-center justify-center gap-1.5 shadow-sm transition-all disabled:opacity-50"
+                      >
+                        <Zap className="w-4 h-4 text-yellow-300" />
+                        {activatingEarly ? "Activating..." : "Activate Plan Now (Start Today)"}
+                      </button>
+                    ) : subscription?.hasPendingRequest ? (
+                      <button 
+                        disabled
+                        className="w-full py-2.5 px-4 rounded-xl font-bold text-sm bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center gap-1.5 cursor-default shadow-xs"
+                      >
+                        <Clock className="w-4 h-4 animate-spin-slow" /> Renewal Request Pending
+                      </button>
+                    ) : subscription?.isRenewed ? (
+                      <button 
+                        disabled
+                        className="w-full py-2.5 px-4 rounded-xl font-bold text-sm bg-purple-50 text-[#5022C3] border border-purple-200 flex items-center justify-center gap-1.5 cursor-default shadow-xs"
+                      >
+                        <Check className="w-4 h-4" strokeWidth={3} /> Plan Renewed (Next Cycle Confirmed)
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => setConfirmModal({ ...pkg, isRenewal: true, finalPrice: pkg.price })}
+                        disabled={isPending}
+                        className={`w-full py-2.5 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
+                          isPending ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
+                          'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
+                        }`}
+                      >
+                        <Check className="w-4 h-4 inline-block mr-1 -mt-0.5" /> Renew Plan
+                      </button>
+                    )
                   ) : isCurrentPending ? (
                     <button disabled className="w-full py-2.5 px-4 rounded-xl font-bold text-sm bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center gap-2 cursor-default">
                       <Clock className="w-4 h-4 animate-spin-slow" /> Pending
                     </button>
                   ) : (
                     <button 
-                      onClick={() => setConfirmModal({ ...pkg, finalPrice: calculateFinalPrice(pkg.price) })}
+                      onClick={() => setConfirmModal({ ...pkg, finalPrice: isEligibleForReferral ? calculateFinalPrice(pkg.price) : pkg.price })}
                       disabled={isPending}
                       className={`w-full py-2.5 px-4 rounded-xl font-bold text-sm transition-all duration-300 ${
                         isPending ? 'bg-gray-100 text-gray-400 cursor-not-allowed' :
@@ -633,8 +780,8 @@ export default function SubscriptionPage() {
                 const isYearly = confirmModal.billingCycle === 'yearly';
                 const matchingMonthly = isYearly ? packages.find(p => p.billingCycle === 'monthly' && p.name.toLowerCase() === confirmModal.name.toLowerCase()) : null;
                 const regularAnnualPrice = matchingMonthly ? (matchingMonthly.price * 12) : Math.round(confirmModal.price * 1.2);
-                const hasReferralDiscount = confirmModal.finalPrice !== undefined && confirmModal.finalPrice < confirmModal.price;
                 const referralDiscountAmount = confirmModal.price - (confirmModal.finalPrice ?? confirmModal.price);
+                const hasReferralDiscount = !confirmModal.isRenewal && isEligibleForReferral && confirmModal.finalPrice !== undefined && confirmModal.finalPrice < confirmModal.price && referralDiscountAmount > 0;
 
                 return (
                   <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-4 text-left text-xs mb-6 space-y-2">
