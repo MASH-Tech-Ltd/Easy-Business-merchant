@@ -10,6 +10,8 @@ interface ActiveStore {
   description?: string;
 }
 
+export const revalidate = 3600; // Revalidate sitemap every hour
+
 async function fetchActiveStores(): Promise<ActiveStore[]> {
   try {
     const internalUrl = process.env.BACKEND_INTERNAL_URL || process.env.INTERNAL_API_URL;
@@ -22,14 +24,14 @@ async function fetchActiveStores(): Promise<ActiveStore[]> {
 
     const fetchUrl = `${apiUrl}/system/active-stores`.replace("localhost", "127.0.0.1");
     const res = await fetch(fetchUrl, {
-      cache: "no-store", // Always fetch fresh to ensure newly created stores are immediately crawled
+      next: { revalidate: 3600 },
     });
 
     if (!res.ok) return [];
     const json = await res.json();
     return Array.isArray(json?.data) ? json.data : [];
-  } catch (err) {
-    console.error("[Sitemap] Failed to fetch active stores:", err);
+  } catch {
+    // Fail gracefully during static build or if backend is offline
     return [];
   }
 }

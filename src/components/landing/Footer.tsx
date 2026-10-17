@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { headers as getNextHeaders } from 'next/headers';
 
 const footerNavigation = {
   platform: [
@@ -44,41 +43,16 @@ async function getPublicSocialLinks(): Promise<SocialLinksMap | null> {
       apiUrl = clean.endsWith('/api/v1') ? clean : `${clean}/api/v1`;
     }
 
-    const headersInit: Record<string, string> = {};
-    try {
-      const reqHeaders = await getNextHeaders();
-      const clientIp =
-        reqHeaders.get('cf-connecting-ip') ||
-        reqHeaders.get('x-forwarded-for') ||
-        reqHeaders.get('x-real-ip') ||
-        '';
-      const host =
-        reqHeaders.get('host') || reqHeaders.get('x-forwarded-host') || '';
-
-      if (clientIp) {
-        const firstIp = clientIp.includes(',')
-          ? clientIp.split(',')[0].trim()
-          : clientIp;
-        headersInit['cf-connecting-ip'] = firstIp;
-        headersInit['x-forwarded-for'] = clientIp;
-        headersInit['x-real-ip'] = firstIp;
-      }
-      if (host) headersInit['x-forwarded-host'] = host;
-    } catch {
-      // Ignore if outside request context
-    }
-
     const fetchUrl = `${apiUrl}/system/public-settings`.replace('localhost', '127.0.0.1');
     const res = await fetch(fetchUrl, {
-      cache: 'no-store', // Always fetch fresh server-side
-      headers: headersInit,
+      next: { revalidate: 300 }, // ISR: Cache for 5 minutes, safe for static pre-rendering
     });
 
     if (!res.ok) return null;
     const json = await res.json();
     return json?.data?.socialLinks || null;
-  } catch (err) {
-    console.error('[Footer] Error fetching social links:', err);
+  } catch {
+    // Fail gracefully during static build or if backend is offline
     return null;
   }
 }
