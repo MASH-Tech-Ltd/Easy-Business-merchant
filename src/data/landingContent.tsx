@@ -3,6 +3,7 @@ import Link from "next/link";
 import ContactForm from "@/components/landing/ContactForm";
 import BookDemoForm from "@/components/landing/BookDemoForm";
 import LegalPolicyViewer from "@/components/landing/LegalPolicyViewer";
+import DocumentationViewer from "@/components/landing/DocumentationViewer";
 
 export const contentMap: Record<string, ReactNode> = {
   "about-us": (
@@ -20,7 +21,7 @@ export const contentMap: Record<string, ReactNode> = {
           development.
         </p>
         <p>
-          We provide a comprehensive, multi-tenant SaaS platform tailored
+          We provide a comprehensive, all-in-one e-commerce platform tailored
           specifically for modern merchants. From inventory management to
           courier automation, our suite of tools is designed to handle the heavy
           lifting, letting you focus on what matters most—delivering exceptional
@@ -117,7 +118,7 @@ export const contentMap: Record<string, ReactNode> = {
               </div>
               <span className="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">Engineering</span>
             </div>
-            <p className="text-sm mb-4 text-gray-500">Architect scalable multi-tenant databases and optimize complex relational queries.</p>
+            <p className="text-sm mb-4 text-gray-500">Architect scalable, high-performance cloud databases and optimize complex relational queries.</p>
             <span className="text-sm font-bold text-red-500 bg-red-50 px-3 py-1 rounded-md">Position Filled</span>
           </div>
 
@@ -195,74 +196,8 @@ export const contentMap: Record<string, ReactNode> = {
   "privacy-policy": <LegalPolicyViewer policyType="privacy-policy" />,
   "terms-of-service": <LegalPolicyViewer policyType="terms-of-service" />,
   "cookie-policy": <LegalPolicyViewer policyType="cookie-policy" />,
-  documentation: (
-    <div className="space-y-8 text-left text-gray-700">
-      <div className="bg-[hsl(var(--accent-primary))]/5 border border-[hsl(var(--accent-primary))]/20 p-6 rounded-xl">
-        <h2 className="text-2xl font-bold text-[hsl(var(--accent-primary))] mb-2">
-          Platform Documentation
-        </h2>
-        <p>
-          Welcome to the MASH ECO help center. Here you'll find comprehensive
-          guides and tutorials to help you get the most out of your merchant
-          dashboard.
-        </p>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="border border-gray-200 p-6 rounded-xl hover:border-[hsl(var(--accent-primary))]/50 transition-colors cursor-pointer group">
-          <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[hsl(var(--accent-primary))] transition-colors">
-            Getting Started
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Learn how to configure your store, set up your first product, and
-            manage categories.
-          </p>
-          <span className="text-[hsl(var(--accent-primary))] text-sm font-medium">
-            Read Guide &rarr;
-          </span>
-        </div>
-
-        <div className="border border-gray-200 p-6 rounded-xl hover:border-[hsl(var(--accent-primary))]/50 transition-colors cursor-pointer group">
-          <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[hsl(var(--accent-primary))] transition-colors">
-            Custom Domains
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Step-by-step instructions for mapping your own custom domain to your
-            MASH ECO storefront.
-          </p>
-          <span className="text-[hsl(var(--accent-primary))] text-sm font-medium">
-            Read Guide &rarr;
-          </span>
-        </div>
-
-        <div className="border border-gray-200 p-6 rounded-xl hover:border-[hsl(var(--accent-primary))]/50 transition-colors cursor-pointer group">
-          <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[hsl(var(--accent-primary))] transition-colors">
-            Courier Automation
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Configure logistics integrations to automatically dispatch orders
-            and track deliveries.
-          </p>
-          <span className="text-[hsl(var(--accent-primary))] text-sm font-medium">
-            Read Guide &rarr;
-          </span>
-        </div>
-
-        <div className="border border-gray-200 p-6 rounded-xl hover:border-[hsl(var(--accent-primary))]/50 transition-colors cursor-pointer group">
-          <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-[hsl(var(--accent-primary))] transition-colors">
-            Fraud Protection
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Understand how our fraud-check system scores orders and how to
-            review flagged checkouts.
-          </p>
-          <span className="text-[hsl(var(--accent-primary))] text-sm font-medium">
-            Read Guide &rarr;
-          </span>
-        </div>
-      </div>
-    </div>
-  ),
+  "account-deletion": <LegalPolicyViewer policyType="account-deletion" />,
+  documentation: <DocumentationViewer />,
   "api-reference": (
     <div className="space-y-6 text-left text-gray-700">
       <div className="flex items-center justify-between border-b border-gray-200 pb-6 mb-6">

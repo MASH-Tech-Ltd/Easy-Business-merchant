@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 
 // Curated per-page descriptions for better SEO
 const pageDescriptions: Record<string, string> = {
-  'about-us': 'Learn about MASH ECO — Bangladesh\'s leading multi-tenant SaaS e-commerce platform. Our mission is to empower every merchant to launch and grow their online business.',
+  'about-us': 'Learn about MASH ECO — Bangladesh\'s leading all-in-one e-commerce store builder. Our mission is to empower every merchant to launch and grow their online business.',
   'blog': 'Read the latest articles, guides, and news from MASH ECO. Tips on e-commerce, selling online, and growing your business in Bangladesh.',
   'contact': 'Get in touch with the MASH ECO team. We\'re here to help you launch and scale your online store. Reach us via email, phone, or our contact form.',
   'documentation': 'Explore the MASH ECO merchant documentation. Step-by-step guides on setting up your store, managing products, orders, and courier integrations.',
@@ -14,6 +14,7 @@ const pageDescriptions: Record<string, string> = {
   'cookie-policy': 'Read the MASH ECO Cookie Policy. Learn how we use cookies to improve your experience on our platform.',
   // 'careers': 'Join the MASH ECO team. We are hiring passionate engineers, designers, and e-commerce enthusiasts. View open positions and apply today.',
   'enterprise': 'Enterprise-grade e-commerce solutions from MASH ECO. Custom plans, dedicated support, and advanced features for large-scale merchants.',
+  'account-deletion': 'Review the MASH ECO Account Deletion and Permanent Data Purge Policy. Detailed step-by-step instructions on merchant account closure, data retention, and permanent deletion.',
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     .join(' ');
 
   const description = pageDescriptions[slug]
-    ?? `Learn about ${title} at MASH ECO — the multi-tenant e-commerce platform built for merchants in Bangladesh.`;
+    ?? `Learn about ${title} at MASH ECO — the all-in-one e-commerce store builder and business platform for merchants in Bangladesh.`;
 
   return {
     title,

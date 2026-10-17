@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 const faqs: { question: string; answer: React.ReactNode }[] = [
   {
     question: "What is masheco?",
-    answer: "MASH ECO is a comprehensive multi-tenant e-commerce platform specifically optimized for merchants to launch, manage, and scale their online business."
+    answer: "MASH ECO is an all-in-one e-commerce store builder designed for merchants and entrepreneurs to launch, manage, and scale a branded online business with automated courier shipping, fraud detection, and zero coding required."
   },
   {
     question: "How many products can I upload?",

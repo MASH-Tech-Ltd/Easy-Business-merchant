@@ -11,14 +11,14 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.masheco.com'),
   applicationName: 'MASH ECO',
   title: {
-    default: 'MASH ECO | Multi-Tenant E-Commerce Platform for Merchants',
+    default: 'MASH ECO | All-in-One E-Commerce Store Builder for Merchants',
     template: '%s | MASH ECO',
   },
-  description: 'MASH ECO (also known as MashEco or Mash Eco) is a premium multi-tenant SaaS e-commerce platform. Launch your business store with authentic seller verification, courier automation, fraud checks, and premium themes.',
+  description: 'MASH ECO is an all-in-one e-commerce store builder and business platform. Launch your branded online store with authentic seller verification, courier automation, fraud checks, and premium themes.',
   keywords: [
     'MASH ECO', 'MashEco', 'Mash Eco', 'mashe co', 'mash eco platform',
-    'multi-tenant ecommerce', 'SaaS ecommerce Bangladesh', 'merchant dashboard',
-    'online store builder', 'ecommerce platform Bangladesh', 'sell online Bangladesh',
+    'all in one ecommerce', 'online store builder', 'SaaS ecommerce Bangladesh', 'merchant dashboard',
+    'ecommerce website builder', 'ecommerce platform Bangladesh', 'sell online Bangladesh',
     'mash eco merchant', 'masheco', 'mash eco store'
   ],
   authors: [{ name: 'MASH TECH LTD', url: 'https://www.masheco.com' }],
@@ -52,9 +52,10 @@ export const metadata: Metadata = {
     shortcut: '/masheco-logo.png',
   },
   openGraph: {
-    title: 'MASH ECO | Multi-Tenant E-Commerce Platform',
+    title: 'MASH ECO | All-in-One E-Commerce Store Builder',
     description: 'Launch and scale your business with MASH ECO. Zero coding required. Premium themes, courier automation & fraud protection.',
     siteName: 'MASH ECO',
+    url: 'https://www.masheco.com',
     locale: 'en_US',
     type: 'website',
   },
@@ -70,8 +71,64 @@ const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'MASH ECO',
-  alternateName: ['Mash Eco', 'MashEco'],
-  url: 'https://www.masheco.com/',
+  alternateName: ['Mash Eco', 'MashEco', 'masheco.com'],
+  url: 'https://www.masheco.com',
+};
+
+const siteNavigationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  itemListElement: [
+    {
+      '@type': 'SiteNavigationElement',
+      position: 1,
+      name: 'Become a Merchant',
+      description: 'Get your branded e-commerce website up and running in minutes.',
+      url: 'https://www.masheco.com/register',
+    },
+    {
+      '@type': 'SiteNavigationElement',
+      position: 2,
+      name: 'Merchant Login',
+      description: 'Log in to your MASH ECO merchant dashboard.',
+      url: 'https://www.masheco.com/login',
+    },
+    {
+      '@type': 'SiteNavigationElement',
+      position: 3,
+      name: 'Documentation',
+      description: 'Platform documentation, custom domain DNS guide, and courier automation.',
+      url: 'https://www.masheco.com/landing/documentation',
+    },
+    {
+      '@type': 'SiteNavigationElement',
+      position: 4,
+      name: 'Contact Us',
+      description: 'Get in touch with the MASH ECO support and sales team.',
+      url: 'https://www.masheco.com/landing/contact',
+    },
+    {
+      '@type': 'SiteNavigationElement',
+      position: 5,
+      name: 'About Us',
+      description: 'Learn about MASH ECO — Bangladesh all-in-one e-commerce store builder and business platform.',
+      url: 'https://www.masheco.com/landing/about-us',
+    },
+    {
+      '@type': 'SiteNavigationElement',
+      position: 6,
+      name: 'Terms of Service',
+      description: 'Review the MASH ECO Terms of Service and merchant governance policies.',
+      url: 'https://www.masheco.com/landing/terms-of-service',
+    },
+    {
+      '@type': 'SiteNavigationElement',
+      position: 7,
+      name: 'Privacy Policy',
+      description: 'MASH ECO Privacy Policy, data protection, and account deletion procedures.',
+      url: 'https://www.masheco.com/landing/privacy-policy',
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -85,6 +142,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteNavigationSchema) }}
         />
       </head>
       <body suppressHydrationWarning className="min-h-full flex flex-col font-sans">

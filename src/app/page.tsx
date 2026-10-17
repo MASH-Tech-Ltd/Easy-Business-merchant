@@ -12,14 +12,14 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: { absolute: "MASH ECO | Launch Your E-Commerce Store – Zero Coding Required" },
   description:
-    "MASH ECO (MashEco / Mash Eco) — Bangladesh's leading multi-tenant SaaS e-commerce platform. Create your branded online store in minutes with seller verification, courier automation, fraud protection, and beautiful premium themes.",
+    "MASH ECO (MashEco / Mash Eco) — Bangladesh's leading all-in-one e-commerce store builder. Create your branded online store in minutes with seller verification, courier automation, fraud protection, and beautiful premium themes.",
   keywords: [
     "MASH ECO",
     "MashEco",
     "Mash Eco",
     "masheco bangladesh",
     "ecommerce SaaS Bangladesh",
-    "multi-tenant ecommerce platform",
+    "all in one ecommerce platform",
     "online store builder Bangladesh",
     "sell online Bangladesh",
     "ecommerce platform",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
     apple: "/masheco-logo.png",
   },
   openGraph: {
-    title: "MASH ECO — Premium Multi-Tenant E-Commerce Platform",
+    title: "MASH ECO — All-in-One E-Commerce Store Builder",
     description:
       "Scale your business online with MASH ECO. Seller verification, courier automation, fraud detection, and premium themes — all in one platform.",
     url: "https://www.masheco.com",
@@ -155,7 +155,7 @@ export default async function LandingPage() {
     url: "https://www.masheco.com",
     logo: "https://www.masheco.com/masheco-logo.png",
     description:
-      "MASH ECO is a multi-tenant SaaS e-commerce platform for merchants in Bangladesh.",
+      "MASH ECO is an all-in-one e-commerce store builder and business platform for merchants in Bangladesh.",
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer support",
