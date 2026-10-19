@@ -273,7 +273,7 @@ export default function DashboardLayout({
     setIsSidebarOpen(false);
   }, [pathname]);
 
-  const { socket } = useSocket();
+  const { socket, isConnected: isSocketConnected } = useSocket();
 
   useEffect(() => {
     if (!isAuthenticated || !socket) return;
@@ -387,9 +387,16 @@ export default function DashboardLayout({
   }, [isAuthenticated, socket]);
 
   // Fallback to sockets: periodically re-check store status so a ban or deletion logs the merchant out automatically.
+  // Socket events (account_status_changed / account_banned / account_deleted) are the primary signal,
+  // so while the socket is connected we only poll rarely. Checks are throttled to avoid request bursts.
   useEffect(() => {
     if (!isAuthenticated) return;
-    const checkStatus = async () => {
+    let lastCheck = Date.now();
+    const MIN_GAP_MS = 30000;
+    const checkStatus = async (force = false) => {
+      const now = Date.now();
+      if (!force && now - lastCheck < MIN_GAP_MS) return;
+      lastCheck = now;
       try {
         const res = await api.get("/tenants/my-store");
         const status = res.data?.data?.status;
@@ -420,14 +427,18 @@ export default function DashboardLayout({
         }
       }
     };
-    const interval = setInterval(checkStatus, 15000);
+    // Connected socket => 2 min safety net; disconnected => 30s fallback
+    const interval = setInterval(
+      () => checkStatus(true),
+      isSocketConnected ? 120000 : 30000,
+    );
     const onFocus = () => checkStatus();
     window.addEventListener("focus", onFocus);
     return () => {
       clearInterval(interval);
       window.removeEventListener("focus", onFocus);
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isSocketConnected]);
 
   useEffect(() => {
     const storedUser =

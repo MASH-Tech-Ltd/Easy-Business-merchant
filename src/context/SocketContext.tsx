@@ -55,10 +55,14 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     if (!globalSocket) {
       const wsUrl = getWsUrl();
       globalSocket = io(wsUrl, {
+        // Next.js strips trailing slashes with a 308 redirect; requesting
+        // "/socket.io" directly avoids a redirect on every polling request.
+        addTrailingSlash: false,
         autoConnect: true,
         reconnection: true,
         reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,
+        reconnectionDelayMax: 10000,
       });
     }
 
