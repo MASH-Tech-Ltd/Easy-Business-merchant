@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { ImagePlus, Trash2, Star, RefreshCw, X } from 'lucide-react';
+import { ImagePlus, Star, RefreshCw, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 interface MultipleImageUploadProps {
@@ -195,17 +195,8 @@ export function MultipleImageUpload({
 
             {/* Hover Action Overlay */}
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-200 flex flex-col justify-between p-2 z-20">
-              {/* Top actions */}
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  title="Delete image"
-                  onClick={() => handleRemove(index)}
-                  className="bg-red-500/90 hover:bg-red-600 text-white p-1 rounded-lg transition-all hover:scale-105 shadow-md flex items-center justify-center"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              {/* Top actions (delete lives in the always-visible X button) */}
+              <div className="flex justify-end" />
 
               {/* Bottom actions */}
               <div className="flex items-center gap-1 justify-center flex-wrap">
@@ -231,6 +222,34 @@ export function MultipleImageUpload({
                 </button>
               </div>
             </div>
+
+            {/* Always-visible remove (cross) button — works on touch devices too */}
+            <button
+              type="button"
+              title="Remove image"
+              aria-label={`Remove image ${index + 1}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemove(index);
+              }}
+              className="absolute top-1.5 right-1.5 z-30 w-6 h-6 rounded-full bg-black/70 hover:bg-red-600 text-white flex items-center justify-center shadow-md backdrop-blur-sm transition-all hover:scale-110"
+            >
+              <X className="w-3.5 h-3.5" strokeWidth={3} />
+            </button>
+
+            {/* Always-visible change button (hidden while hover overlay is open) */}
+            <button
+              type="button"
+              title="Change image"
+              aria-label={`Change image ${index + 1}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                triggerReplace(index);
+              }}
+              className="absolute bottom-1.5 right-1.5 z-30 w-6 h-6 rounded-full bg-white/90 hover:bg-white text-indigo-600 flex items-center justify-center shadow-md transition-all hover:scale-110 group-hover:opacity-0 group-hover:pointer-events-none"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
           </div>
         ))}
 
