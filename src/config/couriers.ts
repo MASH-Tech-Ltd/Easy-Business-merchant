@@ -16,7 +16,10 @@ export const COURIER_PROVIDERS: CourierProvider[] = [
     id: "steadfast",
     name: "Steadfast",
     icon: "/Courier_images/steadfast_courier.jpg",
-    trackingUrl: (cid: string) => `https://steadfast.com.bd/t/${cid}`,
+    trackingUrl: (cid: string) =>
+      /^\d+$/.test(cid)
+        ? `https://steadfast.com.bd/tracking`
+        : `https://steadfast.com.bd/t/${cid}`,
   },
   {
     id: "redx",

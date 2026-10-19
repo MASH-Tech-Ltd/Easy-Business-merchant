@@ -50,6 +50,7 @@ interface Order {
   isDeliveryChargePaid?: boolean;
   consignmentId?: string;
   courierProvider?: string;
+  trackingUrl?: string;
   courierTrackingUrl?: string;
 }
 
@@ -1265,6 +1266,7 @@ export default function OrdersPage() {
                   if (!cid) return;
 
                   const url =
+                    forwardedInfoModal.order.trackingUrl ||
                     forwardedInfoModal.order.courierTrackingUrl ||
                     getCourierTrackingUrl(provider, cid);
 
