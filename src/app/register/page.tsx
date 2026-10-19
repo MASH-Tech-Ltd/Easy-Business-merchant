@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Gift, CheckCircle2, AlertCircle, Loader2, Sparkles } from "lucide-react";
+import { Eye, EyeOff, Gift, CheckCircle2, AlertCircle, Loader2, Sparkles, Check } from "lucide-react";
 import toast from "react-hot-toast";
 
 function RegisterContent() {
@@ -31,6 +31,37 @@ function RegisterContent() {
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+
+  // Password validation checklist criteria
+  const passwordCriteria = [
+    {
+      id: "length",
+      label: "8-16 characters in length",
+      valid: password.length >= 8 && password.length <= 16,
+    },
+    {
+      id: "lowercase",
+      label: "lower case letter",
+      valid: /[a-z]/.test(password),
+    },
+    {
+      id: "uppercase",
+      label: "upper case letter",
+      valid: /[A-Z]/.test(password),
+    },
+    {
+      id: "numeric",
+      label: "numeric character",
+      valid: /[0-9]/.test(password),
+    },
+    {
+      id: "special",
+      label: "special character: $ @ # % ^ & * ? - + =",
+      valid: /[$@#%^&*?\-+=\!]/.test(password),
+    },
+  ];
+
+  const isPasswordValid = passwordCriteria.every((rule) => rule.valid);
 
   // Auto-detect referral code from URL query params: ?ref=CODE or ?referral=CODE
   useEffect(() => {
@@ -129,13 +160,9 @@ function RegisterContent() {
       errors.email = "Please provide a valid email address";
     if (!password) {
       errors.password = "Password is required";
-    } else if (
-      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-        password,
-      )
-    ) {
+    } else if (!isPasswordValid) {
       errors.password =
-        "Password must be at least 8 characters and contain uppercase, lowercase, number, and special character";
+        "Password must satisfy all requirements below";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -422,7 +449,16 @@ function RegisterContent() {
                   className={`w-full px-4 py-3 pr-11 rounded-xl border ${fieldErrors.password ? "border-red-400 bg-red-50/30" : "border-gray-200 bg-white"} text-gray-900 text-sm focus:ring-2 focus:ring-[hsl(var(--accent-primary))] focus:border-[hsl(var(--accent-primary))] transition-all outline-none placeholder:text-gray-400`}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (fieldErrors.password) {
+                      setFieldErrors((prev) => {
+                        const next = { ...prev };
+                        delete next.password;
+                        return next;
+                      });
+                    }
+                  }}
                   required
                 />
                 <button
@@ -444,6 +480,33 @@ function RegisterContent() {
                   {fieldErrors.password}
                 </span>
               )}
+
+              {/* Real-time Password Validation Checklist */}
+              <div className="mt-1.5 p-3 xs:p-3.5 rounded-xl bg-[#f4f7fe] border border-blue-100/60 flex flex-col gap-2">
+                {passwordCriteria.map((criterion) => (
+                  <div
+                    key={criterion.id}
+                    className="flex items-center gap-2 text-xs select-none transition-colors"
+                  >
+                    <Check
+                      className={`w-3.5 h-3.5 flex-shrink-0 transition-colors duration-200 ${
+                        criterion.valid
+                          ? "text-blue-600 stroke-[2.5]"
+                          : "text-slate-300 stroke-[1.75]"
+                      }`}
+                    />
+                    <span
+                      className={`transition-colors duration-200 ${
+                        criterion.valid
+                          ? "font-semibold text-slate-900"
+                          : "font-normal text-slate-400"
+                      }`}
+                    >
+                      {criterion.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Optional Referral Code Field */}

@@ -76,9 +76,8 @@ export default function ForgotPasswordPage() {
     if (!password) {
       errors.password = "Password is required";
     } else if (
-      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-        password,
-      )
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@#%^&*?\-+=\!])/.test(password) ||
+      password.length < 8
     ) {
       errors.password =
         "Password must be at least 8 characters and contain uppercase, lowercase, number, and special character";
