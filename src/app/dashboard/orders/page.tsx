@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Truck,
   ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 import { api } from "@/utils/api";
 import { toast } from "react-hot-toast";
@@ -91,6 +92,7 @@ export default function OrdersPage() {
     providerDetails?: Record<string, { isConfigured: boolean; isActive: boolean }>;
   } | null>(null);
   const [checkingCourier, setCheckingCourier] = useState<string | null>(null);
+  const [syncingOrderId, setSyncingOrderId] = useState<string | null>(null);
   const [forwardedInfoModal, setForwardedInfoModal] = useState<{
     show: boolean;
     order: Order;
@@ -256,6 +258,27 @@ export default function OrdersPage() {
       }
     } finally {
       setCheckingCourier(null);
+    }
+  };
+
+  const handleSyncOrderStatus = async (order: Order) => {
+    setSyncingOrderId(order._id);
+    try {
+      const res = await api.post(`/courier/sync-order/${order._id}`);
+      if (res.data?.success) {
+        toast.success(res.data?.message || "Order status refreshed from courier!");
+        fetchOrders();
+        if (res.data?.data?.order) {
+          setForwardedInfoModal({
+            show: true,
+            order: { ...order, ...res.data.data.order }
+          });
+        }
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Failed to sync order status");
+    } finally {
+      setSyncingOrderId(null);
     }
   };
 
@@ -1217,12 +1240,21 @@ export default function OrdersPage() {
                 </div>
               </div>
             </div>
-            <div className="p-5 border-t border-gray-100 bg-gray-50 flex gap-3">
+            <div className="p-5 border-t border-gray-100 bg-gray-50 flex gap-2">
               <button
                 onClick={() => setForwardedInfoModal(null)}
-                className="flex-1 py-3 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
+                className="py-3 px-4 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
               >
                 Close
+              </button>
+              <button
+                onClick={() => handleSyncOrderStatus(forwardedInfoModal.order)}
+                disabled={syncingOrderId === forwardedInfoModal.order._id}
+                className="py-3 px-4 text-sm font-bold bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1.5 disabled:opacity-50"
+                title="Refresh order status from courier"
+              >
+                <RefreshCw className={`w-4 h-4 text-indigo-600 ${syncingOrderId === forwardedInfoModal.order._id ? "animate-spin" : ""}`} />
+                <span>{syncingOrderId === forwardedInfoModal.order._id ? "Syncing..." : "Sync Status"}</span>
               </button>
               <button
                 onClick={() => {
@@ -1236,28 +1268,12 @@ export default function OrdersPage() {
                     forwardedInfoModal.order.courierTrackingUrl ||
                     getCourierTrackingUrl(provider, cid);
 
-                  if (provider === "redx") {
-                    window.open(url, "_blank", "noopener,noreferrer");
-                  } else {
-                    setTrackingIframeUrl(url);
-                  }
+                  window.open(url, "_blank", "noopener,noreferrer");
                 }}
                 className="flex-1 py-3 text-sm font-bold bg-[#5022C3] text-white hover:bg-[#401b9c] rounded-xl transition-colors shadow-md flex items-center justify-center gap-2"
               >
                 Track Order
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                  />
-                </svg>
+                <ExternalLink className="w-4 h-4" />
               </button>
             </div>
           </div>
