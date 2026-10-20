@@ -18,6 +18,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(false);
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Form State
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -57,11 +58,25 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const updated = { ...prev };
+        delete updated[name];
+        return updated;
+      });
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (file: File | null) => {
     setImageFile(file);
+    if (fieldErrors.image) {
+      setFieldErrors(prev => {
+        const updated = { ...prev };
+        delete updated.image;
+        return updated;
+      });
+    }
     if (file) {
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -70,10 +85,51 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
     }
   };
 
+  const scrollToFirstError = (errors: Record<string, string>) => {
+    const fieldOrder = ['name', 'image'];
+    const firstInvalid = fieldOrder.find(f => errors[f]) || Object.keys(errors)[0];
+    if (firstInvalid) {
+      const container = document.getElementById(`field-${firstInvalid}`);
+      if (container) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const focusable = container.querySelector<HTMLInputElement | HTMLTextAreaElement>('input, textarea');
+        if (focusable) {
+          setTimeout(() => focusable.focus(), 200);
+        }
+      }
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.name || !formData.name.trim()) {
+      errors.name = 'Category name is required';
+    }
+
+    if (!imageFile && !previewUrl) {
+      errors.image = 'Category image is required';
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      scrollToFirstError(errors);
+      return false; // Do not call backend
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    if (!validateForm()) {
+      return; // Stop immediately, do not call backend
+    }
+
+    setLoading(true);
 
     try {
       const data = new FormData();
@@ -94,9 +150,25 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
       toast.success(response.data?.message || 'Category updated successfully!');
       router.push('/dashboard/categories');
     } catch (err: any) {
-      const errMsg = err.response?.data?.message || err.message || 'Failed to update category';
-      setError(errMsg);
-      toast.error(errMsg);
+      const serverErrors: Record<string, string> = {};
+      const backendErrors = err.response?.data?.errors || err.response?.data?.data;
+      if (Array.isArray(backendErrors)) {
+        backendErrors.forEach((item: any) => {
+          let fieldKey = item.field || '';
+          if (fieldKey.startsWith('body.')) {
+            fieldKey = fieldKey.replace('body.', '');
+          }
+          if (fieldKey) {
+            serverErrors[fieldKey] = item.message;
+          }
+        });
+        setFieldErrors(prev => ({ ...prev, ...serverErrors }));
+        scrollToFirstError(serverErrors);
+      } else {
+        const errMsg = err.response?.data?.message || err.message || 'Failed to update category';
+        setError(errMsg);
+        toast.error(errMsg);
+      }
     } finally {
       setLoading(false);
     }
@@ -135,23 +207,20 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
 
       <div className="flex-1 overflow-y-auto p-3 sm:p-6">
         <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-6">
-          
-          {error && (
-            <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-sm">
-              {error}
-            </div>
-          )}
 
           <Card title="General Information">
             <div className="space-y-6">
-              <Input 
-                label="Category Name" 
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="E.g. Smartphones, Laptops"
-                required
-              />
+              <div id="field-name">
+                <Input 
+                  label="Category Name" 
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="E.g. Smartphones, Laptops"
+                  error={fieldErrors.name}
+                  required
+                />
+              </div>
               
               <Textarea 
                 label="Description" 
@@ -164,12 +233,15 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
           </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card title="Category Image">
-              <ImageUpload 
-                previewUrl={previewUrl}
-                onChange={handleImageChange}
-              />
-            </Card>
+            <div id="field-image">
+              <Card title="Category Image">
+                <ImageUpload 
+                  previewUrl={previewUrl}
+                  onChange={handleImageChange}
+                  error={fieldErrors.image}
+                />
+              </Card>
+            </div>
 
             <Card title="Settings">
               <Select 

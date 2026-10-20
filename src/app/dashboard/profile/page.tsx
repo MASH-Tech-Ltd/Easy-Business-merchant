@@ -320,23 +320,28 @@ export default function ProfilePage() {
 
   return (
     <div className="p-3 sm:p-5 w-full max-w-[1600px] mx-auto min-h-screen">
-      {/* Compact Header Section */}
-      <div className="relative mb-4 overflow-hidden rounded-xl bg-gradient-to-r from-[#1E1B4B] via-[#312E81] to-[#1E1B4B] shadow-md">
-        <div className="relative z-10 px-4 py-3 sm:px-6 sm:py-4 flex flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-white/10 p-1 backdrop-blur-md border border-white/20 shadow-md flex-shrink-0 group relative overflow-hidden">
+      {/* Compact Header Sectio      {/* Compact Header Section */}
+      <div className="relative mb-4 overflow-hidden rounded-2xl bg-gradient-to-r from-[#1E1B4B] via-[#312E81] to-[#1E1B4B] shadow-md p-3.5 sm:p-5 text-white">
+        {/* Top bar on all devices: Store Info on left, Sign Out on right */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+            {/* Merchant / Store Avatar */}
+            <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-md shrink-0 group relative overflow-hidden">
               {previewUrl ? (
                 <img
                   src={previewUrl}
                   alt="Store Avatar"
-                  className="w-full h-full rounded-lg object-cover bg-white"
+                  className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full rounded-lg bg-white/20 flex items-center justify-center">
-                  <Store className="w-6 h-6 text-white/80" />
+                <div className="w-full h-full bg-white/20 flex items-center justify-center">
+                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-white/80" />
                 </div>
               )}
-              <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-10">
+              <label 
+                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer z-10"
+                title="Change Avatar"
+              >
                 <ImagePlus className="w-4 h-4 text-white" />
                 <input
                   type="file"
@@ -350,22 +355,114 @@ export default function ProfilePage() {
                 />
               </label>
             </div>
-            <div className="text-white">
-              <h1 className="text-base sm:text-xl font-bold tracking-tight">
+
+            {/* Store Name & Subtitle */}
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-xl font-bold tracking-tight truncate max-w-[150px] xs:max-w-[200px] sm:max-w-xs">
                 {formData.storeName || "Your Store"}
               </h1>
-              <p className="text-indigo-200 text-xs font-medium flex items-center gap-1">
-                <Store className="w-3 h-3" /> Merchant Profile & Settings
+              <p className="text-indigo-200 text-[11px] sm:text-xs font-medium flex items-center gap-1 truncate">
+                <Store className="w-3 h-3 shrink-0" /> Merchant Profile
               </p>
             </div>
           </div>
 
+          {/* Desktop/Tablet Store Logo Container */}
+          <div className="hidden sm:flex items-center gap-3">
+            <div className="h-9 w-[1px] bg-white/20" />
+            <div className="flex items-center gap-2.5 bg-white/10 hover:bg-white/15 backdrop-blur-md border border-white/25 px-2.5 py-1.5 rounded-xl shadow-xs transition-all">
+              <div 
+                onClick={() => storeLogoInputRef.current?.click()}
+                className="w-10 h-10 rounded-lg overflow-hidden shrink-0 shadow-xs cursor-pointer group/logo relative border border-white/30 bg-black/20"
+                title="Click to change Store Logo"
+              >
+                {storeLogoPreview ? (
+                  <img
+                    src={storeLogoPreview}
+                    alt="Store Logo"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-white/10">
+                    <ImageIcon className="w-5 h-5 text-indigo-300" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/logo:opacity-100 transition-opacity flex items-center justify-center">
+                  <Upload className="w-3.5 h-3.5 text-white" />
+                </div>
+              </div>
+              <div className="text-left">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">
+                    Store Logo
+                  </span>
+                  {storeLogoPreview && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => storeLogoInputRef.current?.click()}
+                  className="text-xs font-semibold text-white hover:text-indigo-200 transition-colors flex items-center gap-1 underline underline-offset-2 decoration-white/40 hover:decoration-white cursor-pointer"
+                >
+                  <Upload className="w-3 h-3 shrink-0" />
+                  <span>{storeLogoPreview ? "Change Logo" : "Upload Logo"}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Sign Out Button */}
           <button
             type="button"
             onClick={handleLogoutAll}
-            className="group bg-white/10 hover:bg-red-500/20 text-white hover:text-red-200 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 border border-white/20"
+            className="group bg-white/10 hover:bg-red-500/20 text-white hover:text-red-200 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 border border-white/20 shrink-0 whitespace-nowrap ml-auto"
           >
-            <LogOut className="w-3.5 h-3.5" /> Sign Out All
+            <LogOut className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden xs:inline">Sign Out All</span>
+            <span className="xs:hidden">Sign Out</span>
+          </button>
+        </div>
+
+        {/* Mobile-Only Store Logo Card (Clean, full-width, perfectly aligned) */}
+        <div className="sm:hidden mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-2 rounded-xl">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div 
+              onClick={() => storeLogoInputRef.current?.click()}
+              className="w-9 h-9 rounded-lg overflow-hidden shrink-0 shadow-xs cursor-pointer group/logo relative border border-white/30 bg-black/20"
+              title="Click to change Store Logo"
+            >
+              {storeLogoPreview ? (
+                <img
+                  src={storeLogoPreview}
+                  alt="Store Logo"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-white/10">
+                  <ImageIcon className="w-4 h-4 text-indigo-300" />
+                </div>
+              )}
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">
+                  Store Logo
+                </span>
+                {storeLogoPreview && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                )}
+              </div>
+              <p className="text-[10px] text-indigo-200/80 truncate">Official storefront logo</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => storeLogoInputRef.current?.click()}
+            className="text-[11px] font-semibold text-white bg-white/15 hover:bg-white/25 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 cursor-pointer border border-white/20 shrink-0"
+          >
+            <Upload className="w-3 h-3" />
+            <span>{storeLogoPreview ? "Change" : "Upload"}</span>
           </button>
         </div>
       </div>
@@ -382,20 +479,20 @@ export default function ProfilePage() {
           <div className="xl:col-span-2 space-y-4">
             {/* Compact Storefront Status Bar */}
             <Card className="border border-gray-200/80 shadow-xs rounded-xl overflow-hidden bg-white">
-              <div className="px-4 py-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
+              <div className="px-3.5 py-3 sm:px-4 sm:py-3.5 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div
-                    className={`p-1.5 rounded-lg ${isOnline ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
+                    className={`p-2 rounded-lg shrink-0 ${isOnline ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
                   >
                     <Globe className="w-4 h-4" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xs font-bold text-gray-900">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-xs font-bold text-gray-900 whitespace-nowrap">
                         Storefront Status
                       </h3>
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${
                           isOnline
                             ? "bg-emerald-100 text-emerald-800"
                             : "bg-red-100 text-red-800"
@@ -404,7 +501,7 @@ export default function ProfilePage() {
                         {isOnline ? "🟢 ONLINE" : "🔴 OFFLINE"}
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-500">
+                    <p className="text-[11px] text-gray-500 truncate sm:whitespace-normal">
                       {isOnline
                         ? "Store website is live for customers."
                         : "Store website is currently hidden from buyers."}
@@ -415,23 +512,22 @@ export default function ProfilePage() {
                 {!isOnlineByAdmin ? (
                   <Link
                     href="/dashboard/support"
-                    className="inline-flex items-center gap-1 px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition-colors"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition-colors shrink-0 whitespace-nowrap"
                   >
-                    <Lock className="w-3.5 h-3.5 text-amber-700" /> Authourity Locked
-                    (Support) →
+                    <Lock className="w-3.5 h-3.5 text-amber-700" /> Locked
                   </Link>
                 ) : (
                   <button
                     type="button"
                     disabled={updatingOnline}
                     onClick={handleToggleStoreOnline}
-                    className={`relative inline-flex h-6 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                       isOnline ? "bg-emerald-500" : "bg-gray-300"
                     }`}
                   >
                     <span
                       className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
-                        isOnline ? "translate-x-6" : "translate-x-0"
+                        isOnline ? "translate-x-5" : "translate-x-0"
                       }`}
                     />
                   </button>
@@ -512,12 +608,16 @@ export default function ProfilePage() {
 
                 {/* Compact Store Logo Selector */}
                 <div className="flex items-center gap-2.5 bg-white px-2.5 py-1 rounded-lg border border-gray-200 shadow-2xs">
-                  <div className="w-7 h-7 rounded-md overflow-hidden bg-gray-50 flex items-center justify-center border border-gray-200 flex-shrink-0">
+                  <div 
+                    onClick={() => storeLogoInputRef.current?.click()}
+                    className="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200 flex-shrink-0 cursor-pointer"
+                    title="Change Store Logo"
+                  >
                     {storeLogoPreview ? (
                       <img
                         src={storeLogoPreview}
                         alt="Logo"
-                        className="w-full h-full object-contain p-0.5"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
                       <ImageIcon className="w-4 h-4 text-gray-400" />
@@ -535,7 +635,7 @@ export default function ProfilePage() {
                     onClick={() => storeLogoInputRef.current?.click()}
                     className="text-[11px] font-semibold text-purple-700 hover:text-purple-800 transition-colors cursor-pointer"
                   >
-                    Change Store Logo
+                    Change Logo
                   </button>
                   <span className="text-[9px] text-gray-400 border-l border-gray-200 pl-2 hidden sm:inline">
                     png/jpg, max 2MB

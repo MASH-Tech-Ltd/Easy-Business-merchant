@@ -6,9 +6,16 @@ interface ImageUploadProps {
   error?: string;
   previewUrl?: string | null;
   onChange: (file: File | null) => void;
+  hint?: string;
 }
 
-export function ImageUpload({ label, error, previewUrl, onChange }: ImageUploadProps) {
+export function ImageUpload({ 
+  label, 
+  error, 
+  previewUrl, 
+  onChange,
+  hint = 'Recommended: 800 × 800 px (1:1)',
+}: ImageUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragActive, setDragActive] = useState(false);
 
@@ -65,7 +72,7 @@ export function ImageUpload({ label, error, previewUrl, onChange }: ImageUploadP
       ) : (
         <div 
           className={`relative border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors ${
-            dragActive ? 'border-[#5022C3] bg-purple-50/50' : error ? 'border-red-300 bg-red-50/30' : 'border-gray-300 bg-gray-50/50 hover:bg-gray-50 hover:border-gray-400'
+            dragActive ? 'border-[#5022C3] bg-purple-50/50' : error ? 'border-red-500 bg-red-50/40' : 'border-gray-300 bg-gray-50/50 hover:bg-gray-50 hover:border-gray-400'
           }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
@@ -87,15 +94,25 @@ export function ImageUpload({ label, error, previewUrl, onChange }: ImageUploadP
             Drag and drop image here, or click add image
           </p>
           <p className="text-xs text-gray-500 max-w-[280px]">
-            Supported formats: JPG, PNG, WebP. Max size: 4MB. Use high quality images for best results.
+            Supported formats: JPG, PNG, WebP. Max size: 4MB.
           </p>
-          <div className="mt-4 px-4 py-1.5 border border-gray-200 rounded-full text-xs font-medium text-gray-600 bg-white">
+          {hint && (
+            <span className="mt-2 inline-block text-[11px] font-semibold text-[#5022C3] bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100">
+              {hint}
+            </span>
+          )}
+          <div className="mt-3 px-4 py-1.5 border border-gray-200 rounded-full text-xs font-medium text-gray-600 bg-white">
             Add Image
           </div>
         </div>
       )}
       
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && (
+        <p className="mt-2 text-xs font-medium text-red-600 flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+          {error}
+        </p>
+      )}
     </div>
   );
 }

@@ -16,6 +16,7 @@ export default function AddProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [categories, setCategories] = useState<any[]>([]);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -94,6 +95,13 @@ export default function AddProductPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
+    if (fieldErrors[name]) {
+      setFieldErrors(prev => {
+        const updated = { ...prev };
+        delete updated[name];
+        return updated;
+      });
+    }
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
@@ -105,6 +113,13 @@ export default function AddProductPage() {
   const handleImageChange = (files: File[], urls: string[]) => {
     setImageFiles(files);
     setPreviewUrls(urls);
+    if (fieldErrors.images) {
+      setFieldErrors(prev => {
+        const updated = { ...prev };
+        delete updated.images;
+        return updated;
+      });
+    }
   };
 
   const addSpecGroup = () => {
@@ -184,10 +199,94 @@ export default function AddProductPage() {
     setVideos(newVideos);
   };
 
+  const scrollToFirstError = (errors: Record<string, string>) => {
+    const fieldOrder = ['title', 'categoryId', 'images', 'discountedPrice', 'originalPrice', 'stock', 'weight'];
+    const firstInvalid = fieldOrder.find(field => errors[field]) || Object.keys(errors)[0];
+    if (firstInvalid) {
+      const container = document.getElementById(`field-${firstInvalid}`);
+      if (container) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const focusable = container.querySelector<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>('input, select, textarea');
+        if (focusable) {
+          setTimeout(() => focusable.focus(), 200);
+        }
+      }
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.title || !formData.title.trim()) {
+      errors.title = 'Item Name / Product Title is required';
+    }
+
+    if (!formData.categoryId || !formData.categoryId.trim()) {
+      errors.categoryId = 'Please select a Category';
+    }
+
+    if (imageFiles.length === 0) {
+      errors.images = 'At least one product image is required (maximum 4)';
+    } else if (imageFiles.length > 4) {
+      errors.images = 'You can upload a maximum of 4 images';
+    }
+
+    if (!formData.discountedPrice || formData.discountedPrice.toString().trim() === '') {
+      errors.discountedPrice = 'Sell/Current price is required';
+    } else {
+      const sellPrice = parseFloat(formData.discountedPrice);
+      if (isNaN(sellPrice) || sellPrice < 0) {
+        errors.discountedPrice = 'Selling price must be 0 or greater';
+      }
+    }
+
+    if (!formData.originalPrice || formData.originalPrice.toString().trim() === '') {
+      errors.originalPrice = 'Regular/Old price is required';
+    } else {
+      const regPrice = parseFloat(formData.originalPrice);
+      if (isNaN(regPrice) || regPrice < 0) {
+        errors.originalPrice = 'Regular price must be 0 or greater';
+      } else {
+        const sellPrice = parseFloat(formData.discountedPrice);
+        if (!isNaN(sellPrice) && regPrice < sellPrice) {
+          errors.originalPrice = 'Regular price cannot be less than selling price';
+        }
+      }
+    }
+
+    if (formData.stock && formData.stock.toString().trim() !== '') {
+      const stockNum = parseFloat(formData.stock);
+      if (isNaN(stockNum) || stockNum < 0) {
+        errors.stock = 'Stock quantity cannot be negative';
+      }
+    }
+
+    if (formData.weight && formData.weight.toString().trim() !== '') {
+      const weightNum = parseFloat(formData.weight);
+      if (isNaN(weightNum) || weightNum < 0) {
+        errors.weight = 'Weight cannot be negative';
+      }
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      scrollToFirstError(errors);
+      return false; // Do not call backend
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    if (!validateForm()) {
+      return; // Stop immediately, do NOT call backend
+    }
+
+    setLoading(true);
 
     try {
       // 1. Check Limits First
@@ -196,18 +295,14 @@ export default function AddProductPage() {
       } catch (limitErr: any) {
         if (limitErr.response?.data?.message === 'PRODUCT_LIMIT_REACHED') {
           setShowUpgradeModal(true);
-          return; // Stop here, don't upload images
+          return;
         }
         throw limitErr;
       }
 
-      if (imageFiles.length === 0) {
-        throw new Error('At least one product image is required');
-      }
-
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (['length', 'width', 'height', 'saveAmount'].includes(key)) return; // Handled below
+        if (['length', 'width', 'height', 'saveAmount'].includes(key)) return;
         if (value !== undefined && value !== null && value !== '') data.append(key, value as string);
       });
 
@@ -265,9 +360,26 @@ export default function AddProductPage() {
         setShowUpgradeModal(true);
         return;
       }
-      const errMsg = err.response?.data?.message || err.message || 'Failed to create product';
-      setError(errMsg);
-      toast.error(errMsg);
+
+      const serverErrors: Record<string, string> = {};
+      const backendErrors = err.response?.data?.errors || err.response?.data?.data;
+      if (Array.isArray(backendErrors)) {
+        backendErrors.forEach((item: any) => {
+          let fieldKey = item.field || '';
+          if (fieldKey.startsWith('body.')) {
+            fieldKey = fieldKey.replace('body.', '');
+          }
+          if (fieldKey) {
+            serverErrors[fieldKey] = item.message;
+          }
+        });
+        setFieldErrors(prev => ({ ...prev, ...serverErrors }));
+        scrollToFirstError(serverErrors);
+      } else {
+        const errMsg = err.response?.data?.message || err.message || 'Failed to create product';
+        setError(errMsg);
+        toast.error(errMsg);
+      }
     } finally {
       setLoading(false);
     }
@@ -306,22 +418,19 @@ export default function AddProductPage() {
           
           {/* Main Content Column */}
           <div className="flex-1 flex flex-col gap-6">
-            {error && (
-              <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-sm">
-                {error}
-              </div>
-            )}
-
             <Card title="General Information">
               <div className="space-y-6">
-                <Input 
-                  label="Item Name" 
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="E.g. Sony WH-1000XM5 Headphones"
-                  required
-                />
+                <div id="field-title">
+                  <Input 
+                    label="Item Name" 
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder="E.g. Sony WH-1000XM5 Headphones"
+                    error={fieldErrors.title}
+                    required
+                  />
+                </div>
                 
                 <Textarea 
                   label="Short Description" 
@@ -401,39 +510,49 @@ export default function AddProductPage() {
               </div>
             </Card>
 
-            <Card title="Media">
-              <MultipleImageUpload 
-                files={imageFiles}
-                previewUrls={previewUrls}
-                onChange={handleImageChange}
-                maxFiles={4}
-              />
-            </Card>
+            <div id="field-images">
+              <Card title="Media">
+                <MultipleImageUpload 
+                  files={imageFiles}
+                  previewUrls={previewUrls}
+                  onChange={handleImageChange}
+                  error={fieldErrors.images}
+                  maxFiles={4}
+                  recommendedRatio="1:1 (Square)"
+                />
+              </Card>
+            </div>
 
             <Card title="Pricing">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input 
-                  label="Sell/Current Price" 
-                  name="discountedPrice"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.discountedPrice}
-                  onChange={handleChange}
-                  placeholder="E.g. 299.99"
-                  required
-                />
-                <Input 
-                  label="Regular/Old Price" 
-                  name="originalPrice"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.originalPrice}
-                  onChange={handleChange}
-                  placeholder="E.g. 399.99"
-                  required
-                />
+                <div id="field-discountedPrice">
+                  <Input 
+                    label="Sell/Current Price" 
+                    name="discountedPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.discountedPrice}
+                    onChange={handleChange}
+                    placeholder="E.g. 299.99"
+                    error={fieldErrors.discountedPrice}
+                    required
+                  />
+                </div>
+                <div id="field-originalPrice">
+                  <Input 
+                    label="Regular/Old Price" 
+                    name="originalPrice"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.originalPrice}
+                    onChange={handleChange}
+                    placeholder="E.g. 399.99"
+                    error={fieldErrors.originalPrice}
+                    required
+                  />
+                </div>
               </div>
             </Card>
 
@@ -514,15 +633,18 @@ export default function AddProductPage() {
                   onChange={handleChange}
                   placeholder="E.g. kg, ml, l, pc"
                 />
-                <Input 
-                  label="Stock Quantity" 
-                  name="stock"
-                  type="number"
-                  min="0"
-                  value={formData.stock}
-                  onChange={handleChange}
-                  placeholder="E.g. 100"
-                />
+                <div id="field-stock">
+                  <Input 
+                    label="Stock Quantity" 
+                    name="stock"
+                    type="number"
+                    min="0"
+                    value={formData.stock}
+                    onChange={handleChange}
+                    placeholder="E.g. 100"
+                    error={fieldErrors.stock}
+                  />
+                </div>
               </div>
             </Card>
           </div>
@@ -530,27 +652,31 @@ export default function AddProductPage() {
           {/* Sidebar Column */}
           <div className="w-full lg:w-[380px] flex flex-col gap-6">
             
-            <Card title="Category">
-              {categories.length === 0 ? (
-                <div className="text-sm text-gray-500 mb-4 bg-gray-50 p-4 rounded-lg border border-dashed border-gray-200 text-center">
-                  No categories found. Create one first!
-                </div>
-              ) : (
-                <Select 
-                  name="categoryId"
-                  value={formData.categoryId}
-                  onChange={handleChange}
-                  required
-                  options={categories.map(c => ({ label: c.name, value: c._id }))}
-                />
-              )}
-              <Link 
-                href="/dashboard/categories/new"
-                className="w-full mt-4 block text-center px-4 py-2.5 text-sm font-medium text-white bg-[#5022C3] hover:bg-purple-700 rounded-lg transition-colors"
-              >
-                Add Category
-              </Link>
-            </Card>
+            <div id="field-categoryId">
+              <Card title="Category">
+                {categories.length === 0 ? (
+                  <div className="text-sm text-gray-500 mb-4 bg-gray-50 p-4 rounded-lg border border-dashed border-gray-200 text-center">
+                    No categories found. Create one first!
+                  </div>
+                ) : (
+                  <Select 
+                    label="Category"
+                    name="categoryId"
+                    value={formData.categoryId}
+                    onChange={handleChange}
+                    error={fieldErrors.categoryId}
+                    required
+                    options={categories.map(c => ({ label: c.name, value: c._id }))}
+                  />
+                )}
+                <Link 
+                  href="/dashboard/categories/new"
+                  className="w-full mt-4 block text-center px-4 py-2.5 text-sm font-medium text-white bg-[#5022C3] hover:bg-purple-700 rounded-lg transition-colors"
+                >
+                  Add Category
+                </Link>
+              </Card>
+            </div>
 
             <Card title="Brand (SEO & Data Feed)">
               <Input 
@@ -563,15 +689,18 @@ export default function AddProductPage() {
 
             <Card title="Product Weight & Dimensions">
               <div className="space-y-6">
-                <Input 
-                  label="Weight (kg)" 
-                  name="weight"
-                  type="number"
-                  step="0.01"
-                  value={formData.weight}
-                  onChange={handleChange}
-                  placeholder="e.g. 1.5"
-                />
+                <div id="field-weight">
+                  <Input 
+                    label="Weight (kg)" 
+                    name="weight"
+                    type="number"
+                    step="0.01"
+                    value={formData.weight}
+                    onChange={handleChange}
+                    placeholder="e.g. 1.5"
+                    error={fieldErrors.weight}
+                  />
+                </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide">Dimensions (cm)</label>
                   <div className="grid grid-cols-3 gap-3">

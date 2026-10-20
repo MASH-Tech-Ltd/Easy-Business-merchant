@@ -10,6 +10,7 @@ interface MultipleImageUploadProps {
   onChange: (files: File[], urls: string[]) => void;
   maxFiles?: number;
   columns?: string;
+  recommendedRatio?: string;
 }
 
 export function MultipleImageUpload({
@@ -20,6 +21,7 @@ export function MultipleImageUpload({
   onChange,
   maxFiles = 4,
   columns,
+  recommendedRatio,
 }: MultipleImageUploadProps) {
   const addFileInputRef = useRef<HTMLInputElement>(null);
   const replaceFileInputRef = useRef<HTMLInputElement>(null);
@@ -286,6 +288,11 @@ export function MultipleImageUpload({
             </div>
             <p className="text-xs font-bold text-gray-800 px-1 truncate w-full">Add Image</p>
             <p className="text-[10px] text-gray-400 mt-0.5 truncate w-full">JPG, PNG, WebP</p>
+            {recommendedRatio && (
+              <span className="mt-1 inline-block text-[10px] font-semibold text-[#5022C3] bg-purple-50 px-2 py-0.5 rounded-md border border-purple-100 max-w-[95%] truncate">
+                {recommendedRatio}
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -296,7 +303,12 @@ export function MultipleImageUpload({
         </p>
       )}
 
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      {error && (
+        <p className="mt-2 text-xs font-semibold text-red-600 flex items-center gap-1.5 bg-red-50/80 p-2 rounded-lg border border-red-200">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+          {error}
+        </p>
+      )}
     </div>
   );
 }

@@ -768,6 +768,7 @@ const isValidBDPhone = (phone?: string): boolean => {
                     error={bannerErrors.image}
                     files={bannerImagesFiles}
                     previewUrls={bannerPreviewUrls}
+                    recommendedRatio="1920 × 700 px (21:9)"
                     onChange={(newFiles, newUrls) => {
                       setBannerImagesFiles(newFiles);
                       setBannerPreviewUrls(newUrls);
@@ -780,9 +781,16 @@ const isValidBDPhone = (phone?: string): boolean => {
                       }
                     }}
                   />
-                  <p className="text-xs text-gray-500 font-medium">
-                    Upload up to 3 banner images. If multiple images are added, they will automatically display as an animated slider / carousel across all storefront themes.
-                  </p>
+                  <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-3 text-xs text-gray-600 space-y-1">
+                    <div className="flex items-center gap-1.5 font-semibold text-indigo-900">
+                      <span>📐 Recommended Banner Dimensions:</span>
+                    </div>
+                    <ul className="list-disc list-inside space-y-0.5 text-[11px] text-gray-600 pl-1">
+                      <li><strong>Resolution:</strong> <code className="bg-white px-1.5 py-0.5 rounded text-indigo-700 font-mono font-bold">1920 × 700 px</code> (or min <code className="bg-white px-1.5 py-0.5 rounded text-gray-700 font-mono">1400 × 500 px</code>)</li>
+                      <li><strong>Aspect Ratio:</strong> <code className="bg-white px-1.5 py-0.5 rounded text-indigo-700 font-mono font-bold">21:9</code> or <code className="bg-white px-1.5 py-0.5 rounded text-gray-700 font-mono">16:9</code> widescreen</li>
+                      <li><strong>Formats:</strong> JPG, PNG, WebP (Max 10MB per image)</li>
+                    </ul>
+                  </div>
 
                   {/* Top Announcement Bar Settings */}
                   <div className="bg-gray-50/70 p-5 rounded-2xl border border-gray-200/80 space-y-4">
