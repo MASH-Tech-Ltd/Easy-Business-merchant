@@ -129,10 +129,8 @@ export default function SecurityPage() {
     }
     if (!passwordForm.newPassword) {
       errors.newPassword = 'New password is required';
-    } else if (passwordForm.newPassword.length < 8) {
-      errors.newPassword = 'New password must be at least 8 characters long';
-    } else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(passwordForm.newPassword)) {
-      errors.newPassword = 'Password must contain uppercase, lowercase, and a number';
+    } else if (!isNewPasswordValid) {
+      errors.newPassword = 'Password must satisfy all requirements below';
     }
 
     if (!passwordForm.confirmPassword) {
@@ -176,11 +174,36 @@ export default function SecurityPage() {
     toast.success(label);
   };
 
-  // Password requirements calculation
-  const hasMinLength = passwordForm.newPassword.length >= 8;
-  const hasUpper = /[A-Z]/.test(passwordForm.newPassword);
-  const hasLower = /[a-z]/.test(passwordForm.newPassword);
-  const hasNumber = /\d/.test(passwordForm.newPassword);
+  // Password validation checklist criteria
+  const passwordCriteria = [
+    {
+      id: "length",
+      label: "8-16 characters in length",
+      valid: passwordForm.newPassword.length >= 8 && passwordForm.newPassword.length <= 16,
+    },
+    {
+      id: "lowercase",
+      label: "lower case letter",
+      valid: /[a-z]/.test(passwordForm.newPassword),
+    },
+    {
+      id: "uppercase",
+      label: "upper case letter",
+      valid: /[A-Z]/.test(passwordForm.newPassword),
+    },
+    {
+      id: "numeric",
+      label: "numeric character",
+      valid: /[0-9]/.test(passwordForm.newPassword),
+    },
+    {
+      id: "special",
+      label: "special character: $ @ # % ^ & * ? - + =",
+      valid: /[$@#%^&*?\-+=\!]/.test(passwordForm.newPassword),
+    },
+  ];
+
+  const isNewPasswordValid = passwordCriteria.every((rule) => rule.valid);
 
   return (
     <div className="p-3 sm:p-6 w-full max-w-[1800px] mx-auto min-h-screen">
@@ -352,7 +375,6 @@ export default function SecurityPage() {
                 <input
                   type={showNewPassword ? 'text' : 'password'}
                   required
-                  minLength={8}
                   value={passwordForm.newPassword}
                   onChange={(e) => {
                     setPasswordForm({ ...passwordForm, newPassword: e.target.value });
@@ -374,6 +396,33 @@ export default function SecurityPage() {
               {fieldErrors.newPassword && (
                 <p className="text-xs text-red-500 font-semibold mt-1">{fieldErrors.newPassword}</p>
               )}
+
+              {/* Real-time Password Validation Checklist */}
+              <div className="mt-2 p-3 xs:p-3.5 rounded-xl bg-[#f4f7fe] border border-blue-100/60 flex flex-col gap-2">
+                {passwordCriteria.map((criterion) => (
+                  <div
+                    key={criterion.id}
+                    className="flex items-center gap-2 text-xs select-none transition-colors"
+                  >
+                    <Check
+                      className={`w-3.5 h-3.5 flex-shrink-0 transition-colors duration-200 ${
+                        criterion.valid
+                          ? "text-blue-600 stroke-[2.5]"
+                          : "text-slate-300 stroke-[1.75]"
+                      }`}
+                    />
+                    <span
+                      className={`transition-colors duration-200 ${
+                        criterion.valid
+                          ? "font-semibold text-slate-900"
+                          : "font-normal text-slate-400"
+                      }`}
+                    >
+                      {criterion.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Confirm New Password */}
@@ -407,27 +456,6 @@ export default function SecurityPage() {
                 <p className="text-xs text-red-500 font-semibold mt-1">{fieldErrors.confirmPassword}</p>
               )}
             </div>
-
-            {/* Password Requirements Checklist */}
-            {passwordForm.newPassword && (
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5">
-                <p className="font-bold text-slate-700 mb-1">Password Strength Requirements:</p>
-                <div className="grid grid-cols-2 gap-1 text-[11px]">
-                  <div className={`flex items-center gap-1.5 ${hasMinLength ? 'text-emerald-600 font-semibold' : 'text-slate-400'}`}>
-                    <Check className="w-3.5 h-3.5" /> At least 8 characters
-                  </div>
-                  <div className={`flex items-center gap-1.5 ${hasUpper ? 'text-emerald-600 font-semibold' : 'text-slate-400'}`}>
-                    <Check className="w-3.5 h-3.5" /> Uppercase letter
-                  </div>
-                  <div className={`flex items-center gap-1.5 ${hasLower ? 'text-emerald-600 font-semibold' : 'text-slate-400'}`}>
-                    <Check className="w-3.5 h-3.5" /> Lowercase letter
-                  </div>
-                  <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-600 font-semibold' : 'text-slate-400'}`}>
-                    <Check className="w-3.5 h-3.5" /> Number (0-9)
-                  </div>
-                </div>
-              </div>
-            )}
 
             <button
               type="submit"

@@ -177,7 +177,6 @@ function RegisterContent() {
         storeName: storeName.trim(),
         email: email.trim(),
         password,
-        role: "tenant_admin",
       };
 
       if (referralCode.trim()) {

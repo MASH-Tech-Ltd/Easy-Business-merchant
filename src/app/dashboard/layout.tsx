@@ -700,17 +700,30 @@ export default function DashboardLayout({
       </div>
     );
   } else if (fullSubscription) {
-    const end = new Date(fullSubscription.endDate);
+    // Determine whether the subscription has an active renewal or valid extension
+    const isRenewedOrExtended = Boolean(
+      fullSubscription.isRenewed ||
+      (fullSubscription.extendedEndDate && new Date(fullSubscription.extendedEndDate).getTime() > new Date(fullSubscription.endDate).getTime()) ||
+      (fullSubscription.renewalEndDate && new Date(fullSubscription.renewalEndDate).getTime() > new Date(fullSubscription.endDate).getTime())
+    );
+
+    // Use the extended/renewal date if renewed or extended, otherwise fallback to cycle endDate
+    const effectiveEnd = (isRenewedOrExtended && (fullSubscription.extendedEndDate || fullSubscription.renewalEndDate))
+      ? new Date(fullSubscription.extendedEndDate || fullSubscription.renewalEndDate)
+      : new Date(fullSubscription.endDate);
+
     const now = new Date();
+    const isCurrentlyCovered = effectiveEnd.getTime() > now.getTime();
+
     const daysLeft = Math.max(
       0,
-      Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
+      Math.ceil((effectiveEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
     );
 
     if (
+      !isCurrentlyCovered ||
       fullSubscription.status === "expired" ||
-      fullSubscription.status === "cancelled" ||
-      daysLeft <= 0
+      fullSubscription.status === "cancelled"
     ) {
       banner = (
         <div className="bg-red-50 text-red-600 px-4 py-2 flex items-center justify-center gap-2 border-b border-red-100 text-sm font-medium z-50">
@@ -729,7 +742,7 @@ export default function DashboardLayout({
           </Link>
         </div>
       );
-    } else if (daysLeft <= 5 && fullSubscription.isTrial) {
+    } else if (!isRenewedOrExtended && daysLeft <= 5 && fullSubscription.isTrial) {
       banner = (
         <div className="bg-amber-50 text-amber-700 px-4 py-2 flex items-center justify-center gap-2 border-b border-amber-100 text-sm font-medium z-50">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
@@ -748,12 +761,31 @@ export default function DashboardLayout({
           </Link>
         </div>
       );
-    } else if (daysLeft <= 5 && !fullSubscription.isTrial) {
+    } else if (!isRenewedOrExtended && daysLeft <= 5 && !fullSubscription.isTrial) {
       banner = (
         <div className="bg-orange-50 text-orange-700 px-4 py-2 flex items-center justify-center gap-2 border-b border-orange-100 text-sm font-medium z-50">
           <AlertTriangle className="w-4 h-4 flex-shrink-0" />
           <span>
             ⚠️ Your subscription expires in{" "}
+            <strong>
+              {daysLeft} {daysLeft === 1 ? "day" : "days"}
+            </strong>
+            . Renew now to avoid any downtime.
+          </span>
+          <Link
+            href="/dashboard/subscription"
+            className="underline font-bold ml-2 hover:text-orange-800 whitespace-nowrap"
+          >
+            Renew Now
+          </Link>
+        </div>
+      );
+    } else if (isRenewedOrExtended && daysLeft <= 5 && !fullSubscription.isTrial) {
+      banner = (
+        <div className="bg-orange-50 text-orange-700 px-4 py-2 flex items-center justify-center gap-2 border-b border-orange-100 text-sm font-medium z-50">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>
+            ⚠️ Your extended subscription period ends in{" "}
             <strong>
               {daysLeft} {daysLeft === 1 ? "day" : "days"}
             </strong>
