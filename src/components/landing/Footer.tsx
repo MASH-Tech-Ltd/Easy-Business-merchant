@@ -46,6 +46,9 @@ async function getPublicSocialLinks(): Promise<SocialLinksMap | null> {
     const fetchUrl = `${apiUrl}/system/public-settings`.replace('localhost', '127.0.0.1');
     const res = await fetch(fetchUrl, {
       next: { revalidate: 300 }, // ISR: Cache for 5 minutes, safe for static pre-rendering
+      headers: {
+        'user-agent': 'Mozilla/5.0 (compatible; MashEcoLanding/1.0)',
+      },
     });
 
     if (!res.ok) return null;

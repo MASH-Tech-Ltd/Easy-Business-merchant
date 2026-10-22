@@ -87,13 +87,20 @@ async function getPublicPackages(): Promise<IPackage[]> {
         const firstIp = clientIp.includes(",")
           ? clientIp.split(",")[0].trim()
           : clientIp;
+        headersInit["x-tenant-client-ip"] = firstIp;
         headersInit["cf-connecting-ip"] = firstIp;
         headersInit["x-forwarded-for"] = clientIp;
         headersInit["x-real-ip"] = firstIp;
       }
       if (host) headersInit["x-forwarded-host"] = host;
+      const userAgent = reqHeaders.get("user-agent") || "";
+      if (userAgent) {
+        headersInit["user-agent"] = userAgent;
+      } else {
+        headersInit["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
+      }
     } catch {
-      // Ignore if outside request context
+      headersInit["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
     }
 
     const fetchUrl = `${apiUrl}/packages/public-packages`.replace('localhost', '127.0.0.1');

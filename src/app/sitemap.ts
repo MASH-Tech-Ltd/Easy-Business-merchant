@@ -25,6 +25,9 @@ async function fetchActiveStores(): Promise<ActiveStore[]> {
     const fetchUrl = `${apiUrl}/system/active-stores`.replace("localhost", "127.0.0.1");
     const res = await fetch(fetchUrl, {
       next: { revalidate: 3600 },
+      headers: {
+        "user-agent": "Mozilla/5.0 (compatible; MashEcoSitemap/1.0)",
+      },
     });
 
     if (!res.ok) return [];
