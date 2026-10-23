@@ -3,6 +3,9 @@ import { X, Trash2, Plus, Minus } from 'lucide-react';
 
 interface OrderItem {
   productId: string;
+  variantId?: string;
+  color?: string;
+  size?: string;
   title: string;
   price: number;
   quantity: number;
@@ -48,9 +51,9 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
   const subTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const totalPrice = isDeliveryChargePaid ? subTotal : subTotal + shippingCharge;
 
-  const handleUpdateQuantity = (productId: string, delta: number) => {
-    setItems(items.map(item => {
-      if (item.productId === productId) {
+  const handleUpdateQuantity = (index: number, delta: number) => {
+    setItems(items.map((item, idx) => {
+      if (idx === index) {
         const newQuantity = Math.max(1, item.quantity + delta);
         return { ...item, quantity: newQuantity };
       }
@@ -58,8 +61,8 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
     }));
   };
 
-  const handleRemoveItem = (productId: string) => {
-    setItems(items.filter(item => item.productId !== productId));
+  const handleRemoveItem = (index: number) => {
+    setItems(items.filter((_, idx) => idx !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -101,13 +104,27 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
           <div>
             <h3 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wider">Products</h3>
             <div className="space-y-4">
-              {items.map(item => (
-                <div key={item.productId} className="flex items-center gap-4 border border-gray-100 rounded-xl p-3 bg-white shadow-sm">
+              {items.map((item, idx) => (
+                <div key={item.variantId ? `${item.productId}-${item.variantId}` : `${item.productId}-${idx}`} className="flex items-center gap-4 border border-gray-100 rounded-xl p-3 bg-white shadow-sm">
                   <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-200 p-1">
                     <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-bold text-gray-900 truncate">{item.title}</h4>
+                    {(item.color || item.size) && (
+                      <div className="flex flex-wrap gap-1.5 mt-0.5 mb-1">
+                        {item.color && (
+                          <span className="inline-flex items-center px-1.5 py-0.2 text-[10px] font-semibold bg-purple-50 text-purple-700 rounded border border-purple-200">
+                            Color: {item.color}
+                          </span>
+                        )}
+                        {item.size && (
+                          <span className="inline-flex items-center px-1.5 py-0.2 text-[10px] font-semibold bg-blue-50 text-blue-700 rounded border border-blue-200">
+                            Size: {item.size}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <div className="text-sm text-gray-500">{item.price.toLocaleString()} BDT × {item.quantity} = <span className="font-bold text-gray-900">{(item.price * item.quantity).toLocaleString()} BDT</span></div>
                   </div>
                   
@@ -115,7 +132,7 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
                     <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
                       <button 
                         type="button"
-                        onClick={() => handleUpdateQuantity(item.productId, -1)}
+                        onClick={() => handleUpdateQuantity(idx, -1)}
                         className="px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                       >
                         <Minus className="w-4 h-4" />
@@ -123,7 +140,7 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
                       <span className="px-3 font-semibold text-gray-900 text-sm">{item.quantity}</span>
                       <button 
                         type="button"
-                        onClick={() => handleUpdateQuantity(item.productId, 1)}
+                        onClick={() => handleUpdateQuantity(idx, 1)}
                         className="px-3 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                       >
                         <Plus className="w-4 h-4" />
@@ -131,7 +148,7 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
                     </div>
                     <button 
                       type="button"
-                      onClick={() => handleRemoveItem(item.productId)}
+                      onClick={() => handleRemoveItem(idx)}
                       className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                       title="Remove product"
                     >

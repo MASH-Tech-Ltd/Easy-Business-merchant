@@ -49,3 +49,27 @@ body {
     color: #000000 !important;
   }
 }
+
+/* Visual WYSIWYG Editor List Typography */
+.visual-editor ul,
+[contenteditable] ul {
+  list-style-type: disc !important;
+  padding-left: 2rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.visual-editor ol,
+[contenteditable] ol {
+  list-style-type: decimal !important;
+  padding-left: 2rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.visual-editor li,
+[contenteditable] li {
+  display: list-item !important;
+  margin-bottom: 0.35rem !important;
+  line-height: 1.85 !important;
+}

@@ -27,6 +27,9 @@ import { getCourierTrackingUrl, getCourierIcon } from "@/config/couriers";
 
 interface OrderItem {
   productId: string;
+  variantId?: string;
+  color?: string;
+  size?: string;
   title: string;
   price: number;
   quantity: number;
@@ -911,9 +914,25 @@ export default function OrdersPage() {
                                   />
                                 )}
                               </div>
-                              <span className="font-medium text-gray-900">
-                                {item.title}
-                              </span>
+                              <div>
+                                <span className="font-medium text-gray-900 block">
+                                  {item.title}
+                                </span>
+                                {(item.color || item.size) && (
+                                  <div className="flex flex-wrap gap-1.5 mt-1">
+                                    {item.color && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                        Color: {item.color}
+                                      </span>
+                                    )}
+                                    {item.size && (
+                                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                        Size: {item.size}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </td>
                           <td className="py-3 px-3 sm:py-4 sm:px-4 text-center text-gray-700 font-medium">

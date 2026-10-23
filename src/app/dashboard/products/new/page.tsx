@@ -27,6 +27,8 @@ export default function AddProductPage() {
   const [specifications, setSpecifications] = useState<{group: string, entries: {name: string, value: string}[]}[]>([]);
   const [features, setFeatures] = useState<string[]>(['']);
   const [videos, setVideos] = useState<string[]>(['']);
+  const [hasVariants, setHasVariants] = useState(false);
+  const [variants, setVariants] = useState<Array<{ color: string; size: string; stock: string; sku: string }>>([]);
   const [formData, setFormData] = useState({
     title: '',
     shortDescription: '',
@@ -60,6 +62,8 @@ export default function AddProductPage() {
         if (parsed.specifications) setSpecifications(parsed.specifications);
         if (parsed.features) setFeatures(parsed.features);
         if (parsed.videos) setVideos(parsed.videos);
+        if (parsed.hasVariants !== undefined) setHasVariants(parsed.hasVariants);
+        if (parsed.variants) setVariants(parsed.variants);
       } catch (e) {
         console.error('Failed to parse draft product', e);
       }
@@ -75,10 +79,10 @@ export default function AddProductPage() {
   // Save to local storage on change
   useEffect(() => {
     if (isClient) {
-      const draft = { formData, specifications, features, videos };
+      const draft = { formData, specifications, features, videos, hasVariants, variants };
       localStorage.setItem('draftProduct', JSON.stringify(draft));
     }
-  }, [formData, specifications, features, videos, isClient]);
+  }, [formData, specifications, features, videos, hasVariants, variants, isClient]);
 
   const handleDiscard = () => {
     localStorage.removeItem('draftProduct');
@@ -124,6 +128,37 @@ export default function AddProductPage() {
 
   const addSpecGroup = () => {
     setSpecifications([...specifications, { group: '', entries: [{ name: '', value: '' }] }]);
+  };
+
+  const handleToggleVariants = (checked: boolean) => {
+    setHasVariants(checked);
+    if (checked && variants.length === 0) {
+      const initial = [{ color: '', size: '', stock: formData.stock || '10', sku: '' }];
+      setVariants(initial);
+      setFormData(prev => ({ ...prev, stock: initial[0].stock }));
+    }
+  };
+
+  const handleAddVariant = () => {
+    const updated = [...variants, { color: '', size: '', stock: '0', sku: '' }];
+    setVariants(updated);
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    const updated = variants.filter((_, i) => i !== index);
+    setVariants(updated);
+    const sum = updated.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
+    setFormData(prev => ({ ...prev, stock: String(sum) }));
+  };
+
+  const handleVariantChange = (index: number, field: 'color' | 'size' | 'stock' | 'sku', value: string) => {
+    const updated = [...variants];
+    updated[index] = { ...updated[index], [field]: value };
+    setVariants(updated);
+    if (field === 'stock') {
+      const sum = updated.reduce((acc, v) => acc + (Number(v.stock) || 0), 0);
+      setFormData(prev => ({ ...prev, stock: String(sum) }));
+    }
   };
 
   const addSpecEntry = (groupIndex: number) => {
@@ -302,7 +337,7 @@ export default function AddProductPage() {
 
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (['length', 'width', 'height', 'saveAmount'].includes(key)) return;
+        if (['length', 'width', 'height', 'saveAmount', 'stock'].includes(key)) return;
         if (value !== undefined && value !== null && value !== '') data.append(key, value as string);
       });
 
@@ -341,6 +376,23 @@ export default function AddProductPage() {
 
       // Save amount calculation
       data.append('saveAmount', calculateSaveAmount());
+
+      // Variants and Stock Synchronization
+      data.append('hasVariants', String(hasVariants));
+      if (hasVariants && variants.length > 0) {
+        const validVariants = variants.map(v => ({
+          color: v.color.trim(),
+          size: v.size.trim(),
+          stock: Math.max(0, Number(v.stock) || 0),
+          sku: v.sku.trim(),
+        }));
+        data.append('variants', JSON.stringify(validVariants));
+        const computedStock = validVariants.reduce((sum, v) => sum + v.stock, 0);
+        data.append('stock', String(computedStock));
+      } else {
+        data.append('stock', formData.stock ? String(formData.stock) : '0');
+        data.append('variants', '[]');
+      }
       
       imageFiles.forEach(file => {
         data.append('images', file);
@@ -618,32 +670,147 @@ export default function AddProductPage() {
             </Card>
 
             <Card title="Inventory">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Input 
-                  label="Product Serial / SKU" 
-                  name="sku"
-                  value={formData.sku}
-                  onChange={handleChange}
-                  placeholder="E.g. PROD-001"
-                />
-                <Input 
-                  label="Unit Name" 
-                  name="unit"
-                  value={formData.unit}
-                  onChange={handleChange}
-                  placeholder="E.g. kg, ml, l, pc"
-                />
-                <div id="field-stock">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <Input 
-                    label="Stock Quantity" 
-                    name="stock"
-                    type="number"
-                    min="0"
-                    value={formData.stock}
+                    label="Product Serial / SKU" 
+                    name="sku"
+                    value={formData.sku}
                     onChange={handleChange}
-                    placeholder="E.g. 100"
-                    error={fieldErrors.stock}
+                    placeholder="E.g. PROD-001"
                   />
+                  <Input 
+                    label="Unit Name" 
+                    name="unit"
+                    value={formData.unit}
+                    onChange={handleChange}
+                    placeholder="E.g. kg, ml, l, pc"
+                  />
+                  {!hasVariants && (
+                    <div id="field-stock">
+                      <Input 
+                        label="Stock Quantity" 
+                        name="stock"
+                        type="number"
+                        min="0"
+                        value={formData.stock}
+                        onChange={handleChange}
+                        placeholder="E.g. 100"
+                        error={fieldErrors.stock}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Variants Toggle & Management */}
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-900">
+                        This product has options (Colors & Sizes)
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Enable to set individual quantities for colors and sizes. Total stock will be automatically calculated.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        checked={hasVariants}
+                        onChange={(e) => handleToggleVariants(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#5022C3]"></div>
+                    </label>
+                  </div>
+
+                  {hasVariants && (
+                    <div className="mt-5 space-y-4 bg-gray-50/80 p-4 sm:p-5 rounded-xl border border-gray-200/80">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-gray-200">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold uppercase tracking-wider text-gray-600">
+                            Product Variations
+                          </span>
+                          <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-[#5022C3]">
+                            {variants.length} {variants.length === 1 ? 'Variant' : 'Variants'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-gray-500">Total Calculated Stock:</span>
+                          <span className="text-sm font-black text-[#5022C3] bg-white px-2.5 py-0.5 rounded-lg border border-purple-200 shadow-2xs">
+                            {variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0)} units
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Variant Rows */}
+                      <div className="space-y-3">
+                        <div className="hidden sm:grid grid-cols-12 gap-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider px-2">
+                          <div className="col-span-4">Color (Option)</div>
+                          <div className="col-span-3">Size (Option)</div>
+                          <div className="col-span-3">Quantity (Stock)</div>
+                          <div className="col-span-2 text-right">Action</div>
+                        </div>
+
+                        {variants.map((variant, index) => (
+                          <div key={index} className="grid grid-cols-1 sm:grid-cols-12 gap-2 sm:gap-3 items-center bg-white p-3 rounded-lg border border-gray-200 shadow-2xs">
+                            <div className="sm:col-span-4">
+                              <label className="sm:hidden text-[10px] font-bold text-gray-500 uppercase">Color</label>
+                              <input 
+                                type="text"
+                                placeholder="e.g. Red, Black, Blue"
+                                value={variant.color}
+                                onChange={(e) => handleVariantChange(index, 'color', e.target.value)}
+                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5022C3]/30 focus:border-[#5022C3]"
+                              />
+                            </div>
+                            <div className="sm:col-span-3">
+                              <label className="sm:hidden text-[10px] font-bold text-gray-500 uppercase">Size</label>
+                              <input 
+                                type="text"
+                                placeholder="e.g. S, M, L, XL"
+                                value={variant.size}
+                                onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
+                                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5022C3]/30 focus:border-[#5022C3]"
+                              />
+                            </div>
+                            <div className="sm:col-span-3">
+                              <label className="sm:hidden text-[10px] font-bold text-gray-500 uppercase">Stock Quantity</label>
+                              <input 
+                                type="number"
+                                min="0"
+                                placeholder="e.g. 10"
+                                value={variant.stock}
+                                onChange={(e) => handleVariantChange(index, 'stock', e.target.value)}
+                                className="w-full px-3 py-2 text-sm font-semibold border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5022C3]/30 focus:border-[#5022C3]"
+                              />
+                            </div>
+                            <div className="sm:col-span-2 flex justify-end">
+                              <button 
+                                type="button"
+                                onClick={() => handleRemoveVariant(index)}
+                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Remove Variant"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="pt-2">
+                        <button 
+                          type="button"
+                          onClick={handleAddVariant}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#5022C3] bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors border border-purple-200"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Variant Option</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>
