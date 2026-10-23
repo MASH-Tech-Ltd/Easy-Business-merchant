@@ -10,12 +10,17 @@ interface ActiveStore {
   description?: string;
 }
 
+export const dynamic = "force-dynamic";
 export const revalidate = 3600; // Revalidate sitemap every hour
 
 async function fetchActiveStores(): Promise<ActiveStore[]> {
   try {
     const internalUrl = process.env.BACKEND_INTERNAL_URL || process.env.INTERNAL_API_URL;
-    let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    let apiUrl =
+      process.env.NEXT_PUBLIC_API_URL ||
+      (process.env.NODE_ENV === "production"
+        ? "https://backapi.masheco.com/api/v1"
+        : "http://localhost:8000/api/v1");
 
     if (internalUrl) {
       const clean = internalUrl.replace(/\/$/, "");
@@ -26,7 +31,7 @@ async function fetchActiveStores(): Promise<ActiveStore[]> {
     const res = await fetch(fetchUrl, {
       next: { revalidate: 3600 },
       headers: {
-        "user-agent": "Mozilla/5.0 (compatible; MashEcoSitemap/1.0)",
+        "user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1)",
       },
     });
 
@@ -69,7 +74,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       store.customDomain.trim() !== "";
 
     const cleanCustomDomain = store.customDomain
-      ? store.customDomain.trim().toLowerCase().replace(/^www\./, "")
+      ? store.customDomain.trim().toLowerCase().replace(/^https?:\/\//, "").split("/")[0]
       : "";
 
     // Direct 'domain' field from database is the merchant's subdomain
@@ -108,10 +113,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.75,
       },
       {
-        url: `${storeOrigin}/sitemap.xml`,
+        url: `${storeOrigin}/track-order`,
         lastModified: lastMod,
-        changeFrequency: "daily" as const,
-        priority: 0.9,
+        changeFrequency: "monthly" as const,
+        priority: 0.5,
+      },
+      {
+        url: `${storeOrigin}/policies/terms`,
+        lastModified: lastMod,
+        changeFrequency: "monthly" as const,
+        priority: 0.4,
+      },
+      {
+        url: `${storeOrigin}/policies/privacy`,
+        lastModified: lastMod,
+        changeFrequency: "monthly" as const,
+        priority: 0.4,
+      },
+      {
+        url: `${storeOrigin}/policies/refund`,
+        lastModified: lastMod,
+        changeFrequency: "monthly" as const,
+        priority: 0.4,
       },
     ];
   });
