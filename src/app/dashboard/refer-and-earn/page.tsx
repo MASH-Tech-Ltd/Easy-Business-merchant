@@ -118,14 +118,16 @@ export default function ReferAndEarnPage() {
             <h1 className="text-2xl xs:text-3xl sm:text-4xl font-black tracking-tight leading-tight">
               Refer a Merchant, Earn{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400">
-                20 Points (৳20)
+                Up to 100 Points (৳100)
               </span>
             </h1>
             <p className="mt-2.5 sm:mt-3 text-slate-300 text-xs sm:text-sm md:text-base leading-relaxed">
               Invite friends to create their online store on MASH ECO. Your friend gets{" "}
               <strong className="text-white font-semibold">10 Days Extra Free Trial (15 days total)</strong>. 
-              When they purchase a subscription plan, you get{" "}
-              <strong className="text-amber-300 font-semibold">20 Points convertible directly to Taka (৳20)</strong>!
+              When they purchase a monthly plan, you get{" "}
+              <strong className="text-amber-300 font-semibold">20 Points (৳20)</strong>. 
+              If they subscribe to a 1-Year plan for the first time, you get{" "}
+              <strong className="text-amber-300 font-semibold">100 Points (৳100)</strong>!
             </p>
           </div>
 
@@ -319,7 +321,7 @@ export default function ReferAndEarnPage() {
               <Gift className="w-8 h-8 mx-auto mb-2 text-slate-300" />
               <p className="font-semibold text-slate-700 text-sm">No merchants referred yet</p>
               <p className="text-xs text-slate-400 mt-1">
-                Share your referral link with merchant friends to earn 20 points per subscription!
+                Share your referral link with merchant friends to earn 100 points for a 1-year plan or 20 points for a monthly plan!
               </p>
             </div>
           ) : (
@@ -394,7 +396,7 @@ export default function ReferAndEarnPage() {
                     <Gift className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                     <p className="font-semibold text-slate-700">No merchants referred yet</p>
                     <p className="text-xs text-slate-400 mt-1">
-                      Share your referral link with merchant friends to earn 20 points per subscription!
+                      Share your referral link with merchant friends to earn 100 points for a 1-year plan or 20 points for a monthly plan!
                     </p>
                   </td>
                 </tr>
