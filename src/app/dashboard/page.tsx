@@ -28,6 +28,16 @@ import {
   AlertTriangle,
   Zap,
   AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  ChevronRight,
+  Palette,
+  ArrowRight,
+  CircleDashed,
+  Globe,
+  Truck,
+  ShieldCheck,
+  Image as ImageIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "../../utils/api";
@@ -88,6 +98,49 @@ export default function DashboardOverview() {
   const [showDemoSeed, setShowDemoSeed] = useState<boolean>(
     globalCache?.showDemoSeed ?? false,
   );
+  const [storeSetup, setStoreSetup] = useState<any>(
+    globalCache?.storeSetup || null,
+  );
+  const [isChecklistExpanded, setIsChecklistExpanded] = useState(false);
+  const [isSetupScoreDismissed, setIsSetupScoreDismissed] = useState(false);
+  const [checklistFilter, setChecklistFilter] = useState<
+    "all" | "appearance" | "catalog" | "trust"
+  >("all");
+
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const key = `hide_store_setup_score_${storeSlug || "default"}`;
+        const isDismissed = localStorage.getItem(key);
+        if (isDismissed === "true") {
+          setIsSetupScoreDismissed(true);
+        }
+      }
+    } catch (e) {}
+  }, [storeSlug]);
+
+  const handleDismissPermanently = () => {
+    try {
+      if (typeof window !== "undefined") {
+        const key = `hide_store_setup_score_${storeSlug || "default"}`;
+        localStorage.setItem(key, "true");
+      }
+    } catch (e) {}
+    setIsSetupScoreDismissed(true);
+    toast.success("Setup card hidden from dashboard. You can review or unhide it anytime from Settings > Profile.");
+  };
+
+  const handleUnhideSetupScore = () => {
+    try {
+      if (typeof window !== "undefined") {
+        const key = `hide_store_setup_score_${storeSlug || "default"}`;
+        localStorage.removeItem(key);
+      }
+    } catch (e) {}
+    setIsSetupScoreDismissed(false);
+    setIsChecklistExpanded(true);
+    toast.success("Store setup checklist unhidden!");
+  };
   const [showSeedModal, setShowSeedModal] = useState(false);
   const [seedLoading, setSeedLoading] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
@@ -108,7 +161,9 @@ export default function DashboardOverview() {
       toast.success("Subscription activated immediately with zero time gap!");
       fetchData();
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to activate subscription early");
+      toast.error(
+        err?.response?.data?.message || "Failed to activate subscription early",
+      );
     } finally {
       setActivatingEarly(false);
     }
@@ -206,6 +261,7 @@ export default function DashboardOverview() {
           inactive: 0,
         },
         topProducts: summary.topProducts || [],
+        storeSetup: summary.storeSetup || null,
       };
 
       setStoreName(globalCache.storeName);
@@ -217,6 +273,7 @@ export default function DashboardOverview() {
       setProductStats(globalCache.productStats);
       setCategoryStats(globalCache.categoryStats);
       setTopProducts(globalCache.topProducts);
+      setStoreSetup(globalCache.storeSetup);
     } catch (error) {
       console.error("Failed to fetch dashboard data", error);
     } finally {
@@ -331,67 +388,87 @@ export default function DashboardOverview() {
     <div className="relative min-h-full pb-20 bg-[#F8FAFC]">
       <div className="w-full max-w-[1800px] mx-auto pt-4 sm:pt-8 px-3 sm:px-6">
         {/* Store Down / No Active Subscription Warning Banner */}
-        {!loading && (!subscription || subscription.isUpcomingOnly || subscription.status !== "active") && (
-          <div className="mb-6 rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 via-rose-50 to-amber-50 p-4 sm:p-5 shadow-sm">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="flex items-start gap-3.5">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-100 border border-red-200 flex items-center justify-center shrink-0 text-red-600 mt-0.5">
-                  <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="font-extrabold text-red-950 text-sm sm:text-base flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-                      Your Store is Currently Offline (Store Down)
-                    </span>
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-700 border border-red-200">
-                      No Active Plan Running Right Now
-                    </span>
+        {!loading &&
+          (!subscription ||
+            subscription.isUpcomingOnly ||
+            subscription.status !== "active") && (
+            <div className="mb-6 rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 via-rose-50 to-amber-50 p-4 sm:p-5 shadow-sm">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-red-100 border border-red-200 flex items-center justify-center shrink-0 text-red-600 mt-0.5">
+                    <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
-                  <p className="text-xs sm:text-sm text-red-800 leading-relaxed font-medium">
-                    {subscription?.isUpcomingOnly ? (
-                      <>
-                        Your store is currently <strong>offline</strong> because your current subscription ended or was cancelled. Your confirmed next plan (<strong>{subscription.packageId?.name}</strong>) is scheduled to start on <strong>{formatDate(subscription.startDate)}</strong>. Customers cannot visit your store or place orders until your plan is active.
-                      </>
-                    ) : subscription?.status === "pending" ? (
-                      <>
-                        Your store is currently <strong>offline</strong> because your subscription request for <strong>{subscription.packageId?.name}</strong> is awaiting Super Admin approval. Once approved, your store will go live immediately.
-                      </>
-                    ) : (
-                      <>
-                        Your store is currently <strong>offline</strong> because there is no active subscription at this time. Customers cannot browse products or place orders. Please subscribe or renew your plan to bring your storefront back online.
-                      </>
-                    )}
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="font-extrabold text-red-950 text-sm sm:text-base flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                        Your Store is Currently Offline (Store Down)
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-700 border border-red-200">
+                        No Active Plan Running Right Now
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-red-800 leading-relaxed font-medium">
+                      {subscription?.isUpcomingOnly ? (
+                        <>
+                          Your store is currently <strong>offline</strong>{" "}
+                          because your current subscription ended or was
+                          cancelled. Your confirmed next plan (
+                          <strong>{subscription.packageId?.name}</strong>) is
+                          scheduled to start on{" "}
+                          <strong>{formatDate(subscription.startDate)}</strong>.
+                          Customers cannot visit your store or place orders
+                          until your plan is active.
+                        </>
+                      ) : subscription?.status === "pending" ? (
+                        <>
+                          Your store is currently <strong>offline</strong>{" "}
+                          because your subscription request for{" "}
+                          <strong>{subscription.packageId?.name}</strong> is
+                          awaiting Super Admin approval. Once approved, your
+                          store will go live immediately.
+                        </>
+                      ) : (
+                        <>
+                          Your store is currently <strong>offline</strong>{" "}
+                          because there is no active subscription at this time.
+                          Customers cannot browse products or place orders.
+                          Please subscribe or renew your plan to bring your
+                          storefront back online.
+                        </>
+                      )}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-end">
-                {subscription?.isUpcomingOnly ? (
-                  <button
-                    onClick={handleActivateEarly}
-                    disabled={activatingEarly}
-                    className="w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                  >
-                    <Zap className="w-4 h-4 text-yellow-300" />
-                    {activatingEarly ? "Activating..." : "Activate Plan Now (Go Live Today)"}
-                  </button>
-                ) : (
-                  <Link
-                    href="/dashboard/subscription"
-                    className="w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-red-600 hover:bg-red-700 text-white shadow-md flex items-center justify-center gap-2 transition-all"
-                  >
-                    <Crown className="w-4 h-4 text-yellow-300" />
-                    Subscribe / Renew Plan
-                  </Link>
-                )}
+                <div className="flex items-center gap-2 w-full md:w-auto shrink-0 justify-end">
+                  {subscription?.isUpcomingOnly ? (
+                    <button
+                      onClick={handleActivateEarly}
+                      disabled={activatingEarly}
+                      className="w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                    >
+                      <Zap className="w-4 h-4 text-yellow-300" />
+                      {activatingEarly
+                        ? "Activating..."
+                        : "Activate Plan Now (Go Live Today)"}
+                    </button>
+                  ) : (
+                    <Link
+                      href="/dashboard/subscription"
+                      className="w-full md:w-auto px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-red-600 hover:bg-red-700 text-white shadow-md flex items-center justify-center gap-2 transition-all"
+                    >
+                      <Crown className="w-4 h-4 text-yellow-300" />
+                      Subscribe / Renew Plan
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 sm:mb-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
               Welcome back, {storeName} 👋
@@ -402,7 +479,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Quick Actions / Store Link */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full md:w-auto mt-1 md:mt-0">
             {/* Seed Demo Data Button */}
             {showDemoSeed && (
               <button
@@ -410,21 +487,21 @@ export default function DashboardOverview() {
                   setShowSeedModal(true);
                   setSeedResult(null);
                 }}
-                className="flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-xl shadow-md hover:shadow-lg hover:from-violet-700 hover:to-indigo-700 hover:-translate-y-0.5 transition-all duration-200"
+                className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-xl shadow-xs hover:shadow-md hover:from-violet-700 hover:to-indigo-700 transition-all whitespace-nowrap"
                 title="Seed demo categories and products"
               >
-                <Sparkles className="w-4 h-4" />
-                Make demo store
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <span>Make demo store</span>
               </button>
             )}
 
-            <div className="bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2 flex items-center justify-between sm:justify-start gap-2 sm:gap-3 shadow-sm w-full sm:w-auto min-w-0">
-              <span className="text-xs sm:text-sm font-medium text-gray-600 truncate max-w-[120px] min-[360px]:max-w-[160px] sm:max-w-[200px]">
+            <div className="flex-1 sm:flex-initial bg-white border border-gray-200 rounded-xl px-2.5 sm:px-4 py-1.5 sm:py-2 flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 shadow-xs min-w-0">
+              <span className="text-xs sm:text-sm font-medium text-gray-600 truncate max-w-[110px] min-[360px]:max-w-[140px] sm:max-w-[200px]">
                 {storeSlug
                   ? `${storeSlug}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || "localhost:3000"}`
                   : "Loading..."}
               </span>
-              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <div className="w-px h-4 bg-gray-200"></div>
                 <button
                   onClick={copyToClipboard}
@@ -437,15 +514,207 @@ export default function DashboardOverview() {
                   href={storeUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[11px] sm:text-xs font-semibold bg-indigo-50 text-indigo-700 px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors"
+                  className="flex items-center gap-1 text-[11px] sm:text-xs font-semibold bg-indigo-50 text-indigo-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg hover:bg-indigo-100 transition-colors shrink-0"
                 >
-                  View Store
+                  <span>View Store</span>
                   <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Store Setup & Visual Polish Progress Score (Compact & Fully Responsive) */}
+        {storeSetup && !isSetupScoreDismissed && (
+          <div className="bg-white border border-purple-100 rounded-xl p-3 sm:p-4 shadow-2xs mb-4 sm:mb-6 transition-all">
+            {/* Top Bar: Title, Score Badge, Stats, Action Controls */}
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-lg bg-[#5022C3]/10 text-[#5022C3] flex items-center justify-center shrink-0">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0 flex items-center gap-2 flex-wrap">
+                  <h2 className="text-xs sm:text-sm font-bold text-gray-900 truncate">
+                    Store Setup
+                  </h2>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                      storeSetup.score === 100
+                        ? "bg-emerald-100 text-emerald-800"
+                        : storeSetup.score >= 70
+                          ? "bg-purple-100 text-[#5022C3]"
+                          : "bg-amber-100 text-amber-800"
+                    }`}
+                  >
+                    {storeSetup.score}%
+                  </span>
+                  <span className="text-[11px] text-gray-500 hidden md:inline truncate">
+                    •{" "}
+                    {storeSetup.requiredCompletedCount ??
+                      storeSetup.completedCount}{" "}
+                    of {storeSetup.requiredTotalCount ?? 7} core steps completed
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Controls */}
+              <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                {/* Permanently hide option */}
+                {storeSetup.score === 100 ? (
+                  <button
+                    type="button"
+                    onClick={handleDismissPermanently}
+                    className="text-[10px] sm:text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1 transition-all"
+                    title="100% Setup Complete. Permanently hide this card."
+                  >
+                    <span>Hide Forever</span>
+                    <X className="w-3 h-3 text-emerald-600" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleDismissPermanently}
+                    className="text-[10px] sm:text-[11px] font-medium text-gray-400 hover:text-gray-700 hover:bg-gray-100 px-1.5 py-0.5 rounded transition-all"
+                    title="Permanently hide this setup card"
+                  >
+                    Hide
+                  </button>
+                )}
+
+                {/* Expand / Collapse toggle */}
+                <button
+                  type="button"
+                  onClick={() => setIsChecklistExpanded(!isChecklistExpanded)}
+                  className="text-[10px] sm:text-[11px] font-semibold text-[#5022C3] bg-purple-50 hover:bg-purple-100 px-2.5 py-0.5 rounded-md flex items-center gap-1 transition-all"
+                >
+                  <span>{isChecklistExpanded ? "Collapse" : "Steps"}</span>
+                  {isChecklistExpanded ? (
+                    <ChevronUp className="w-3 h-3" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Slim Progress Meter */}
+            <div className="mt-2.5 flex items-center gap-2">
+              <div className="h-1.5 flex-1 rounded-full bg-gray-100 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-violet-600 via-[#5022C3] to-emerald-500 transition-all duration-500"
+                  style={{ width: `${Math.max(storeSetup.score, 5)}%` }}
+                />
+              </div>
+              <span className="text-[11px] font-extrabold text-[#5022C3] shrink-0">
+                {storeSetup.score}%
+              </span>
+            </div>
+
+            {/* Detailed Checklist (Compact & Ultra-Responsive for Mobile/XS) */}
+            {isChecklistExpanded && (
+              <div className="mt-3 pt-3 border-t border-purple-50 space-y-2.5">
+                {/* Compact Filter Chips */}
+                <div className="flex items-center gap-1 overflow-x-auto scrollbar-none pb-0.5 -mx-1 px-1">
+                  {[
+                    { id: "all", label: `All (${storeSetup.totalCount})` },
+                    { id: "appearance", label: "Appearance" },
+                    { id: "catalog", label: "Catalog" },
+                    { id: "trust", label: "Trust & Policies" },
+                  ].map((filter) => (
+                    <button
+                      key={filter.id}
+                      onClick={() => setChecklistFilter(filter.id as any)}
+                      className={`px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-medium whitespace-nowrap transition-all ${
+                        checklistFilter === filter.id
+                          ? "bg-[#5022C3] text-white shadow-xs"
+                          : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Steps Grid: Responsive from 1 column on xs, 2 cols on sm, 4 cols on lg */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                  {storeSetup.steps
+                    .filter(
+                      (step: any) =>
+                        checklistFilter === "all" ||
+                        step.category === checklistFilter ||
+                        (checklistFilter === "trust" &&
+                          (step.category === "trust" ||
+                            step.category === "operations" ||
+                            step.category === "branding")),
+                    )
+                    .map((step: any) => (
+                      <Link
+                        key={step.id}
+                        href={step.link}
+                        className={`group rounded-lg p-2 sm:p-2.5 border transition-all flex items-center justify-between gap-2 cursor-pointer ${
+                          step.completed
+                            ? "bg-emerald-50/20 border-emerald-200/60 hover:bg-emerald-50/50"
+                            : "bg-white border-gray-200 hover:border-purple-300 hover:shadow-xs"
+                        }`}
+                      >
+                        {/* Left: Status icon & Title */}
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          {step.completed ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          ) : (
+                            <div className="w-3.5 h-3.5 rounded-full border border-amber-400 bg-amber-50 shrink-0 flex items-center justify-center text-[8px] font-bold text-amber-700">
+                              !
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span
+                                className={`text-[11px] sm:text-xs font-bold truncate transition-colors ${
+                                  step.completed
+                                    ? "text-gray-700"
+                                    : "text-gray-900 group-hover:text-[#5022C3]"
+                                }`}
+                              >
+                                {step.title}
+                              </span>
+                              <span
+                                className={`text-[9px] font-semibold px-1 py-0.2 rounded shrink-0 ${
+                                  step.isOptional
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-gray-100 text-gray-500"
+                                }`}
+                              >
+                                {step.isOptional ? "Opt" : `+${step.weight}%`}
+                              </span>
+                            </div>
+                            {step.titleBn && (
+                              <p className="text-[10px] text-gray-400 font-medium truncate">
+                                {step.titleBn}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Right: Compact Action */}
+                        <div className="shrink-0 flex items-center">
+                          <span
+                            className={`text-[10px] font-semibold px-2 py-0.5 rounded transition-colors flex items-center gap-0.5 ${
+                              step.completed
+                                ? "text-gray-500 group-hover:text-gray-800 bg-gray-50 group-hover:bg-gray-100"
+                                : "text-white bg-[#5022C3] group-hover:bg-[#431ca7] shadow-xs"
+                            }`}
+                          >
+                            <span>{step.completed ? "Edit" : "Setup"}</span>
+                            <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 min-[340px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
@@ -720,17 +989,22 @@ export default function DashboardOverview() {
                           </div>
                         </div>
                         <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                          <Clock className="w-3 h-3 text-amber-300 animate-pulse" /> Starts in {subscription.daysUntilStart || 1} Days
+                          <Clock className="w-3 h-3 text-amber-300 animate-pulse" />{" "}
+                          Starts in {subscription.daysUntilStart || 1} Days
                         </span>
                       </div>
 
                       <div className="space-y-2 sm:space-y-3 mt-4 sm:mt-5">
                         <div className="bg-amber-500/10 border border-amber-400/20 rounded-xl p-3 text-xs text-amber-200">
                           <div className="font-bold flex items-center gap-1.5 mb-1 text-amber-300">
-                            <AlertCircle className="w-3.5 h-3.5 shrink-0" /> Current Plan Inactive / Cancelled
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />{" "}
+                            Current Plan Inactive / Cancelled
                           </div>
                           <p className="text-[11px] text-amber-200/80 leading-relaxed">
-                            Your current plan was cancelled or ended. Your next plan ({subscription.packageId?.name || "Package"}) is scheduled to start on {formatDate(subscription.startDate)}.
+                            Your current plan was cancelled or ended. Your next
+                            plan ({subscription.packageId?.name || "Package"})
+                            is scheduled to start on{" "}
+                            {formatDate(subscription.startDate)}.
                           </p>
                         </div>
 
@@ -765,14 +1039,17 @@ export default function DashboardOverview() {
                         className="mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-2.5 sm:py-3 text-xs sm:text-sm rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-50"
                       >
                         <Zap className="w-4 h-4 text-yellow-300" />
-                        {activatingEarly ? "Activating..." : "Activate Plan Now (Start Today)"}
+                        {activatingEarly
+                          ? "Activating..."
+                          : "Activate Plan Now (Start Today)"}
                       </button>
 
                       <a
                         href="/dashboard/subscription"
                         className="mt-2.5 w-full flex items-center justify-center gap-2 bg-white/10 text-white hover:bg-white/20 font-bold py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl border border-white/20 transition-all duration-300"
                       >
-                        <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Manage Subscription
+                        <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{" "}
+                        Manage Subscription
                       </a>
                     </>
                   ) : (
@@ -806,7 +1083,8 @@ export default function DashboardOverview() {
                           </span>
                           {subscription.isRenewed && (
                             <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-purple-500/30 text-purple-200 border border-purple-400/30 flex items-center gap-1">
-                              <CheckCircle2 className="w-2.5 h-2.5 text-purple-300" /> Renewed
+                              <CheckCircle2 className="w-2.5 h-2.5 text-purple-300" />{" "}
+                              Renewed
                             </span>
                           )}
                         </div>
@@ -829,7 +1107,9 @@ export default function DashboardOverview() {
                           <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-300 shrink-0" />
                           <div className="flex flex-col">
                             <span className="text-[9px] sm:text-[10px] text-indigo-300 uppercase tracking-wider font-semibold">
-                              {subscription.isRenewed ? "Current Cycle Ends" : "Expires Date"}
+                              {subscription.isRenewed
+                                ? "Current Cycle Ends"
+                                : "Expires Date"}
                             </span>
                             <span className="text-xs sm:text-sm font-medium">
                               {formatDate(subscription.endDate)}
@@ -837,7 +1117,11 @@ export default function DashboardOverview() {
                             {subscription.isRenewed && (
                               <span className="text-[11px] text-emerald-300 font-bold mt-1 flex items-center gap-1">
                                 <CheckCircle2 className="w-3 h-3 text-emerald-300 shrink-0" />
-                                Extended through {formatDate(subscription.extendedEndDate || subscription.renewalEndDate)}
+                                Extended through{" "}
+                                {formatDate(
+                                  subscription.extendedEndDate ||
+                                    subscription.renewalEndDate,
+                                )}
                               </span>
                             )}
                           </div>
@@ -848,8 +1132,8 @@ export default function DashboardOverview() {
                         href="/dashboard/subscription"
                         className="mt-4 sm:mt-6 w-full flex items-center justify-center gap-2 bg-white text-indigo-900 font-bold py-2 sm:py-3 text-sm sm:text-base rounded-xl shadow-lg hover:bg-gray-50 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
                       >
-                        <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Manage
-                        Subscription
+                        <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{" "}
+                        Manage Subscription
                       </a>
                     </>
                   )}

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Save,
@@ -21,6 +21,15 @@ import {
   Globe,
   Lock,
   Headphones,
+  Sparkles,
+  CheckCircle2,
+  Circle,
+  Eye,
+  EyeOff,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
@@ -29,8 +38,10 @@ import { Select } from "@/components/ui/Select";
 import { api } from "@/utils/api";
 import { toast } from "react-hot-toast";
 
-export default function ProfilePage() {
+function ProfileContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const highlightParam = searchParams.get("highlight") || searchParams.get("section");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [merchantUser, setMerchantUser] = useState<any>(null);
@@ -60,6 +71,12 @@ export default function ProfilePage() {
     warrantyPeriod: "1 Year",
     returnPolicy: "14 Days",
   });
+
+  // Store Setup Score & Dashboard Visibility
+  const [storeSetup, setStoreSetup] = useState<any>(null);
+  const [storeSlug, setStoreSlug] = useState<string>("");
+  const [isSetupDismissedOnDashboard, setIsSetupDismissedOnDashboard] = useState<boolean>(false);
+  const [isSetupCardExpanded, setIsSetupCardExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -120,14 +137,76 @@ export default function ProfilePage() {
           if (data.logo) {
             setStoreLogoPreview(data.logo);
           }
+          if (data.slug) {
+            setStoreSlug(data.slug);
+            const isDismissed = localStorage.getItem(`hide_store_setup_score_${data.slug}`) === "true";
+            setIsSetupDismissedOnDashboard(isDismissed);
+          }
+          if (data.contactEmail) {
+            setFormData((prev) => ({ ...prev, supportEmail: data.contactEmail }));
+          }
+          if (data.contactPhone) {
+            setFormData((prev) => ({ ...prev, supportPhone: data.contactPhone }));
+          }
+          if (data.contactAddress) {
+            setFormData((prev) => ({ ...prev, address: data.contactAddress }));
+          }
+          if (data.description) {
+            setFormData((prev) => ({ ...prev, details: prev.details || data.description }));
+          }
         }
       } catch (err) {
         console.error("Failed to fetch store settings", err);
       }
     };
 
+    const fetchAnalyticsSummary = async () => {
+      try {
+        const res = await api.get("/analytics/dashboard-summary");
+        if (res.data?.data?.storeSetup) {
+          setStoreSetup(res.data.data.storeSetup);
+        }
+      } catch (err) {
+        console.error("Failed to fetch store setup score in profile", err);
+      }
+    };
+
     fetchStoreSettings();
+    fetchAnalyticsSummary();
   }, []);
+
+  const handleToggleDashboardSetupCard = () => {
+    const slug = storeSlug || merchantUser?.slug;
+    if (!slug) {
+      toast.error("Store slug not found");
+      return;
+    }
+    const key = `hide_store_setup_score_${slug}`;
+    if (isSetupDismissedOnDashboard) {
+      localStorage.removeItem(key);
+      setIsSetupDismissedOnDashboard(false);
+      toast.success("Setup card will now appear on your main Dashboard!");
+    } else {
+      localStorage.setItem(key, "true");
+      setIsSetupDismissedOnDashboard(true);
+      toast.success("Setup card is now hidden from your main Dashboard.");
+    }
+  };
+
+  useEffect(() => {
+    if (highlightParam) {
+      const targetId = highlightParam === "logo" ? "store-logo-section" : highlightParam === "contact" ? "customer-support-section" : null;
+      if (targetId) {
+        const timer = setTimeout(() => {
+          const el = document.getElementById(targetId);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }, 350);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [highlightParam]);
 
   const handleToggleStoreOnline = async () => {
     if (!isOnlineByAdmin) {
@@ -263,6 +342,21 @@ export default function ProfilePage() {
       }
       if (storeLogo) {
         storeData.append("logo", storeLogo);
+      }
+      if (formData.supportEmail || formData.email) {
+        storeData.append("contactEmail", formData.supportEmail || formData.email);
+      }
+      if (formData.supportPhone || formData.phone) {
+        storeData.append("contactPhone", formData.supportPhone || formData.phone);
+      }
+      if (formData.address) {
+        storeData.append("contactAddress", formData.address);
+      }
+      if (formData.returnPolicy) {
+        storeData.append("returnPolicy", formData.returnPolicy);
+      }
+      if (formData.warrantyPeriod) {
+        storeData.append("warrantyPeriod", formData.warrantyPeriod);
       }
 
       const [userResponse, storeResponse] = await Promise.all([
@@ -596,13 +690,13 @@ export default function ProfilePage() {
               </div>
             </Card>
 
-                {/* Store Identity */}
-            <Card className="border border-gray-200/80 shadow-xs rounded-xl overflow-hidden bg-white">
+            {/* Store Identity */}
+            <Card id="store-logo-section" className="border border-gray-200/80 shadow-xs rounded-xl overflow-hidden bg-white">
               <div className="border-b border-gray-100 bg-gray-50/60 px-4 py-2.5 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-purple-600" />
                   <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                    Store Identity
+                    Store Identity & Logo
                   </h3>
                 </div>
 
@@ -689,9 +783,180 @@ export default function ProfilePage() {
             </Card>
           </div>
 
-          {/* Right Column: Customer Support & Policies */}
+          {/* Right Column: Customer Support, Policies & Store Setup */}
           <div className="space-y-4">
-            <Card className="border border-gray-200/80 shadow-xs rounded-xl overflow-hidden bg-white">
+            {/* Store Setup & Aesthetic Checklist Card */}
+            <Card id="store-setup-section" className="border border-purple-200/80 shadow-xs rounded-xl overflow-hidden bg-white">
+              <div className="border-b border-purple-100 bg-gradient-to-r from-purple-50/70 via-indigo-50/50 to-white px-3.5 py-3 flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-[#5022C3]/10 text-[#5022C3] flex items-center justify-center shrink-0">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-xs font-bold text-gray-900 flex items-center gap-1.5 flex-wrap">
+                      <span>Store Setup & Checklist</span>
+                      {storeSetup && (
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            storeSetup.score === 100
+                              ? "bg-emerald-100 text-emerald-800"
+                              : storeSetup.score >= 70
+                              ? "bg-purple-100 text-[#5022C3]"
+                              : "bg-amber-100 text-amber-800"
+                          }`}
+                        >
+                          {storeSetup.score}% {storeSetup.score === 100 ? "Ready" : "Done"}
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-[11px] text-gray-500 truncate">
+                      {isSetupDismissedOnDashboard
+                        ? "Currently hidden from Dashboard"
+                        : "Currently visible on Dashboard"}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Collapse / Expand Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsSetupCardExpanded(!isSetupCardExpanded)}
+                    className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-purple-200 bg-purple-50 hover:bg-purple-100 text-[#5022C3] transition-all flex items-center gap-1 cursor-pointer"
+                    title={isSetupCardExpanded ? "Collapse checklist steps" : "Expand checklist steps"}
+                  >
+                    <span>{isSetupCardExpanded ? "Collapse" : "Expand"}</span>
+                    {isSetupCardExpanded ? (
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+
+                  {/* Toggle Show/Hide on Dashboard Button */}
+                  <button
+                    type="button"
+                    onClick={handleToggleDashboardSetupCard}
+                    className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                      isSetupDismissedOnDashboard
+                        ? "bg-[#5022C3] text-white border-[#5022C3] hover:bg-[#431ca7] shadow-xs"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+                    }`}
+                    title={isSetupDismissedOnDashboard ? "Display this card on your main dashboard" : "Hide this card from your main dashboard"}
+                  >
+                    {isSetupDismissedOnDashboard ? (
+                      <>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Show on Dashboard</span>
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="w-3.5 h-3.5 text-gray-400" />
+                        <span>Hide from Dashboard</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3.5 space-y-3">
+                {/* Progress Bar */}
+                {storeSetup && (
+                  <div>
+                    <div className="flex justify-between items-center text-[11px] mb-1">
+                      <span className="font-semibold text-gray-700">Setup Progress</span>
+                      <span className="font-bold text-[#5022C3]">
+                        {storeSetup.requiredCompletedCount ?? storeSetup.completedCount} of {storeSetup.requiredTotalCount ?? 7} core tasks
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          storeSetup.score === 100
+                            ? "bg-emerald-500"
+                            : "bg-gradient-to-r from-violet-500 to-[#5022C3]"
+                        }`}
+                        style={{ width: `${storeSetup.score}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Checklist Items (Collapsible) */}
+                {isSetupCardExpanded && (
+                  <>
+                    {storeSetup?.steps ? (
+                      <div className="space-y-1.5 pt-1">
+                        {storeSetup.steps.map((step: any) => {
+                          const isDone = step.isCompleted;
+                          return (
+                            <Link
+                              key={step.id}
+                              href={step.link}
+                              onClick={(e) => {
+                                if (step.id === "logo") {
+                                  e.preventDefault();
+                                  storeLogoInputRef.current?.click();
+                                } else if (step.id === "contact" || step.id === "policies") {
+                                  e.preventDefault();
+                                  document.getElementById("customer-support-section")?.scrollIntoView({ behavior: "smooth" });
+                                }
+                              }}
+                              className={`flex items-center justify-between p-2 rounded-lg border text-xs transition-all ${
+                                isDone
+                                  ? "bg-emerald-50/40 border-emerald-100 text-gray-700 hover:bg-emerald-50"
+                                  : "bg-gray-50 border-gray-100 text-gray-800 hover:bg-purple-50/60 hover:border-purple-200"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                {isDone ? (
+                                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                ) : (
+                                  <Circle className="w-4 h-4 text-gray-300 shrink-0" />
+                                )}
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={`font-semibold truncate ${isDone ? "text-gray-700" : "text-gray-900"}`}>
+                                      {step.title}
+                                    </span>
+                                    {step.isOptional && (
+                                      <span className="text-[9px] font-bold text-gray-400 bg-gray-100 px-1 rounded">
+                                        Optional
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[10px] text-gray-500 truncate">
+                                    {step.description}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1 shrink-0 ml-2">
+                                {isDone ? (
+                                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-1.5 py-0.5 rounded">
+                                    Done
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-bold text-[#5022C3] flex items-center">
+                                    Fix <ChevronRight className="w-3 h-3" />
+                                  </span>
+                                )}
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="py-4 text-center text-xs text-gray-400 animate-pulse">
+                        Loading setup checklist...
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </Card>
+
+            <Card id="customer-support-section" className="border border-gray-200/80 shadow-xs rounded-xl overflow-hidden bg-white">
               <div className="border-b border-gray-100 bg-gray-50/60 px-4 py-2.5 flex items-center gap-2">
                 <Package className="w-4 h-4 text-blue-600" />
                 <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">
@@ -790,5 +1055,19 @@ export default function ProfilePage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      }
+    >
+      <ProfileContent />
+    </Suspense>
   );
 }

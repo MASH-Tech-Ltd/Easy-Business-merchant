@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Globe, CheckCircle2, ShieldCheck, AlertCircle, ArrowRight, Clock, LifeBuoy } from 'lucide-react';
 import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
 
 let globalStoreCache: any = null;
 
-export default function DomainManagementPage() {
+function DomainContent() {
+  const searchParams = useSearchParams();
+  const highlightParam = searchParams.get('highlight');
   const [store, setStore] = useState<any>(globalStoreCache);
   const [loading, setLoading] = useState(!globalStoreCache);
   const [saving, setSaving] = useState(false);
@@ -119,7 +122,7 @@ export default function DomainManagementPage() {
     <div className="p-3 sm:p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)]">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 pt-2 sm:pt-4">
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+          <div id="custom-domain-section" className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
             <h2 className="text-lg font-bold text-gray-900 mb-6">Custom Domain Settings</h2>
             
             <form onSubmit={handleSave} className="space-y-6">
@@ -351,5 +354,19 @@ export default function DomainManagementPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DomainManagementPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      }
+    >
+      <DomainContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { 
   Palette, CheckCircle2, LayoutTemplate, 
   Settings, Type, Link as LinkIcon, Save,
@@ -29,7 +30,12 @@ const availableThemes = [
 // Global cache for instant UI rendering during client navigation
 let globalThemeCache: any = null;
 
-export default function ThemesPage() {
+function ThemesContent() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const policyParam = searchParams.get('policy');
+  const highlightParam = searchParams.get('highlight');
+
   const MarqueeTag = 'marquee' as any;
   const [activeTheme, setActiveTheme] = useState(globalThemeCache?.activeTheme || 'design-01');
   const [savedTheme, setSavedTheme] = useState(globalThemeCache?.savedTheme || 'design-01');
@@ -130,6 +136,25 @@ export default function ThemesPage() {
     fetchThemePreviews();
   }, []);
 
+  useEffect(() => {
+    if (tabParam && ['template', 'customization', 'banner', 'footer', 'shipping'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+    if (policyParam && ['aboutUs', 'privacyPolicy', 'termsAndConditions', 'returnPolicy'].includes(policyParam)) {
+      setActivePolicyTab(policyParam);
+    }
+    if (highlightParam || tabParam) {
+      const targetId = highlightParam === 'policies' ? 'footer-policies-section' : `${highlightParam || tabParam}-section`;
+      const timer = setTimeout(() => {
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [tabParam, highlightParam, policyParam]);
+
   const fetchTheme = async () => {
     if (!globalThemeCache) setLoading(true);
     try {
@@ -155,6 +180,23 @@ export default function ThemesPage() {
         if (Array.isArray(themeData.shippingZones)) setShippingZones(themeData.shippingZones);
         if (themeData.defaultShippingCost !== undefined) setDefaultShippingCost(themeData.defaultShippingCost);
         
+        let contactEmail = themeData.footer?.contactInfo?.email || '';
+        let contactPhone = themeData.footer?.contactInfo?.phone || '';
+        let contactAddress = themeData.footer?.contactInfo?.address || '';
+
+        // If any contact info is empty, automatically pull from store profile
+        if (!contactEmail || !contactPhone || !contactAddress) {
+          try {
+            const storeRes = await api.get('/tenants/my-store');
+            const storeData = storeRes.data?.data;
+            if (storeData) {
+              if (!contactEmail) contactEmail = storeData.contactEmail || '';
+              if (!contactPhone) contactPhone = storeData.contactPhone || '';
+              if (!contactAddress) contactAddress = storeData.contactAddress || '';
+            }
+          } catch (e) {}
+        }
+
         const newFooter = {
             socialLinks: {
               facebook: themeData.footer?.socialLinks?.facebook || '',
@@ -162,9 +204,9 @@ export default function ThemesPage() {
               tiktok: themeData.footer?.socialLinks?.tiktok || '',
             },
             contactInfo: {
-              email: themeData.footer?.contactInfo?.email || '',
-              phone: themeData.footer?.contactInfo?.phone || '',
-              address: themeData.footer?.contactInfo?.address || '',
+              email: contactEmail,
+              phone: contactPhone,
+              address: contactAddress,
             },
             policies: {
               aboutUs: themeData.footer?.policies?.aboutUs || '',
@@ -235,6 +277,36 @@ const isValidBDPhone = (phone?: string): boolean => {
   const cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
   return /^(?:\+?88|88)?01[3-9]\d{8}$/.test(cleanPhone);
 };
+
+  const handleSyncFromProfile = async () => {
+    try {
+      const storeRes = await api.get('/tenants/my-store');
+      const store = storeRes.data?.data;
+      const userRes = await api.get('/users/me').catch(() => null);
+      const user = userRes?.data?.data;
+
+      const email = store?.contactEmail || user?.email || '';
+      const phone = store?.contactPhone || user?.phone || '';
+      const address = store?.contactAddress || user?.address || '';
+      const aboutUs = store?.description || '';
+
+      setFooter((prev) => ({
+        ...prev,
+        contactInfo: {
+          email,
+          phone,
+          address,
+        },
+        policies: {
+          ...prev.policies,
+          aboutUs: prev.policies.aboutUs || aboutUs,
+        },
+      }));
+      toast.success("Contact Information auto-filled from Profile!");
+    } catch (e) {
+      toast.error("Failed to auto-fill from Profile");
+    }
+  };
 
   const handleSaveTheme = async () => {
     // Validate BD phone number in footer contact info
@@ -497,7 +569,7 @@ const isValidBDPhone = (phone?: string): boolean => {
 
         {/* Advanced Customization */}
         {activeTab === 'customization' && (
-          <Card className="border-0 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl h-full mb-0">
+          <Card id="customization-section" className="border-0 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl h-full mb-0">
             <div className="border-b border-gray-100 bg-gray-50/50 p-6 flex items-center gap-3">
               <div className="p-2.5 bg-purple-100 text-purple-600 rounded-xl">
                 <Settings className="w-5 h-5" />
@@ -742,7 +814,7 @@ const isValidBDPhone = (phone?: string): boolean => {
 
         {/* Banner Settings */}
         {activeTab === 'banner' && (
-          <Card className="border-0 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl h-full mb-0 lg:col-span-2">
+          <Card id="banner-section" className="border-0 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl h-full mb-0 lg:col-span-2">
             <div className="border-b border-gray-100 bg-gray-50/50 p-6 flex items-center gap-3">
               <div className="p-2.5 bg-green-100 text-green-600 rounded-xl">
                 <LayoutTemplate className="w-5 h-5" />
@@ -994,7 +1066,7 @@ const isValidBDPhone = (phone?: string): boolean => {
 
         {/* Footer Settings */}
         {activeTab === 'footer' && (
-          <Card className="border-0 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl h-full mb-0">
+          <Card id="footer-policies-section" className="border-0 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl h-full mb-0">
           <div className="border-b border-gray-100 bg-gray-50/50 p-6 flex items-center gap-3">
             <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl">
               <LayoutTemplate className="w-5 h-5" />
@@ -1128,7 +1200,7 @@ const isValidBDPhone = (phone?: string): boolean => {
 
         {/* Shipping Settings Tab */}
         {activeTab === 'shipping' && (
-          <Card className="p-8 border border-gray-100 shadow-sm rounded-2xl bg-white animate-in fade-in slide-in-from-bottom-4 duration-500 relative overflow-visible">
+          <Card id="shipping-section" className="p-8 border border-gray-100 shadow-sm rounded-2xl bg-white animate-in fade-in slide-in-from-bottom-4 duration-500 relative overflow-visible">
             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl -z-10 translate-x-1/2 -translate-y-1/2"></div>
             
             <div className="flex items-center gap-4 mb-8">
@@ -1303,5 +1375,19 @@ const isValidBDPhone = (phone?: string): boolean => {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ThemesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      }
+    >
+      <ThemesContent />
+    </Suspense>
   );
 }
