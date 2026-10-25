@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
+import { captureAttribution, triggerLeadConversionEvents } from "@/utils/utmTracker";
 
 const isValidBDPhone = (phone: string): boolean => {
   if (!phone || !phone.trim()) return false;
@@ -29,6 +30,7 @@ function ContactFormContent() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
+    businessName: "",
     phone: "",
     email: "",
     topic: getInitialTopic(rawTopic),
@@ -36,6 +38,8 @@ function ContactFormContent() {
   });
 
   useEffect(() => {
+    // Capture and save attribution parameters upon mount
+    captureAttribution();
     if (rawTopic) {
       setFormData((prev) => ({ ...prev, topic: getInitialTopic(rawTopic) }));
     }
@@ -68,12 +72,18 @@ function ContactFormContent() {
     setLoading(true);
 
     try {
+      const attribution = captureAttribution();
+      const payload = {
+        ...formData,
+        ...attribution,
+      };
+
       const res = await fetch(`/api/contact-inquiries/create-inquiry`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -81,6 +91,9 @@ function ContactFormContent() {
       if (!res.ok || !data.success) {
         throw new Error(data.message || "Failed to submit inquiry");
       }
+
+      // Fire Meta Pixel & Google Ads Lead conversion events
+      triggerLeadConversionEvents({ topic: formData.topic });
 
       toast.success(
         "Your message has been sent successfully. We will get back to you soon!",
@@ -90,6 +103,7 @@ function ContactFormContent() {
       setFormData({
         firstName: "",
         lastName: "",
+        businessName: "",
         phone: "",
         email: "",
         topic: "General Inquiry",

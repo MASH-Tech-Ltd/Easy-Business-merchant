@@ -66,13 +66,13 @@ export default function TrialPromoModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
       <div 
-        className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full relative overflow-hidden border border-purple-100 transform transition-all animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full relative overflow-hidden border border-sky-100 transform transition-all animate-in zoom-in-95 duration-200"
         role="dialog"
         aria-modal="true"
         aria-labelledby="promo-modal-title"
       >
         {/* Top Solid Accent Bar */}
-        <div className="h-2.5 bg-purple-600" />
+        <div className="h-2.5 bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7]" />
 
         {/* Close Button */}
         <button
@@ -85,8 +85,8 @@ export default function TrialPromoModal() {
 
         <div className="p-8 sm:p-10 md:p-12 text-center sm:text-left">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold bg-purple-100 text-purple-700 mb-6">
-            <Sparkles className="w-4 h-4 text-purple-600" />
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold bg-sky-100 text-sky-800 mb-6">
+            <Sparkles className="w-4 h-4 text-[#0284c7]" />
             <span>বিশেষ অফার (Special Offer)</span>
           </div>
 
@@ -96,7 +96,7 @@ export default function TrialPromoModal() {
             className="text-3xl sm:text-4xl md:text-[2.5rem] font-black text-gray-900 leading-tight mb-5"
           >
             অ্যাকাউন্ট খুললেই পেয়ে যাবেন <br className="hidden sm:inline" />
-            <span className="text-purple-600">৫ দিনের ফ্রি ট্রায়াল!</span>
+            <span className="text-[#0284c7]">৫ দিনের ফ্রি ট্রায়াল!</span>
           </h2>
 
           {/* Subtext */}
@@ -109,7 +109,7 @@ export default function TrialPromoModal() {
             <Link
               href="/landing/contact?topic=Business Consultation (ব্যবসার পরামর্শ)"
               onClick={() => setIsOpen(false)}
-              className="flex-1 inline-flex items-center justify-center gap-3 bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-2xl shadow-xl shadow-purple-200 text-lg sm:text-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-center"
+              className="flex-1 inline-flex items-center justify-center gap-3 bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:brightness-110 text-white font-bold py-4 px-8 rounded-2xl shadow-xl shadow-sky-500/20 text-lg sm:text-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 text-center"
             >
               <MessageSquareCheck className="w-6 h-6" />
               <span>পরামর্শ নিতে যোগাযোগ করুন</span>
@@ -121,7 +121,7 @@ export default function TrialPromoModal() {
         {/* Progress Bar */}
         <div className="w-full bg-gray-100 h-2 overflow-hidden">
           <div 
-            className="bg-purple-600 h-full transition-all ease-linear"
+            className="bg-[#0284c7] h-full transition-all ease-linear"
             style={{ width: `${progress}%` }}
           />
         </div>

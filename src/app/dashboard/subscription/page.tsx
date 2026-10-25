@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Check, Star, Zap, ShieldCheck, Clock, Crown, ThumbsUp, Sparkles } from 'lucide-react';
+import { AlertCircle, Check, X, Star, Zap, ShieldCheck, Clock, Crown, ThumbsUp, Sparkles } from 'lucide-react';
 import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
 import { useSocket } from '@/context/SocketContext';
+import PlanComparisonTable from '@/components/landing/PlanComparisonTable';
 
 interface Package {
   _id: string;
@@ -60,6 +61,56 @@ let globalPackagesCache: Package[] = [];
 let globalSubscriptionCache: Subscription | null = null;
 let globalExpiredSubscriptionCache: Subscription | null = null;
 let globalSubscriptionLoaded = false;
+const PLAN_ESCALATING_FEATURES: Record<string, string[]> = {
+  basic: [
+    "Up to 199 Products Capacity",
+    "Courier Automation: 5 Free Orders / Month",
+    "Abandoned Checkout: 5 Free Leads / Month",
+    "Online Storefront & All 5 Modern Themes",
+    "MashEasy Subdomain & Custom Domain",
+    "Cash on Delivery (COD) & Manual Payments",
+    "Customer Support: Standard Ticket Support",
+    "Google Analytics 4 (GA4): Not included",
+    "Meta (Facebook) Pixel & Conversion Tracking: Not included",
+    "Advanced Sales & Business Insights: Not included",
+    "Automated SMS & Email Marketing: Not included",
+    "Multi-channel GTM Custom Scripts: Not included",
+    "Advanced Customer Fraud Risk Scoring: Not included",
+    "Swift VIP Dedicated 24/7 Priority Support: Not included",
+  ],
+  standard: [
+    "Up to 399 Products (2x Capacity)",
+    "Courier Automation: 10 Free Orders / Month (2x)",
+    "Abandoned Checkout: 10 Free Leads / Month (2x)",
+    "Online Storefront & All 5 Modern Themes",
+    "MashEasy Subdomain & Custom Domain",
+    "Cash on Delivery (COD) & Manual Payments",
+    "Customer Support: Priority Support Queue",
+    "Google Analytics 4 (GA4) Native Integration",
+    "Meta (Facebook) Pixel & Conversion Tracking",
+    "Advanced Sales & Conversion Analytics",
+    "Automated SMS & Email Marketing Ready",
+    "Multi-channel GTM Custom Scripts: Not included",
+    "Advanced Customer Fraud Risk Scoring: Not included",
+    "Swift VIP Dedicated 24/7 Priority Support: Not included",
+  ],
+  premium: [
+    "Up to 699 Products (Maximum Catalog Size)",
+    "Courier Automation: 15 Free Orders / Month (3x Volume)",
+    "Abandoned Checkout: 15 Free Leads / Month (3x Volume)",
+    "Online Storefront & All 5 Modern Themes",
+    "MashEasy Subdomain & Custom Domain",
+    "Cash on Delivery (COD) & Manual Payments",
+    "Customer Support: Fast-Track VIP Ticket Support",
+    "Google Analytics 4 (GA4) Native Integration",
+    "Meta (Facebook) Pixel & Conversion Tracking",
+    "Advanced Sales & Business Insights Dashboard",
+    "Automated SMS & Email Marketing Ready",
+    "Multi-channel GTM Tracking & Custom Scripts",
+    "Advanced Customer Fraud Risk Scoring",
+    "Swift VIP Dedicated 24/7 Priority Support",
+  ],
+};
 
 export default function SubscriptionPage() {
   const router = useRouter();
@@ -483,11 +534,33 @@ export default function SubscriptionPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-7xl mx-auto px-4 items-start">
-          {displayedPackages.sort((a,b) => a.price - b.price).map((pkg, index) => {
+          {displayedPackages.sort((a,b) => {
+            const order = ['basic', 'standard', 'premium'];
+            const idxA = order.indexOf((a.name || '').toLowerCase().trim());
+            const idxB = order.indexOf((b.name || '').toLowerCase().trim());
+            if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+            return a.price - b.price;
+          }).map((pkg, index) => {
             const isPopular = pkg.isPopular || pkg.name.toLowerCase().includes('standard'); 
             const isRecommended = pkg.isRecommended;
             const isCurrentActive = activePackageId === pkg._id && subscription?.status === 'active';
             const isCurrentPending = activePackageId === pkg._id && subscription?.status === 'pending';
+            const nameLower = (pkg.name || '').toLowerCase().trim();
+            const meta = nameLower.includes('basic') ? {
+              badge: 'STARTER KIT',
+              summary: 'Essential tools to launch your brand online with standard support.',
+              highlights: ['199 Products Capacity', '5 Free Courier Orders / mo', '5 Free Abandoned Leads / mo', 'Standard Ticket Support']
+            } : nameLower.includes('standard') ? {
+              badge: 'HIGH GROWTH',
+              inheritance: 'Includes everything in Basic, plus:',
+              summary: 'Double capacity, 2x free automations, and native analytics for growing stores.',
+              highlights: ['399 Products (+100% capacity)', '10 Free Courier Orders / mo', '10 Free Abandoned Leads / mo', 'GA4 & Meta Pixel Tracking']
+            } : nameLower.includes('premium') ? {
+              badge: 'MAX SCALE & VIP',
+              inheritance: 'Includes everything in Standard, plus:',
+              summary: 'Maximum 699 product capacity, 3x free automations, and dedicated Swift VIP support.',
+              highlights: ['699 Products (Maximum)', '15 Free Courier Orders / mo', '15 Free Abandoned Leads / mo', 'Swift VIP Priority Support']
+            } : null;
             
             return (
               <div 
@@ -633,37 +706,56 @@ export default function SubscriptionPage() {
                       {pkg.description || `Perfect for growing businesses that need ${pkg.name.toLowerCase()} features and customization.`}
                     </p>
                   </div>
+
                 </div>
                 
                 <div className="px-6 pb-6 flex-1 flex flex-col relative bg-gray-50/50">
                   <div className="h-px w-full bg-gray-200 mb-4"></div>
                   <ul className="space-y-2 mb-6 flex-1">
-                    {pkg.features && pkg.features.map((feature, idx) => {
-                      if (feature.startsWith('Key Features:')) return null;
-                      
-                      const isNested = feature.startsWith('- ') || feature.startsWith('* ');
-                      const cleanFeature = isNested ? feature.substring(2) : feature;
-                      const colonIndex = cleanFeature.indexOf(':');
-                      const hasBoldPrefix = colonIndex > 0 && colonIndex < 35;
-                      
-                      return (
-                        <li key={idx} className="flex items-start gap-2.5">
-                          <div className={`mt-0.5 w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${isPopular ? 'bg-[#5022C3] text-white' : 'bg-purple-100 text-[#5022C3]'}`}>
-                            <Check className="w-2.5 h-2.5" strokeWidth={3} />
-                          </div>
-                          <span className="text-sm text-gray-600 font-normal leading-relaxed">
-                            {hasBoldPrefix ? (
-                              <>
-                                <strong className="text-gray-900 font-bold">{cleanFeature.substring(0, colonIndex + 1)}</strong>
-                                {cleanFeature.substring(colonIndex + 1)}
-                              </>
+                    {(() => {
+                      const nameLower = (pkg.name || "").toLowerCase().trim();
+                      const planKey = nameLower.includes("basic")
+                        ? "basic"
+                        : nameLower.includes("standard")
+                          ? "standard"
+                          : nameLower.includes("premium")
+                            ? "premium"
+                            : nameLower;
+                      const featuresList = PLAN_ESCALATING_FEATURES[planKey] || pkg.features || [];
+                      return featuresList.map((feature, idx) => {
+                        if (feature.startsWith('Key Features:')) return null;
+                        
+                        const isNested = feature.startsWith('- ') || feature.startsWith('* ');
+                        const cleanFeature = isNested ? feature.substring(2) : feature;
+                        const isExcluded = /\b(not included|0 free)\b/i.test(cleanFeature);
+                        const colonIndex = cleanFeature.indexOf(':');
+                        const hasBoldPrefix = colonIndex > 0 && colonIndex < 35;
+                        
+                        return (
+                          <li key={idx} className="flex items-start gap-2.5">
+                            {isExcluded ? (
+                              <div className="w-5 h-5 rounded-full bg-rose-50 text-rose-500 border border-rose-200 flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                                <X className="w-3 h-3 text-rose-500" strokeWidth={2.5} />
+                              </div>
                             ) : (
-                              cleanFeature
+                              <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                                <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                              </div>
                             )}
-                          </span>
-                        </li>
-                      );
-                    })}
+                            <span className={`text-sm font-normal leading-relaxed ${isExcluded ? 'text-gray-400' : 'text-gray-600'}`}>
+                              {hasBoldPrefix ? (
+                                <>
+                                  <strong className={isExcluded ? 'text-gray-400 font-semibold' : 'text-gray-900 font-bold'}>{cleanFeature.substring(0, colonIndex + 1)}</strong>
+                                  {cleanFeature.substring(colonIndex + 1)}
+                                </>
+                              ) : (
+                                cleanFeature
+                              )}
+                            </span>
+                          </li>
+                        );
+                      });
+                    })()}
                   </ul>
                   
                   {isCurrentActive ? (
@@ -726,6 +818,11 @@ export default function SubscriptionPage() {
           })}
         </div>
       )}
+
+      {/* Side-by-Side Plan Comparison Section */}
+      <div className="max-w-7xl mx-auto px-4 mt-8">
+        <PlanComparisonTable billing={billingCycle} />
+      </div>
 
       {/* Feature Highlight */}
       <div className="mt-16 bg-gradient-to-br from-slate-900 via-[#1A0B2E] to-slate-900 rounded-[2rem] p-8 md:p-10 text-white flex flex-col md:flex-row items-center justify-between gap-8 shadow-xl relative overflow-hidden w-full max-w-5xl mx-auto">

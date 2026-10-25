@@ -3,6 +3,7 @@ import { Inter, Righteous } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import { SocketProvider } from '@/context/SocketContext';
+import PlatformTrackingScripts from '@/components/landing/PlatformTrackingScripts';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const righteous = Righteous({ weight: '400', subsets: ['latin'], variable: '--font-righteous' });
@@ -149,6 +150,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning className="min-h-full flex flex-col font-sans">
+        <PlatformTrackingScripts />
         <Toaster position="top-right" />
         <SocketProvider>
           {children}

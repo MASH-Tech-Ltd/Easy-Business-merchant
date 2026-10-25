@@ -187,7 +187,7 @@ export const contentMap: Record<string, ReactNode> = {
         <div className="col-span-2 md:col-span-1">
           <h4 className="font-bold text-gray-900 mb-1">Address</h4>
           <p className="text-sm text-gray-600">
-            1704, National University, Gazipur
+            Badda Link Road, Gulshan, Dhaka
           </p>
         </div>
       </div>
@@ -286,10 +286,10 @@ export const contentMap: Record<string, ReactNode> = {
 
       <div className="grid md:grid-cols-2 gap-8">
         <article className="border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-shadow">
-          <div className="h-48 bg-gradient-to-br from-purple-500 to-indigo-600"></div>
+          <div className="h-48 bg-gradient-to-br from-[#122846] via-[#0369a1] to-[#0284c7]"></div>
           <div className="p-6">
             <div className="flex gap-2 mb-3">
-              <span className="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded font-medium">
+              <span className="bg-sky-100 text-sky-800 text-xs px-2 py-1 rounded font-medium">
                 Product Update
               </span>
             </div>

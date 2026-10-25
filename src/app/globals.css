@@ -14,8 +14,8 @@
   /* Variables for login page */
   --text-primary: 0, 0%, 10%;
   --text-secondary: 0, 0%, 40%;
-  --accent-primary: 257, 70%, 45%; /* #5022C3 - Purple */
-  --accent-hover: 257, 70%, 35%;
+  --accent-primary: 201, 96%, 39%; /* #0284c7 - MASH ECO Sky Blue / Cyan */
+  --accent-hover: 214, 59%, 17%; /* #122846 - MASH ECO Navy Blue */
   --radius-md: 0.5rem;
 }
 
@@ -36,11 +36,11 @@ body {
 
 @layer components {
   .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-[var(--radius-md)] bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--accent-primary))] transition-all;
+    @apply w-full px-4 py-2 border border-gray-300 rounded-[var(--radius-md)] bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#0284c7] transition-all;
   }
   
   .btn-primary {
-    @apply bg-[hsl(var(--accent-primary))] hover:bg-[hsl(var(--accent-hover))] text-white font-medium py-2 px-4 rounded-[var(--radius-md)] transition-colors flex items-center justify-center;
+    @apply bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:brightness-110 text-white font-semibold py-2 px-4 rounded-[var(--radius-md)] transition-all flex items-center justify-center shadow-md shadow-[#0284c7]/20;
   }
 }
 

@@ -35,7 +35,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
             href="/landing/privacy-policy"
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               policyType === 'privacy-policy'
-                ? 'bg-purple-100 text-[#5022C3] border border-purple-200 shadow-xs'
+                ? 'bg-sky-100 text-[#0284c7] border border-sky-200 shadow-xs'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -45,7 +45,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
             href="/landing/terms-of-service"
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               policyType === 'terms-of-service'
-                ? 'bg-purple-100 text-[#5022C3] border border-purple-200 shadow-xs'
+                ? 'bg-sky-100 text-[#0284c7] border border-sky-200 shadow-xs'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -55,7 +55,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
             href="/landing/cookie-policy"
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               policyType === 'cookie-policy'
-                ? 'bg-purple-100 text-[#5022C3] border border-purple-200 shadow-xs'
+                ? 'bg-sky-100 text-[#0284c7] border border-sky-200 shadow-xs'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -81,7 +81,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
             onClick={() => setLang('bn')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 cursor-pointer ${
               lang === 'bn'
-                ? 'bg-[#5022C3] text-white shadow-xs'
+                ? 'bg-[#0284c7] text-white shadow-xs'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-white'
             }`}
           >
@@ -92,7 +92,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
             onClick={() => setLang('en')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all duration-200 cursor-pointer ${
               lang === 'en'
-                ? 'bg-[#5022C3] text-white shadow-xs'
+                ? 'bg-[#0284c7] text-white shadow-xs'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-white'
             }`}
           >
@@ -108,7 +108,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
         lang === 'bn' ? (
           <div className="space-y-8">
             <div className="border-b border-gray-100 pb-4">
-              <span className="inline-block px-3 py-1 bg-purple-50 text-[#5022C3] text-xs font-bold rounded-full mb-2">
+              <span className="inline-block px-3 py-1 bg-sky-50 text-[#0284c7] text-xs font-bold rounded-full mb-2">
                 আইনি নথি
               </span>
               <h1 className="text-3xl font-extrabold text-gray-900">MASH ECO গোপনীয়তা নীতি (Privacy Policy)</h1>
@@ -120,7 +120,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
             </p>
 
             <div className="bg-indigo-50/70 border border-indigo-100 p-5 rounded-2xl flex items-start gap-4">
-              <ShieldCheck className="w-6 h-6 text-[#5022C3] shrink-0 mt-1" />
+              <ShieldCheck className="w-6 h-6 text-[#0284c7] shrink-0 mt-1" />
               <div>
                 <h4 className="font-bold text-gray-900 text-sm">ডেটা আইসোলেশন অঙ্গীকার</h4>
                 <p className="text-xs text-gray-600 mt-1 leading-relaxed">
@@ -270,7 +270,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
                 <p className="text-gray-600">১৭০৪, জাতীয় বিশ্ববিদ্যালয়, গাজীপুর, বাংলাদেশ</p>
               </div>
               <div>
-                <p className="text-gray-600">ইমেইল: <a href="mailto:support@masheco.com" className="text-[#5022C3] font-bold">support@masheco.com</a></p>
+                <p className="text-gray-600">ইমেইল: <a href="mailto:support@masheco.com" className="text-[#0284c7] font-bold">support@masheco.com</a></p>
                 <p className="text-gray-600">হটলাইন: <span className="font-bold text-gray-900">(+৮৮০) ১৮৮০৮৪০৮৪৯</span></p>
               </div>
             </div>
@@ -278,7 +278,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
         ) : (
           <div className="space-y-8">
             <div className="border-b border-gray-100 pb-4">
-              <span className="inline-block px-3 py-1 bg-purple-50 text-[#5022C3] text-xs font-bold rounded-full mb-2">
+              <span className="inline-block px-3 py-1 bg-sky-50 text-[#0284c7] text-xs font-bold rounded-full mb-2">
                 Legal Document
               </span>
               <h1 className="text-3xl font-extrabold text-gray-900">MASH ECO Privacy Policy</h1>
@@ -290,7 +290,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
             </p>
 
             <div className="bg-indigo-50/70 border border-indigo-100 p-5 rounded-2xl flex items-start gap-4">
-              <ShieldCheck className="w-6 h-6 text-[#5022C3] shrink-0 mt-1" />
+              <ShieldCheck className="w-6 h-6 text-[#0284c7] shrink-0 mt-1" />
               <div>
                 <h4 className="font-bold text-gray-900 text-sm">Tenant Isolation Guarantee</h4>
                 <p className="text-xs text-gray-600 mt-1 leading-relaxed">
@@ -437,10 +437,10 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
             <div className="p-4 bg-gray-50 rounded-xl text-sm border border-gray-200 flex flex-col sm:flex-row gap-4 justify-between">
               <div>
                 <p className="font-bold text-gray-900">MASH ECO</p>
-                <p className="text-gray-600">1704, National University, Gazipur, Bangladesh</p>
+                <p className="text-gray-600">Badda Link Road, Gulshan, Dhaka, Bangladesh</p>
               </div>
               <div>
-                <p className="text-gray-600">Email: <a href="mailto:support@masheco.com" className="text-[#5022C3] font-bold">support@masheco.com</a></p>
+                <p className="text-gray-600">Email: <a href="mailto:support@masheco.com" className="text-[#0284c7] font-bold hover:underline">support@masheco.com</a></p>
                 <p className="text-gray-600">Hotline: <span className="font-bold text-gray-900">(+880) 1880840849</span></p>
               </div>
             </div>
@@ -455,7 +455,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
         lang === 'bn' ? (
           <div className="space-y-8">
             <div className="border-b border-gray-100 pb-4">
-              <span className="inline-block px-3 py-1 bg-purple-50 text-[#5022C3] text-xs font-bold rounded-full mb-2">
+              <span className="inline-block px-3 py-1 bg-sky-50 text-[#0284c7] text-xs font-bold rounded-full mb-2">
                 আইনি চুক্তি
               </span>
               <h1 className="text-3xl font-extrabold text-gray-900">MASH ECO ব্যবহারের শর্তাবলী (Terms of Service)</h1>
@@ -592,7 +592,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
         ) : (
           <div className="space-y-8">
             <div className="border-b border-gray-100 pb-4">
-              <span className="inline-block px-3 py-1 bg-purple-50 text-[#5022C3] text-xs font-bold rounded-full mb-2">
+              <span className="inline-block px-3 py-1 bg-sky-50 text-[#0284c7] text-xs font-bold rounded-full mb-2">
                 Legal Contract
               </span>
               <h1 className="text-3xl font-extrabold text-gray-900">MASH ECO Terms of Service</h1>
@@ -736,7 +736,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
         lang === 'bn' ? (
           <div className="space-y-8">
             <div className="border-b border-gray-100 pb-4">
-              <span className="inline-block px-3 py-1 bg-purple-50 text-[#5022C3] text-xs font-bold rounded-full mb-2">
+              <span className="inline-block px-3 py-1 bg-sky-50 text-[#0284c7] text-xs font-bold rounded-full mb-2">
                 কুকি নির্দেশিকা
               </span>
               <h1 className="text-3xl font-extrabold text-gray-900">MASH ECO কুকি পলিসি (Cookie Policy)</h1>
@@ -753,7 +753,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
             <div className="grid gap-4">
               <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                 <h3 className="font-bold text-gray-900 mb-1 flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-[#5022C3]" /> অপরিহার্য অথেন্টিকেশন ও সেশন টোকেন (Strictly Necessary)
+                  <Lock className="w-4 h-4 text-[#0284c7]" /> অপরিহার্য অথেন্টিকেশন ও সেশন টোকেন (Strictly Necessary)
                 </h3>
                 <p className="text-xs text-gray-600 leading-relaxed">
                   মার্চেন্ট লগইন সেশন নিশ্চিত করতে এবং সুরক্ষিত JWT টোকেন নিরাপদে ধারণ করতে ব্যবহৃত হয়। এটি বন্ধ করলে মার্চেন্ট ড্যাশবোর্ডে লগইন করা বা অর্ডার ব্যবস্থাপনা করা সম্ভব নয়।
@@ -798,7 +798,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
         ) : (
           <div className="space-y-8">
             <div className="border-b border-gray-100 pb-4">
-              <span className="inline-block px-3 py-1 bg-purple-50 text-[#5022C3] text-xs font-bold rounded-full mb-2">
+              <span className="inline-block px-3 py-1 bg-sky-50 text-[#0284c7] text-xs font-bold rounded-full mb-2">
                 Cookie Guidelines
               </span>
               <h1 className="text-3xl font-extrabold text-gray-900">MASH ECO Cookie Policy</h1>
@@ -815,7 +815,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
             <div className="grid gap-4">
               <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
                 <h3 className="font-bold text-gray-900 mb-1 flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-[#5022C3]" /> Strictly Necessary Authentication Tokens
+                  <Lock className="w-4 h-4 text-[#0284c7]" /> Strictly Necessary Authentication Tokens
                 </h3>
                 <p className="text-xs text-gray-600 leading-relaxed">
                   Cryptographically signed JSON Web Tokens (JWT) maintaining your merchant administrative session. Disabling these cookies prevents secure dashboard authentication and order management.
@@ -952,7 +952,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
 
             <div className="pt-4 border-t border-gray-100">
               <p className="text-sm text-gray-600">
-                অ্যাকাউন্ট ডিলিটেশন সম্পর্কে সরাসরি কথা বলতে চাইলে যোগাযোগ করুন: <a href="mailto:support@masheco.com" className="text-[#5022C3] font-bold">support@masheco.com</a> অথবা হটলাইন: <span className="font-bold text-gray-900">(+৮৮০) ১৮৮০৮৪০৮৪৯</span>
+                অ্যাকাউন্ট ডিলিটেশন সম্পর্কে সরাসরি কথা বলতে চাইলে যোগাযোগ করুন: <a href="mailto:support@masheco.com" className="text-[#0284c7] font-bold">support@masheco.com</a> অথবা হটলাইন: <span className="font-bold text-gray-900">(+৮৮০) ১৮৮০৮৪০৮৪৯</span>
               </p>
             </div>
           </div>
@@ -1044,7 +1044,7 @@ export default function LegalPolicyViewer({ policyType }: LegalPolicyViewerProps
 
             <div className="pt-4 border-t border-gray-100">
               <p className="text-sm text-gray-600">
-                Need immediate assistance regarding account deletion? Email our compliance team at <a href="mailto:support@masheco.com" className="text-[#5022C3] font-bold">support@masheco.com</a> or call <span className="font-bold text-gray-900">(+880) 1880840849</span>.
+                Need immediate assistance regarding account deletion? Email our compliance team at <a href="mailto:support@masheco.com" className="text-[#0284c7] font-bold">support@masheco.com</a> or call <span className="font-bold text-gray-900">(+880) 1880840849</span>.
               </p>
             </div>
           </div>

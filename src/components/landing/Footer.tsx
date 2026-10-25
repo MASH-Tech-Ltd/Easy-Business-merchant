@@ -98,6 +98,9 @@ export default async function Footer({ socialLinks: propSocialLinks }: { socialL
             <p className="text-gray-400 text-sm max-w-xs">
               Making e-commerce simple, accessible, and powerful for businesses of all sizes.
             </p>
+            {/* <p className="text-gray-400 text-xs max-w-xs leading-relaxed">
+              <span className="text-gray-300 font-semibold">Address:</span> Badda Link Road, Gulshan, Dhaka
+            </p> */}
 
             {/* Conditional Rendering: Only rendered server-side when admin has configured and enabled active social links */}
             {activeSocialList.length > 0 && (

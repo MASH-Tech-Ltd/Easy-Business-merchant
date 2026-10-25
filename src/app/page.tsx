@@ -168,6 +168,13 @@ export default async function LandingPage() {
       contactType: "customer support",
       availableLanguage: ["English", "Bengali"],
     },
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Badda Link Road",
+      addressLocality: "Gulshan",
+      addressRegion: "Dhaka",
+      addressCountry: "BD",
+    },
   };
 
   return (

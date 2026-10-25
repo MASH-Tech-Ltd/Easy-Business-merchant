@@ -18,29 +18,29 @@ export default function HeroSection({ packages = [] }: HeroSectionProps) {
   return (
     <section className="relative pt-24 sm:pt-28 md:pt-32 lg:pt-36 pb-8 sm:pb-10 lg:pb-12 overflow-hidden">
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[hsl(var(--accent-primary))]/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
+        <div className="absolute top-0 right-0 w-[400px] h-[600px] bg-sky-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+        <div className="absolute bottom-0 left-0 w-[400px] h-[600px] bg-blue-600/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/3"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         {/* Lowest Price Highlight Badge */}
-        <div className="inline-flex items-center justify-center flex-wrap gap-2 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-purple-50 via-indigo-50 to-blue-50 border border-purple-200/80 text-gray-900 text-xs sm:text-sm font-semibold mb-6 shadow-sm hover:scale-105 transition-transform cursor-pointer max-w-full">
-          <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#5022C3] to-purple-600 text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-xs whitespace-nowrap">
+        <div className="inline-flex items-center justify-center flex-wrap gap-2 sm:gap-2.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-sky-50 via-blue-50 to-slate-50 border border-sky-200/80 text-gray-900 text-xs sm:text-sm font-semibold mb-6 shadow-sm hover:scale-105 transition-transform cursor-pointer max-w-full">
+          <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider shadow-xs whitespace-nowrap">
             Lowest Price Guaranteed
           </span>
-          <span className="text-purple-950 font-bold text-xs sm:text-sm">
-            Full E-Commerce Platform Starting at Only <span className="text-[#5022C3] font-black text-xs sm:text-base">৳{minPrice}/month</span>
+          <span className="text-slate-900 font-bold text-xs sm:text-sm">
+            Full E-Commerce Platform Starting at Only <span className="text-[#0284c7] font-black text-xs sm:text-base">৳{minPrice}/month</span>
           </span>
         </div>
 
         <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 mb-6 sm:mb-8 leading-tight">
           One Platform <br/> 
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[hsl(var(--accent-primary))] to-purple-600">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#122846] via-[#0284c7] to-[#0ea5e9]">
             Thousands of Success Stories
           </span>
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-base sm:text-xl text-gray-600 mb-8 sm:mb-10">
-          Take your business online at the <strong className="text-purple-900 font-bold">lowest price in Bangladesh</strong>. Setup your automated e-commerce store with just a few clicks. No coding required.
+          Take your business online at the <strong className="text-[#122846] font-bold">lowest price in Bangladesh</strong>. Setup your automated e-commerce store with just a few clicks. No coding required.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, CheckCircle2, XCircle, AlertCircle, Save, Trash2, RefreshCw, Eye, EyeOff, ShieldCheck, HelpCircle } from 'lucide-react';
+import { Activity, CheckCircle2, XCircle, AlertCircle, Save, Trash2, RefreshCw, Eye, EyeOff, ShieldCheck, HelpCircle, Lock, ArrowUpRight } from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import { api } from '@/utils/api';
 
@@ -36,11 +37,24 @@ export default function TrackingSettingsPage() {
     googleTagManager: 'Not Configured',
   });
 
-  // Fetch current merchant tracking config
+  const [currentPlanName, setCurrentPlanName] = useState<string>('');
+  const [isTrialPlan, setIsTrialPlan] = useState<boolean>(false);
+
+  // Fetch current merchant tracking config and plan eligibility
   const fetchConfig = async () => {
     try {
       setIsLoading(true);
-      const res = await api.get('/tracking/merchant');
+      const [res, subRes] = await Promise.all([
+        api.get('/tracking/merchant'),
+        api.get('/subscriptions/my-subscription').catch(() => null),
+      ]);
+
+      if (subRes?.data?.data) {
+        const sub = subRes.data.data;
+        setCurrentPlanName(sub.packageId?.name || '');
+        setIsTrialPlan(Boolean(sub.isTrial));
+      }
+
       if (res.data?.data) {
         const data = res.data.data;
         setTrackingData({
@@ -174,8 +188,30 @@ export default function TrackingSettingsPage() {
     );
   }
 
+  const planNameLower = currentPlanName.toLowerCase();
+  const canUseGA4AndPixel = !isTrialPlan && (planNameLower.includes('standard') || planNameLower.includes('premium'));
+  const canUseGTM = !isTrialPlan && planNameLower.includes('premium');
+
   return (
     <div className="p-3 sm:p-6 md:p-8 w-full max-w-[1800px] mx-auto space-y-4 sm:space-y-6 pb-16">
+      {/* Plan Entitlement Notice if on Free Trial or Basic */}
+      {!canUseGA4AndPixel && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-amber-700 shrink-0" />
+            <span>
+              Native GA4, Meta Pixel, and GTM tracking integrations are available on <strong>Standard</strong> and <strong>Premium</strong> plans.
+            </span>
+          </div>
+          <Link
+            href="/dashboard/subscription"
+            className="inline-flex items-center gap-1 font-bold text-blue-700 hover:text-blue-800 underline underline-offset-2 shrink-0"
+          >
+            Upgrade Plan <ArrowUpRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
+
       {/* Action Header Card */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-3.5 sm:p-6 rounded-2xl border border-gray-200/80 shadow-sm">
         <div className="flex items-center gap-3">
@@ -219,7 +255,12 @@ export default function TrackingSettingsPage() {
                 G4
               </div>
               <div>
-                <h3 className="font-bold text-gray-900">Google Analytics 4 (GA4)</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-gray-900">Google Analytics 4 (GA4)</h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                    Standard & Premium
+                  </span>
+                </div>
                 <p className="text-xs text-gray-500">Track pageviews, ecommerce activity, and store traffic</p>
               </div>
             </div>
@@ -290,7 +331,12 @@ export default function TrackingSettingsPage() {
                 ∞
               </div>
               <div>
-                <h3 className="font-bold text-gray-900">Meta (Facebook) Pixel</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-gray-900">Meta (Facebook) Pixel</h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                    Standard & Premium
+                  </span>
+                </div>
                 <p className="text-xs text-gray-500">Track Meta ad conversions, standard events, and visitor behavior</p>
               </div>
             </div>
@@ -361,7 +407,12 @@ export default function TrackingSettingsPage() {
                 TM
               </div>
               <div>
-                <h3 className="font-bold text-gray-900">Google Tag Manager (GTM)</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-gray-900">Google Tag Manager (GTM)</h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                    Premium Exclusive
+                  </span>
+                </div>
                 <p className="text-xs text-gray-500">Inject custom marketing tags and custom dataLayer triggers</p>
               </div>
             </div>

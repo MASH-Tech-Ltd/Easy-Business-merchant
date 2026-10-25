@@ -105,18 +105,18 @@ export default function DocumentationViewer() {
   return (
     <div className="space-y-10 text-left text-gray-700 w-full max-w-6xl mx-auto">
       {/* Top Banner & Language Selector */}
-      <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-[#1e1b4b] rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="bg-gradient-to-r from-[#122846] via-[#102d54] to-[#0369a1] rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur-md text-purple-200 text-xs font-bold rounded-full mb-3 border border-white/10">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur-md text-sky-200 text-xs font-bold rounded-full mb-3 border border-white/10">
               <Sparkles className="w-3.5 h-3.5 text-amber-300" />
               {lang === 'bn' ? 'মার্চেন্ট হেল্প সেন্টার ও নলেজবেস' : 'Merchant Knowledgebase & Docs'}
             </span>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
               {lang === 'bn' ? 'MASH ECO প্ল্যাটফর্ম ডকুমেন্টেশন' : 'MASH ECO Platform Documentation'}
             </h1>
-            <p className="text-indigo-200 text-sm sm:text-base mt-2 leading-relaxed">
+            <p className="text-sky-100 text-sm sm:text-base mt-2 leading-relaxed">
               {lang === 'bn'
                 ? 'আপনার ই-কমার্স স্টোর সেটআপ, কাস্টম ডোমেন ম্যাপিং, অটো কুরিয়ার ডিসপ্যাচ এবং ফ্রড প্রতিরোধ সম্পর্কিত সম্পূর্ণ টিউটোরিয়াল ও দিকনির্দেশনা।'
                 : 'Comprehensive tutorials, step-by-step guides, DNS records, and best practices to maximize the potential of your MASH ECO merchant storefront.'}
@@ -130,7 +130,7 @@ export default function DocumentationViewer() {
               onClick={() => setLang('bn')}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
                 lang === 'bn'
-                  ? 'bg-white text-[#5022C3] shadow-md'
+                  ? 'bg-white text-[#0284c7] shadow-md'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
@@ -141,7 +141,7 @@ export default function DocumentationViewer() {
               onClick={() => setLang('en')}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
                 lang === 'en'
-                  ? 'bg-white text-[#5022C3] shadow-md'
+                  ? 'bg-white text-[#0284c7] shadow-md'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
@@ -158,7 +158,7 @@ export default function DocumentationViewer() {
             placeholder={lang === 'bn' ? 'ডকুমেন্টেশন খুঁজুন (যেমন: DNS, Steadfast, Fraud Score, Theme)...' : 'Search documentation guides (e.g., DNS, Steadfast, Fraud score, Domain)...'}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-indigo-200/70 focus:outline-none focus:bg-white focus:text-gray-900 focus:placeholder-gray-400 focus:ring-2 focus:ring-[#5022C3] transition-all text-sm"
+            className="w-full pl-11 pr-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder-indigo-200/70 focus:outline-none focus:bg-white focus:text-gray-900 focus:placeholder-gray-400 focus:ring-2 focus:ring-[#0284c7] transition-all text-sm"
           />
           {searchQuery && (
             <button
@@ -196,14 +196,14 @@ export default function DocumentationViewer() {
                 }}
                 className={`p-6 rounded-2xl border-2 transition-all cursor-pointer group flex flex-col justify-between ${
                   isSelected
-                    ? 'border-[#5022C3] bg-purple-50/50 shadow-md ring-4 ring-[#5022C3]/10'
-                    : 'border-gray-200/80 bg-white hover:border-[#5022C3]/40 hover:shadow-lg'
+                    ? 'border-[#0284c7] bg-sky-50/50 shadow-md ring-4 ring-[#0284c7]/10'
+                    : 'border-gray-200/80 bg-white hover:border-[#0284c7]/40 hover:shadow-lg'
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                      isSelected ? 'bg-[#5022C3] text-white' : 'bg-gray-100 text-gray-700 group-hover:bg-[#5022C3]/10 group-hover:text-[#5022C3]'
+                      isSelected ? 'bg-[#0284c7] text-white' : 'bg-gray-100 text-gray-700 group-hover:bg-[#0284c7]/10 group-hover:text-[#0284c7]'
                     }`}>
                       <IconComponent className="w-6 h-6" />
                     </div>
@@ -211,7 +211,7 @@ export default function DocumentationViewer() {
                       {guide.badge}
                     </span>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#5022C3] transition-colors">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-[#0284c7] transition-colors">
                     {lang === 'bn' ? guide.bnTitle : guide.title}
                   </h3>
                   <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">
@@ -219,9 +219,9 @@ export default function DocumentationViewer() {
                   </p>
                 </div>
 
-                <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-sm font-bold text-[#5022C3]">
+                <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-sm font-bold text-[#0284c7]">
                   <span>{lang === 'bn' ? 'সম্পূর্ণ গাইড পড়ুন' : 'Read Guide'} &rarr;</span>
-                  {isSelected && <span className="text-xs text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">Viewing</span>}
+                  {isSelected && <span className="text-xs text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full">Viewing</span>}
                 </div>
               </div>
             );
@@ -239,7 +239,7 @@ export default function DocumentationViewer() {
               onClick={() => setActiveGuide(g.id)}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer ${
                 activeGuide === g.id
-                  ? 'bg-[#5022C3] text-white shadow-sm'
+                  ? 'bg-[#0284c7] text-white shadow-sm'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -257,7 +257,7 @@ export default function DocumentationViewer() {
           {activeGuide === 'getting-started' && (
             <div className="space-y-8">
               <div className="border-b border-gray-100 pb-5">
-                <span className="text-xs font-bold px-3 py-1 bg-purple-100 text-[#5022C3] rounded-full">
+                <span className="text-xs font-bold px-3 py-1 bg-sky-100 text-[#0284c7] rounded-full">
                   Step-by-Step Tutorial
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mt-2">
@@ -273,7 +273,7 @@ export default function DocumentationViewer() {
               {/* Step 1 */}
               <div className="space-y-3">
                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <span className="w-7 h-7 bg-[#5022C3] text-white rounded-lg flex items-center justify-center text-sm font-bold">1</span>
+                  <span className="w-7 h-7 bg-[#0284c7] text-white rounded-lg flex items-center justify-center text-sm font-bold">1</span>
                   {lang === 'bn' ? 'স্টোরের প্রাথমিক প্রোফাইল সেটআপ (Store Settings)' : 'Configure Store Identity & Brand Details'}
                 </h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
@@ -297,7 +297,7 @@ export default function DocumentationViewer() {
               {/* Step 2 */}
               <div className="space-y-3">
                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <span className="w-7 h-7 bg-[#5022C3] text-white rounded-lg flex items-center justify-center text-sm font-bold">2</span>
+                  <span className="w-7 h-7 bg-[#0284c7] text-white rounded-lg flex items-center justify-center text-sm font-bold">2</span>
                   {lang === 'bn' ? 'ক্যাটাগরি তৈরি করুন (Manage Categories)' : 'Create Categories for Structured Cataloging'}
                 </h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
@@ -312,7 +312,7 @@ export default function DocumentationViewer() {
               {/* Step 3 */}
               <div className="space-y-3">
                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <span className="w-7 h-7 bg-[#5022C3] text-white rounded-lg flex items-center justify-center text-sm font-bold">3</span>
+                  <span className="w-7 h-7 bg-[#0284c7] text-white rounded-lg flex items-center justify-center text-sm font-bold">3</span>
                   {lang === 'bn' ? 'আপনার প্রথম প্রোডাক্ট আপলোড করুন (Add Product)' : 'Publish Your First Product Listing'}
                 </h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
@@ -327,7 +327,7 @@ export default function DocumentationViewer() {
               {/* Step 4 */}
               <div className="space-y-3">
                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <span className="w-7 h-7 bg-[#5022C3] text-white rounded-lg flex items-center justify-center text-sm font-bold">4</span>
+                  <span className="w-7 h-7 bg-[#0284c7] text-white rounded-lg flex items-center justify-center text-sm font-bold">4</span>
                   {lang === 'bn' ? 'থিম ও স্টোরফ্রন্ট প্রিভিউ (Theme Customization)' : 'Select & Preview Your Storefront Theme'}
                 </h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
@@ -342,7 +342,7 @@ export default function DocumentationViewer() {
               {/* Step 5 */}
               <div className="space-y-3">
                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                  <span className="w-7 h-7 bg-[#5022C3] text-white rounded-lg flex items-center justify-center text-sm font-bold">5</span>
+                  <span className="w-7 h-7 bg-[#0284c7] text-white rounded-lg flex items-center justify-center text-sm font-bold">5</span>
                   {lang === 'bn' ? 'স্টোর মোড: অনলাইন ও অফলাইন টগল' : 'Store Availability: Online vs Offline Toggle'}
                 </h3>
                 <p className="text-sm text-gray-600 leading-relaxed">
@@ -377,7 +377,7 @@ export default function DocumentationViewer() {
 
               {/* Requirement Alert */}
               <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-[#5022C3] shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-[#0284c7] shrink-0 mt-0.5" />
                 <div className="text-xs text-indigo-900 leading-relaxed">
                   <strong>{lang === 'bn' ? 'ডোমেন ফরম্যাট সতর্কতা:' : 'Format Requirement:'}</strong>{' '}
                   {lang === 'bn' 
@@ -396,12 +396,12 @@ export default function DocumentationViewer() {
                   {/* Record 1 */}
                   <div className="border border-gray-200 rounded-2xl p-4 bg-gray-50/70">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-md">
+                      <span className="text-xs font-bold uppercase tracking-wider text-sky-700 bg-sky-100 px-2.5 py-0.5 rounded-md">
                         Record 1: Root Domain
                       </span>
                       <button
                         onClick={() => copyToClipboard('merchant.masheco.com', 'Value')}
-                        className="text-xs text-[#5022C3] hover:underline flex items-center gap-1 font-bold"
+                        className="text-xs text-[#0284c7] hover:underline flex items-center gap-1 font-bold"
                       >
                         <Copy className="w-3.5 h-3.5" /> {lang === 'bn' ? 'ভ্যালু কপি করুন' : 'Copy Value'}
                       </button>
@@ -417,7 +417,7 @@ export default function DocumentationViewer() {
                       </div>
                       <div>
                         <span className="text-gray-500 block">Target / Value</span>
-                        <code className="font-mono font-bold text-[#5022C3] bg-white px-2 py-0.5 rounded border border-gray-200">
+                        <code className="font-mono font-bold text-[#0284c7] bg-white px-2 py-0.5 rounded border border-gray-200">
                           merchant.masheco.com
                         </code>
                       </div>
@@ -427,12 +427,12 @@ export default function DocumentationViewer() {
                   {/* Record 2 */}
                   <div className="border border-gray-200 rounded-2xl p-4 bg-gray-50/70">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-md">
+                      <span className="text-xs font-bold uppercase tracking-wider text-sky-700 bg-sky-100 px-2.5 py-0.5 rounded-md">
                         Record 2: WWW Subdomain
                       </span>
                       <button
                         onClick={() => copyToClipboard('merchant.masheco.com', 'Value')}
-                        className="text-xs text-[#5022C3] hover:underline flex items-center gap-1 font-bold"
+                        className="text-xs text-[#0284c7] hover:underline flex items-center gap-1 font-bold"
                       >
                         <Copy className="w-3.5 h-3.5" /> {lang === 'bn' ? 'ভ্যালু কপি করুন' : 'Copy Value'}
                       </button>
@@ -448,7 +448,7 @@ export default function DocumentationViewer() {
                       </div>
                       <div>
                         <span className="text-gray-500 block">Target / Value</span>
-                        <code className="font-mono font-bold text-[#5022C3] bg-white px-2 py-0.5 rounded border border-gray-200">
+                        <code className="font-mono font-bold text-[#0284c7] bg-white px-2 py-0.5 rounded border border-gray-200">
                           merchant.masheco.com
                         </code>
                       </div>
@@ -505,7 +505,7 @@ export default function DocumentationViewer() {
                 </div>
                 <Link
                   href="/dashboard/domain"
-                  className="px-3.5 py-1.5 bg-[#5022C3] hover:bg-[#401a9c] text-white rounded-lg text-xs font-bold transition-all shadow-xs"
+                  className="px-3.5 py-1.5 bg-[#0284c7] hover:bg-[#401a9c] text-white rounded-lg text-xs font-bold transition-all shadow-xs"
                 >
                   {lang === 'bn' ? 'ডোমেন পেইজে যান' : 'Go to Domain Settings'} &rarr;
                 </Link>

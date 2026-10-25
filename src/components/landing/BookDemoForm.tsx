@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { captureAttribution, triggerLeadConversionEvents } from "@/utils/utmTracker";
 
 const isValidBDPhone = (phone: string): boolean => {
   if (!phone || !phone.trim()) return false;
@@ -23,6 +24,10 @@ export default function BookDemoForm() {
     challenges: "",
   });
 
+  useEffect(() => {
+    captureAttribution();
+  }, []);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -42,13 +47,16 @@ export default function BookDemoForm() {
     setLoading(true);
 
     try {
+      const attribution = captureAttribution();
       const payload = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         email: formData.email.trim(),
         phone: formData.phone.trim(),
+        businessName: formData.businessName.trim(),
         topic: "Demo Request",
         message: `Business: ${formData.businessName || "Not specified"} | Monthly Revenue: ${formData.monthlyRevenue} | Goals & Challenges: ${formData.challenges || "None provided"}`,
+        ...attribution,
       };
 
       const res = await fetch(`/api/contact-inquiries/create-inquiry`, {
@@ -64,6 +72,9 @@ export default function BookDemoForm() {
       if (!res.ok || !data.success) {
         throw new Error(data.message || "Failed to submit demo request");
       }
+
+      // Fire Meta Pixel & Google Analytics Lead conversion events
+      triggerLeadConversionEvents({ topic: "Demo Request" });
 
       toast.success(
         "Your demo request has been submitted! Our team will contact you shortly to schedule your personalized walkthrough.",
