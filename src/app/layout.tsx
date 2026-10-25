@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     google: 'googlee9d71bb183a3b7f7',
   },
   alternates: {
-    canonical: 'https://www.masheco.com',
+    canonical: 'https://www.masheco.com/',
   },
   appleWebApp: {
     title: 'MASH ECO',
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     title: 'MASH ECO | All-in-One E-Commerce Store Builder',
     description: 'Launch and scale your business with MASH ECO. Zero coding required. Premium themes, courier automation & fraud protection.',
     siteName: 'MASH ECO',
-    url: 'https://www.masheco.com',
+    url: 'https://www.masheco.com/',
     locale: 'en_US',
     type: 'website',
   },
@@ -68,12 +68,31 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  '@id': 'https://www.masheco.com/#organization',
+  name: 'MASH ECO',
+  legalName: 'MASH TECH',
+  url: 'https://www.masheco.com/',
+  logo: {
+    '@type': 'ImageObject',
+    url: 'https://www.masheco.com/masheco-logo.png',
+    width: 512,
+    height: 512,
+  },
+};
+
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
+  '@id': 'https://www.masheco.com/#website',
   name: 'MASH ECO',
-  alternateName: ['Mash Eco', 'MashEco', 'masheco.com'],
-  url: 'https://www.masheco.com',
+  alternateName: ['MashEco', 'Mash Eco'],
+  url: 'https://www.masheco.com/',
+  publisher: {
+    '@id': 'https://www.masheco.com/#organization',
+  },
 };
 
 const siteNavigationSchema = {
@@ -140,6 +159,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${righteous.variable} h-full antialiased`}>
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}

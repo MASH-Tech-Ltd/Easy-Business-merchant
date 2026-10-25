@@ -10,6 +10,7 @@ import { Metadata } from "next";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
+  applicationName: "MASH ECO",
   title: { absolute: "MASH ECO | Launch Your E-Commerce Store – Zero Coding Required" },
   description:
     "MASH ECO (MashEco / Mash Eco) — Bangladesh's leading all-in-one e-commerce store builder. Create your branded online store in minutes with seller verification, courier automation, fraud protection, and beautiful premium themes.",
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
     title: "MASH ECO — All-in-One E-Commerce Store Builder",
     description:
       "Scale your business online with MASH ECO. Seller verification, courier automation, fraud detection, and premium themes — all in one platform.",
-    url: "https://www.masheco.com",
+    url: "https://www.masheco.com/",
     siteName: "MASH ECO",
     images: [
       {
@@ -56,7 +57,7 @@ export const metadata: Metadata = {
     site: "@masheco",
   },
   alternates: {
-    canonical: "https://www.masheco.com",
+    canonical: "https://www.masheco.com/",
   },
 };
 
