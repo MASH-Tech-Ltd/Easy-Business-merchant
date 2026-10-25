@@ -97,7 +97,7 @@ const buildComparisonData = (params: {
       {
         name: "Courier Automation (Pathao, Steadfast, Redx)",
         tooltip: "One-click order forwarding to courier partners directly from merchant dashboard.",
-        freeTrial: "— (Paid Add-on)",
+        freeTrial: false,
         basic: params.basicCourier,
         standard: params.stdCourier,
         premium: params.premCourier,
@@ -106,7 +106,7 @@ const buildComparisonData = (params: {
       {
         name: "Abandoned Cart Recovery Leads",
         tooltip: "Capture shopper checkout details for abandoned orders to recover lost sales.",
-        freeTrial: "— (Paid Add-on)",
+        freeTrial: false,
         basic: params.basicAbandoned,
         standard: params.stdAbandoned,
         premium: params.premAbandoned,
@@ -123,7 +123,7 @@ const buildComparisonData = (params: {
       {
         name: "Extra Usage Beyond Quota",
         tooltip: "Easily top-up credits via pay-as-you-go add-on whenever you need more volume.",
-        freeTrial: "Add-on Available",
+        freeTrial: false,
         basic: "Add-on Available",
         standard: "Add-on Available",
         premium: "Add-on Available",
@@ -203,7 +203,7 @@ const buildComparisonData = (params: {
       {
         name: "Automated SMS Notifications",
         tooltip: "Send real-time SMS alerts to customers upon order placement and fulfillment.",
-        freeTrial: "Add-on Available",
+        freeTrial: false,
         basic: "Add-on Available",
         standard: "Add-on Available",
         premium: "Add-on Available",
@@ -211,7 +211,7 @@ const buildComparisonData = (params: {
       {
         name: "Email Marketing Campaigns",
         tooltip: "Send promotional newsletters and cart re-engagement emails.",
-        freeTrial: "Add-on Available",
+        freeTrial: false,
         basic: "Add-on Available",
         standard: "Add-on Available",
         premium: "Add-on Available",
@@ -219,7 +219,7 @@ const buildComparisonData = (params: {
       {
         name: "Advanced Order Fraud Detection",
         tooltip: "Risk scoring to identify suspicious customer numbers and fake orders.",
-        freeTrial: "Add-on Available",
+        freeTrial: false,
         basic: "Add-on Available",
         standard: "Add-on Available",
         premium: "Add-on Available",
