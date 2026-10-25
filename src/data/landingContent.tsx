@@ -185,7 +185,7 @@ export const contentMap: Record<string, ReactNode> = {
           <p className="text-sm text-gray-600">(+880) 1880840849</p>
         </div>
         <div className="col-span-2 md:col-span-1">
-          <h4 className="font-bold text-gray-900 mb-1">Address</h4>
+          <h4 className="font-bold text-gray-900 mb-1">Business Address</h4>
           <p className="text-sm text-gray-600">
             Badda Link Road, Gulshan, Dhaka
           </p>
