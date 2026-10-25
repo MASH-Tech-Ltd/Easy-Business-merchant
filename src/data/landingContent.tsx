@@ -300,9 +300,9 @@ export const contentMap: Record<string, ReactNode> = {
               Say goodbye to manual shipping labels. Our new integration
               connects directly with top logistics providers globally.
             </p>
-            <span className="text-[hsl(var(--accent-primary))] text-sm font-bold cursor-pointer">
+            <Link href="/landing/blog/introducing-advanced-courier-automation" className="text-blue-600 hover:text-blue-700 text-sm font-bold inline-flex items-center gap-1">
               Read article &rarr;
-            </span>
+            </Link>
           </div>
         </article>
 
@@ -321,11 +321,21 @@ export const contentMap: Record<string, ReactNode> = {
               Learn how to leverage our analytics dashboard to identify friction
               points and recover lost sales effectively.
             </p>
-            <span className="text-[hsl(var(--accent-primary))] text-sm font-bold cursor-pointer">
+            <Link href="/landing/blog/how-to-reduce-abandoned-checkout-leads" className="text-blue-600 hover:text-blue-700 text-sm font-bold inline-flex items-center gap-1">
               Read article &rarr;
-            </span>
+            </Link>
           </div>
         </article>
+      </div>
+
+      <div className="text-center pt-8">
+        <Link
+          href="/landing/blog"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 shadow-md transition-all"
+        >
+          <span>Explore All Blog Articles & Guides</span>
+          <span>&rarr;</span>
+        </Link>
       </div>
     </div>
   ),

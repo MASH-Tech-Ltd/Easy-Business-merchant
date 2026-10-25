@@ -59,11 +59,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 export default async function LandingContentPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   
+  if (slug === 'blog') {
+    redirect('/landing/blog');
+  }
+
   if (!contentMap[slug]) {
     notFound();
   }

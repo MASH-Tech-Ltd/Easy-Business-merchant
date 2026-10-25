@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { Check, X, ThumbsUp, Sparkles, ArrowDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSocket } from "@/context/SocketContext";
 import PlanComparisonTable from "./PlanComparisonTable";
 
 export interface IPackage {
@@ -71,43 +72,66 @@ const PACKAGE_METADATA: Record<string, {
   },
 };
 
+const getPlanKey = (name: string): string => {
+  const n = (name || "").toLowerCase().trim();
+  if (n.includes("basic")) return "basic";
+  if (n.includes("standard")) return "standard";
+  if (n.includes("premium")) return "premium";
+  return n;
+};
+
 const getDynamicFeatures = (pkg: IPackage, planKey: string): string[] => {
-  const baseList = PLAN_ESCALATING_FEATURES[planKey] || (pkg.features ?? []);
+  // Read backend package features first; only fall back to preset if backend features are missing/empty
+  const baseList =
+    pkg.features && Array.isArray(pkg.features) && pkg.features.length > 0
+      ? pkg.features
+      : (PLAN_ESCALATING_FEATURES[planKey] || []);
+
   const limit = pkg.productLimit ? pkg.productLimit.toLocaleString() : "Unlimited";
-  const courier = pkg.freeCourierLimit ?? (planKey === "basic" ? 5 : planKey === "standard" ? 10 : 15);
-  const abandoned = pkg.freeAbandonedLimit ?? (planKey === "basic" ? 5 : planKey === "standard" ? 10 : 15);
+  const courier = pkg.freeCourierLimit;
+  const abandoned = pkg.freeAbandonedLimit;
 
   return baseList.map((feat, idx) => {
-    // 1) Replace product catalog limit dynamically
+    // 1) Replace product catalog limit dynamically if matching "up to X products"
     if (idx === 0 || /products/i.test(feat)) {
-      if (/up to \d+ products/i.test(feat)) {
+      if (/up to [\d,]+\s*products/i.test(feat)) {
         if (planKey === "basic") {
           return `Up to ${limit} Products Capacity`;
         } else if (planKey === "standard") {
           return `Up to ${limit} Products (2x Capacity)`;
-        } else {
+        } else if (planKey === "premium") {
           return `Up to ${limit} Products (Maximum Catalog Size)`;
+        } else {
+          return `Up to ${limit} Products`;
         }
       }
     }
     // 2) Replace courier automation free orders dynamically
     if (/courier automation/i.test(feat) && /free orders/i.test(feat)) {
-      if (planKey === "basic") {
-        return `Courier Automation: ${courier} Free Orders / Month`;
-      } else if (planKey === "standard") {
-        return `Courier Automation: ${courier} Free Orders / Month (2x)`;
-      } else {
-        return `Courier Automation: ${courier} Free Orders / Month (3x Volume)`;
+      if (courier !== undefined && courier !== null) {
+        if (planKey === "basic") {
+          return `Courier Automation: ${courier} Free Orders / Month`;
+        } else if (planKey === "standard") {
+          return `Courier Automation: ${courier} Free Orders / Month (2x)`;
+        } else if (planKey === "premium") {
+          return `Courier Automation: ${courier} Free Orders / Month (3x Volume)`;
+        } else {
+          return `Courier Automation: ${courier} Free Orders / Month`;
+        }
       }
     }
     // 3) Replace abandoned checkout free leads dynamically
     if (/abandoned checkout/i.test(feat) && /free leads/i.test(feat)) {
-      if (planKey === "basic") {
-        return `Abandoned Checkout: ${abandoned} Free Leads / Month`;
-      } else if (planKey === "standard") {
-        return `Abandoned Checkout: ${abandoned} Free Leads / Month (2x)`;
-      } else {
-        return `Abandoned Checkout: ${abandoned} Free Leads / Month (3x Volume)`;
+      if (abandoned !== undefined && abandoned !== null) {
+        if (planKey === "basic") {
+          return `Abandoned Checkout: ${abandoned} Free Leads / Month`;
+        } else if (planKey === "standard") {
+          return `Abandoned Checkout: ${abandoned} Free Leads / Month (2x)`;
+        } else if (planKey === "premium") {
+          return `Abandoned Checkout: ${abandoned} Free Leads / Month (3x Volume)`;
+        } else {
+          return `Abandoned Checkout: ${abandoned} Free Leads / Month`;
+        }
       }
     }
     return feat;
@@ -120,7 +144,7 @@ const PLAN_ESCALATING_FEATURES: Record<string, string[]> = {
     "Courier Automation: 5 Free Orders / Month",
     "Abandoned Checkout: 5 Free Leads / Month",
     "Online Storefront & All 5 Modern Themes",
-    "MashEasy Subdomain & Custom Domain",
+    "Mash Eco Subdomain & Custom Domain",
     "Cash on Delivery (COD) & Manual Payments",
     "Customer Support: Standard Ticket Support",
     "Google Analytics 4 (GA4): Not included",
@@ -136,7 +160,7 @@ const PLAN_ESCALATING_FEATURES: Record<string, string[]> = {
     "Courier Automation: 10 Free Orders / Month (2x)",
     "Abandoned Checkout: 10 Free Leads / Month (2x)",
     "Online Storefront & All 5 Modern Themes",
-    "MashEasy Subdomain & Custom Domain",
+    "Mash Eco Subdomain & Custom Domain",
     "Cash on Delivery (COD) & Manual Payments",
     "Customer Support: Priority Support Queue",
     "Google Analytics 4 (GA4) Native Integration",
@@ -148,11 +172,11 @@ const PLAN_ESCALATING_FEATURES: Record<string, string[]> = {
     "Swift VIP Dedicated 24/7 Priority Support: Not included",
   ],
   premium: [
-    "Up to 699 Products (Maximum Catalog Size)",
+    "Up to 1,500 Products (Maximum Catalog Size)",
     "Courier Automation: 15 Free Orders / Month (3x Volume)",
     "Abandoned Checkout: 15 Free Leads / Month (3x Volume)",
     "Online Storefront & All 5 Modern Themes",
-    "MashEasy Subdomain & Custom Domain",
+    "Mash Eco Subdomain & Custom Domain",
     "Cash on Delivery (COD) & Manual Payments",
     "Customer Support: Fast-Track VIP Ticket Support",
     "Google Analytics 4 (GA4) Native Integration",
@@ -165,26 +189,119 @@ const PLAN_ESCALATING_FEATURES: Record<string, string[]> = {
   ],
 };
 
+export const FALLBACK_PACKAGES: IPackage[] = [
+  {
+    _id: "fallback-basic",
+    name: "Basic",
+    price: 299,
+    billingCycle: "monthly",
+    productLimit: 199,
+    freeCourierLimit: 5,
+    freeAbandonedLimit: 5,
+    tagline: "Essential Storefront for New Sellers & Small Businesses",
+    description: "All the core commerce tools you need to launch and start selling online.",
+    isActive: true,
+    isPopular: false,
+    isRecommended: false,
+    features: PLAN_ESCALATING_FEATURES.basic,
+  },
+  {
+    _id: "fallback-standard",
+    name: "Standard",
+    price: 499,
+    billingCycle: "monthly",
+    productLimit: 399,
+    freeCourierLimit: 10,
+    freeAbandonedLimit: 10,
+    tagline: "More Capacity & Insights for Growing Businesses",
+    description: "Double capacity, 2x free automations, and native analytics for growing stores.",
+    isActive: true,
+    isPopular: true,
+    isRecommended: true,
+    features: PLAN_ESCALATING_FEATURES.standard,
+  },
+  {
+    _id: "fallback-premium",
+    name: "Premium",
+    price: 799,
+    billingCycle: "monthly",
+    productLimit: 1500,
+    freeCourierLimit: 15,
+    freeAbandonedLimit: 15,
+    tagline: "Maximum Power, High Volume & VIP Support",
+    description: "Maximum catalog size, 3x free automations, and dedicated Swift VIP support.",
+    isActive: true,
+    isPopular: false,
+    isRecommended: false,
+    features: PLAN_ESCALATING_FEATURES.premium,
+  },
+];
+
 export default function PricingSection({
   packages = [],
 }: PricingSectionProps) {
-  const hasYearly = packages.some((p) => p.billingCycle === "yearly");
-  const hasMonthly = packages.some((p) => p.billingCycle === "monthly");
+  const initialPackages = packages && packages.length > 0 ? packages : FALLBACK_PACKAGES;
+  const [pkgList, setPkgList] = useState<IPackage[]>(initialPackages);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const fetchClientPackages = useCallback(async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const res = await fetch(`${apiUrl}/packages/public-packages`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.success && Array.isArray(json?.data) && json.data.length > 0) {
+          setPkgList(json.data);
+        }
+      }
+    } catch (err) {
+      console.error("[PricingSection] Error fetching public packages:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (packages && packages.length > 0) {
+      setPkgList(packages);
+      setLoading(false);
+    } else {
+      fetchClientPackages();
+    }
+  }, [packages, fetchClientPackages]);
+
+  // Real-time synchronization when packages are updated in Super Admin
+  const { socket } = useSocket();
+  useEffect(() => {
+    if (!socket) return;
+    const handleRefresh = () => {
+      fetchClientPackages();
+    };
+    socket.on("refresh_packages", handleRefresh);
+    return () => {
+      socket.off("refresh_packages", handleRefresh);
+    };
+  }, [socket, fetchClientPackages]);
+
+  const hasYearly = pkgList.some((p) => p.billingCycle === "yearly");
+  const hasMonthly = pkgList.some((p) => p.billingCycle === "monthly");
   const showToggle = hasYearly && hasMonthly;
 
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
 
   const visiblePackages = showToggle
-    ? packages.filter((p) => p.billingCycle === billing)
-    : packages;
+    ? pkgList.filter((p) => p.billingCycle === billing)
+    : pkgList;
 
   // Enforce strictly ordered package display: Basic -> Standard -> Premium
   const PLAN_ORDER = ["basic", "standard", "premium"];
   const sortedPackages = [...visiblePackages].sort((a, b) => {
-    const nameA = (a.name || "").toLowerCase().trim();
-    const nameB = (b.name || "").toLowerCase().trim();
-    const idxA = PLAN_ORDER.indexOf(nameA);
-    const idxB = PLAN_ORDER.indexOf(nameB);
+    const keyA = getPlanKey(a.name);
+    const keyB = getPlanKey(b.name);
+    const idxA = PLAN_ORDER.indexOf(keyA);
+    const idxB = PLAN_ORDER.indexOf(keyB);
     if (idxA !== -1 && idxB !== -1) return idxA - idxB;
     if (idxA !== -1) return -1;
     if (idxB !== -1) return 1;
@@ -275,16 +392,10 @@ export default function PricingSection({
               const featured = !!pkg.isPopular;
               const recommended = !!pkg.isRecommended;
               const nameLower = (pkg.name || "").toLowerCase().trim();
-              const planKey = nameLower.includes("basic")
-                ? "basic"
-                : nameLower.includes("standard")
-                  ? "standard"
-                  : nameLower.includes("premium")
-                    ? "premium"
-                    : nameLower;
+              const planKey = getPlanKey(pkg.name);
               const features = getDynamicFeatures(pkg, planKey);
               const formattedPrice = `৳${pkg.price.toLocaleString()}`;
-              const meta = PACKAGE_METADATA[nameLower];
+              const meta = PACKAGE_METADATA[planKey] || PACKAGE_METADATA[nameLower];
               const isEnterprise = nameLower.includes("enterprise");
               const href = isEnterprise ? "/landing/contact" : "/register";
 
@@ -292,7 +403,7 @@ export default function PricingSection({
                 ? "Talk to Our Team →"
                 : featured
                   ? "Get Standard Plan →"
-                  : nameLower.includes("basic")
+                  : planKey === "basic"
                     ? "Start Free Trial →"
                     : "Get Premium Plan →";
 
@@ -331,9 +442,9 @@ export default function PricingSection({
                         {meta.badge}
                       </span>
                     )}
-                    {(pkg.tagline || pkg.description) && (
+                    {(pkg.tagline || pkg.description || meta?.summary) && (
                       <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
-                        {pkg.tagline || pkg.description}
+                        {pkg.tagline || pkg.description || meta?.summary}
                       </p>
                     )}
                   </div>
@@ -453,7 +564,7 @@ export default function PricingSection({
         </div>
 
         {/* Separate Side-by-Side Comparison Section */}
-        <PlanComparisonTable billing={billing} packages={packages} />
+        <PlanComparisonTable billing={billing} packages={pkgList} />
       </div>
     </section>
   );

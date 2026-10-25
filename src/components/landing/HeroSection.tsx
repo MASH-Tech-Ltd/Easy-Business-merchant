@@ -1,6 +1,6 @@
 'use client';
 
-// import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ShoppingCart, BarChart3, ArrowRight } from 'lucide-react';
 import { IPackage } from '@/components/landing/PricingSection';
@@ -10,9 +10,26 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({ packages = [] }: HeroSectionProps) {
+  const [pkgList, setPkgList] = useState<IPackage[]>(packages);
 
-  const minPrice = packages && packages.length > 0
-    ? Math.min(...packages.map((p) => p.price))
+  useEffect(() => {
+    if (packages && packages.length > 0) {
+      setPkgList(packages);
+    } else {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      fetch(`${apiUrl}/packages/public-packages`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.success && Array.isArray(data?.data) && data.data.length > 0) {
+            setPkgList(data.data);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [packages]);
+
+  const minPrice = pkgList && pkgList.length > 0
+    ? Math.min(...pkgList.map((p) => p.price))
     : 299;
 
   return (

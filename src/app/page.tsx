@@ -1,7 +1,7 @@
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
-import PricingSection, { IPackage } from "@/components/landing/PricingSection";
+import PricingSection, { IPackage, FALLBACK_PACKAGES } from "@/components/landing/PricingSection";
 import FAQSection from "@/components/landing/FAQSection";
 import Footer from "@/components/landing/Footer";
 import TrialPromoModal from "@/components/landing/TrialPromoModal";
@@ -72,7 +72,9 @@ async function getPublicPackages(): Promise<IPackage[]> {
       apiUrl = clean.endsWith("/api/v1") ? clean : `${clean}/api/v1`;
     }
 
-    const headersInit: Record<string, string> = {};
+    const headersInit: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
     try {
       const reqHeaders = await getNextHeaders();
       const clientIp =
@@ -103,32 +105,36 @@ async function getPublicPackages(): Promise<IPackage[]> {
       headersInit["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
     }
 
-    const fetchUrl = `${apiUrl}/packages/public-packages`.replace('localhost', '127.0.0.1');
-    const res = await fetch(fetchUrl, {
-      cache: "no-store", // Always fetch fresh — package pricing changes must reflect immediately
-      headers: headersInit,
-    });
+    const fetchUrlPrimary = `${apiUrl}/packages/public-packages`.replace('localhost', '127.0.0.1');
+    const fetchUrlAlt = `${apiUrl}/packages/public-packages`;
 
-    if (!res.ok) {
-      console.error(
-        "[LandingPage] Failed to fetch packages:",
-        res.status,
-        res.statusText,
-      );
-      return [];
+    let res = await fetch(fetchUrlPrimary, {
+      cache: "no-store",
+      headers: headersInit,
+    }).catch(() => null);
+
+    if (!res || !res.ok) {
+      res = await fetch(fetchUrlAlt, {
+        cache: "no-store",
+        headers: headersInit,
+      }).catch(() => null);
     }
 
-    const json = await res.json();
-    // Backend sends: { success: true, message: '...', data: [...] }
-    return Array.isArray(json.data) ? json.data : [];
+    if (res && res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json?.data) && json.data.length > 0) {
+        return json.data;
+      }
+    }
   } catch (err) {
-    console.error("[LandingPage] Error fetching packages:", err);
-    return [];
+    console.error("[LandingPage SSR] Error fetching packages:", err);
   }
+  return [];
 }
 
 export default async function LandingPage() {
-  const packages = await getPublicPackages();
+  const backendPackages = await getPublicPackages();
+  const packages = backendPackages && backendPackages.length > 0 ? backendPackages : FALLBACK_PACKAGES;
 
   const jsonLd = {
     "@context": "https://schema.org",

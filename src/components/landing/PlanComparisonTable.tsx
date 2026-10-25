@@ -301,7 +301,7 @@ export default function PlanComparisonTable({ billing, packages = [] }: PlanComp
       key: "freeTrial" as const,
       name: "Free Trial",
       price: "৳0",
-      period: "/14 days",
+      period: "/5 days",
       tagline: "Test-drive store features risk-free",
       cta: "Start Free Trial",
       isPopular: false,
