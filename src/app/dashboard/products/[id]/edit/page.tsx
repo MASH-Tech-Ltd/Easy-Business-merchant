@@ -88,6 +88,37 @@ const getSpecEntryPlaceholder = (groupIndex: number, entryIndex: number) => {
   return fallbackEntries[(entryIndex - preset.entries.length) % fallbackEntries.length];
 };
 
+const UNIT_OPTIONS = [
+  { label: 'Piece / পিস (pc)', value: 'pc' },
+  { label: 'Item / আইটেম', value: 'item' },
+  { label: 'Box / বক্স (box)', value: 'box' },
+  { label: 'Pack / প্যাকেট (pack)', value: 'pack' },
+  { label: 'Set / সেট (set)', value: 'set' },
+  { label: 'Pair / জোড়া (pair)', value: 'pair' },
+  { label: 'Kilogram / কেজি (kg)', value: 'kg' },
+  { label: 'Gram / গ্রাম (g)', value: 'g' },
+  { label: 'Liter / লিটার (L)', value: 'l' },
+  { label: 'Milliliter / মিলি (ml)', value: 'ml' },
+  { label: 'Meter / মিটার (m)', value: 'm' },
+  { label: 'Dozen / ডজন (dz)', value: 'dozen' },
+  { label: 'Other / অন্যান্য (কাস্টম একক)...', value: 'custom' },
+];
+
+const PRESET_UNIT_VALUES = [
+  'pc',
+  'item',
+  'box',
+  'pack',
+  'set',
+  'pair',
+  'kg',
+  'g',
+  'l',
+  'ml',
+  'm',
+  'dozen',
+];
+
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const resolvedParams = use(params);
@@ -97,6 +128,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [categories, setCategories] = useState<any[]>([]);
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [initialImages, setInitialImages] = useState<any[]>([]);
+  const [isCustomUnit, setIsCustomUnit] = useState(false);
 
   // Form State
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -122,10 +154,21 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     condition: 'New',
     status: 'ACTIVE',
     sku: '',
-    unit: '',
+    unit: 'pc',
     stock: '',
     isAuthentic: false
   });
+
+  const handleUnitSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    if (val === 'custom') {
+      setIsCustomUnit(true);
+      setFormData((prev) => ({ ...prev, unit: '' }));
+    } else {
+      setIsCustomUnit(false);
+      setFormData((prev) => ({ ...prev, unit: val }));
+    }
+  };
 
   useEffect(() => {
     fetchCategories();
@@ -166,6 +209,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           stock: product.stock?.toString() || '',
           isAuthentic: product.isAuthentic || false
         });
+
+        if (product.unit && !PRESET_UNIT_VALUES.includes(product.unit.toLowerCase())) {
+          setIsCustomUnit(true);
+        }
         
         if (product.features && Array.isArray(product.features) && product.features.length > 0) {
           setFeatures(product.features);
@@ -811,14 +858,24 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                     onChange={handleChange}
                     placeholder="E.g. PROD-001"
                   />
-                  <Input 
-                    label="Unit Name" 
-                    hint="পরিমাপের একক (যেমন: pc, kg, pack)"
-                    name="unit"
-                    value={formData.unit}
-                    onChange={handleChange}
-                    placeholder="E.g. kg, ml, l, pc"
-                  />
+                  <div className="space-y-2">
+                    <Select 
+                      label="Unit Name" 
+                      hint="পরিমাপের একক সিলেক্ট করুন (যেমন: pc, box, pack, kg)"
+                      name="unit"
+                      value={isCustomUnit ? 'custom' : (formData.unit || 'pc')}
+                      onChange={handleUnitSelectChange}
+                      options={UNIT_OPTIONS}
+                    />
+                    {isCustomUnit && (
+                      <Input 
+                        placeholder="কাস্টম পরিমাপের একক লিখুন (যেমন: roll, bottle, bundle)"
+                        value={formData.unit}
+                        onChange={(e) => setFormData((prev) => ({ ...prev, unit: e.target.value }))}
+                        autoFocus
+                      />
+                    )}
+                  </div>
                   {!hasVariants && (
                     <div id="field-stock">
                       <Input 
