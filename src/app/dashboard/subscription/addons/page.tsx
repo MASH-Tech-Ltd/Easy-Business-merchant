@@ -399,7 +399,7 @@ export default function AddonsPage() {
   }
 
   return (
-    <div className="p-6 md:p-8 w-full space-y-8">
+    <div className="p-3.5 sm:p-6 lg:p-8 w-full max-w-full space-y-6 sm:space-y-8 overflow-x-hidden">
       {/* Hero Header */}
       <div className="mb-8 text-center max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 text-[#0284c7] border border-sky-200/80 text-xs font-bold uppercase tracking-wider mb-4 shadow-2xs">
@@ -472,18 +472,20 @@ export default function AddonsPage() {
             </div>
 
             {currentPackage && (
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-sky-50 border border-sky-200/80 text-xs text-sky-950 font-medium shadow-2xs">
+              <div className="inline-flex flex-wrap items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 rounded-xl bg-sky-50 border border-sky-200/80 text-xs text-sky-950 font-medium shadow-2xs w-full sm:w-auto">
                 <span className="text-slate-500">Your Current Plan:</span>
                 <span className="font-extrabold text-[#0284c7] uppercase tracking-wide">{currentPackage.name}</span>
                 {isTrialAccount && (
-                  <span className="text-[11px] text-emerald-700 font-semibold">(10 Courier + 30 Abandoned Leads included)</span>
+                  <span className="text-[11px] text-emerald-700 font-semibold">
+                    (10 Courier + 30 Abandoned Leads included)
+                  </span>
                 )}
               </div>
             )}
           </div>
 
           {/* Add-ons Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 w-full">
             {displayedAddons.map((addon) => {
               const purchasedAddon = purchasedAddons.find(p => p.id === addon._id);
               const eligibility = getPlanEligibility(addon);
@@ -520,223 +522,225 @@ export default function AddonsPage() {
                   key={addon._id} 
                   className={`relative bg-white border ${
                     isPurchased 
-                      ? 'border-[#0284c7] shadow-lg shadow-sky-500/10 ring-1 ring-[#0284c7]/20' 
+                      ? 'border-emerald-300 ring-1 ring-emerald-400/30 shadow-md shadow-emerald-500/5 bg-gradient-to-b from-emerald-50/20 to-white' 
                       : isInactive 
                       ? 'border-orange-300 bg-orange-50/10' 
                       : isTerminated 
                       ? 'border-red-200 bg-red-50/10' 
                       : isLocked
-                      ? 'border-amber-200/80 bg-slate-50/60 hover:border-amber-300'
-                      : 'border-slate-200 hover:border-sky-300 hover:shadow-xl'
-                  } rounded-2xl p-6 transition-all duration-300 flex flex-col group hover:-translate-y-1 overflow-hidden`}
+                      ? 'border-amber-200/80 bg-slate-50/40 hover:border-amber-300'
+                      : 'border-slate-200/90 hover:border-sky-300 hover:shadow-xl hover:shadow-sky-500/5'
+                  } rounded-2xl p-4 sm:p-6 transition-all duration-300 flex flex-col group hover:-translate-y-1 overflow-hidden w-full box-border`}
                 >
-                  {isPurchased && (
-                    <div className="absolute top-0 right-0 bg-gradient-to-r from-[#0ea5e9] to-[#0284c7] text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider shadow-xs">
-                      {limitReached ? 'Limit Reached' : 'Active'}
+                  {/* Clean Non-overlapping Card Header: Single Row, No Conflicting Badges */}
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    {/* Left: Unified Plan / Status Badge */}
+                    <div className="shrink-0 whitespace-nowrap">
+                      {isLocked ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-amber-50 text-amber-800 border border-amber-200/90 shadow-2xs">
+                          <Lock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span>{addon.badge || `${eligibility.requiredPlanName} Plan`}</span>
+                        </span>
+                      ) : (
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold tracking-wider uppercase shadow-2xs ${
+                          addon.badge?.includes('Exclusive')
+                            ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                            : addon.badge?.includes('Standard')
+                            ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                            : 'bg-sky-50 text-[#0284c7] border border-sky-200'
+                        }`}>
+                          {addon.badge?.includes('Exclusive') ? (
+                            <Crown className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          ) : addon.badge?.includes('Standard') ? (
+                            <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                          ) : (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-[#0284c7] shrink-0" />
+                          )}
+                          <span className="whitespace-nowrap">{addon.badge || 'All Plans'}</span>
+                        </span>
+                      )}
                     </div>
-                  )}
-                  {isPending && (
-                    <div className="absolute top-0 right-0 bg-yellow-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider shadow-xs">
-                      Pending Approval
+
+                    {/* Right: State Pill (Only shown when active, pending, or special state) */}
+                    <div className="shrink-0">
+                      {isPurchased ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500 text-white shadow-xs">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white shrink-0" />
+                          {limitReached ? 'Limit Reached' : 'Active'}
+                        </span>
+                      ) : isPending ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-yellow-500 text-white shadow-xs">
+                          <Clock className="w-3.5 h-3.5 text-white shrink-0" />
+                          Pending
+                        </span>
+                      ) : isInactive ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-100 text-orange-800 border border-orange-200">
+                          On Hold
+                        </span>
+                      ) : isTerminated ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-red-100 text-red-800 border border-red-200">
+                          Terminated
+                        </span>
+                      ) : null}
                     </div>
-                  )}
-                  {isInactive && (
-                    <div className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider shadow-xs">
-                      On Hold
-                    </div>
-                  )}
-                  {isTerminated && (
-                    <div className="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider shadow-xs">
-                      Terminated
-                    </div>
-                  )}
-                  {isRejected && (
-                    <div className="absolute top-0 right-0 bg-gray-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider shadow-xs">
-                      Rejected
-                    </div>
-                  )}
-                  {isLocked && (
-                    <div className="absolute top-0 right-0 bg-amber-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider flex items-center gap-1 shadow-xs">
-                      <Lock className="w-3 h-3" />
-                      {eligibility.requiredPlanName} Only
-                    </div>
-                  )}
-                  
-                  {/* Category Badge & Locked indicator */}
-                  <div className="mb-3 flex items-center gap-2 flex-wrap">
-                    {addon.badge && (
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider uppercase ${
-                        addon.badge.includes('Exclusive')
-                          ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                          : addon.badge.includes('Standard')
-                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                          : 'bg-sky-50 text-[#0284c7] border border-sky-200'
-                      }`}>
-                        {addon.badge.includes('Exclusive') ? (
-                          <Crown className="w-3 h-3 text-amber-500" />
-                        ) : addon.badge.includes('Standard') ? (
-                          <Sparkles className="w-3 h-3 text-blue-600" />
-                        ) : (
-                          <CheckCircle2 className="w-3 h-3 text-[#0284c7]" />
-                        )}
-                        {addon.badge}
-                      </span>
-                    )}
-                    {isLocked && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200">
-                        <Lock className="w-2.5 h-2.5 text-amber-600" /> Plan Locked
-                      </span>
-                    )}
                   </div>
                   
-                  {/* Title & Pricing */}
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${isPurchased ? 'bg-sky-100 text-[#0284c7]' : 'bg-slate-100 group-hover:bg-sky-50 text-[#0284c7] transition-colors'}`}>
+                  {/* Title & Pricing: Full Height, No Ellipsis Truncation */}
+                  <div className="flex items-start gap-3.5 mb-3">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs ${
+                      isPurchased ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 group-hover:bg-sky-50 text-[#0284c7] transition-colors'
+                    }`}>
                       {getAddonIcon(addon.slug)}
                     </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900 leading-tight">{addon.name}</h3>
-                      <div className="mt-1 flex items-baseline gap-1">
-                        <span className="text-xl font-extrabold text-[#0284c7]">৳ {addon.price}</span>
-                        <span className="text-xs text-slate-500 font-medium">/{addon.billingCycle === 'one_time' ? 'lifetime' : addon.billingCycle === 'yearly' ? 'yr' : 'mo'}</span>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-bold text-slate-900 leading-snug line-clamp-2 min-h-[44px] flex items-center">
+                        {addon.name}
+                      </h3>
+                      <div className="mt-1 flex items-baseline gap-1.5">
+                        <span className="text-lg font-extrabold text-[#0284c7]">৳ {addon.price}</span>
+                        <span className="text-xs text-slate-500 font-medium">
+                          /{addon.billingCycle === 'one_time' ? 'lifetime' : addon.billingCycle === 'yearly' ? 'yr' : 'mo'}
+                        </span>
                       </div>
                     </div>
                   </div>
                   
-                  <p className="text-sm text-slate-600 mb-6 flex-grow leading-relaxed">{addon.description}</p>
+                  {/* Description: Clean 2-line preview */}
+                  <p className="text-xs text-slate-500 mb-4 flex-grow leading-relaxed line-clamp-2 min-h-[36px]">
+                    {addon.description}
+                  </p>
                   
-                  {/* Limit & Usage Metrics */}
-                  <div className="bg-slate-50 rounded-xl p-3 mb-6 border border-slate-100 space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-slate-700 font-medium">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                  {/* Limit & Usage Metrics Card */}
+                  <div className="bg-slate-50/90 rounded-2xl p-3.5 mb-4 border border-slate-200/70 space-y-2.5 text-xs">
+                    <div className="flex items-center gap-2 text-slate-700 font-semibold text-xs sm:text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                       <span>Includes <strong>{getAddonLimitText(addon)}</strong></span>
                     </div>
+
                     {isPurchased && purchasedAddon && (
-                      <div className="text-xs text-slate-500 border-t border-slate-200 pt-3 mt-2">
-                        <div className="flex justify-between mb-1.5">
+                      <div className="border-t border-slate-200 pt-2.5 space-y-2 text-xs text-slate-600">
+                        <div className="flex items-center justify-between font-medium">
                           <span>Total Usage:</span>
-                          <span className={`font-semibold ${limitReached ? 'text-red-500' : 'text-[#0284c7]'}`}>
+                          <span className={`font-bold ${limitReached ? 'text-red-500' : 'text-[#0284c7]'}`}>
                             {purchasedAddon.used} / {purchasedAddon.limit}
                           </span>
                         </div>
-                        <div className="w-full bg-slate-200 rounded-full h-1.5 mb-3">
+
+                        <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                           <div 
-                            className={`h-1.5 rounded-full ${limitReached ? 'bg-red-500' : 'bg-gradient-to-r from-[#0ea5e9] to-[#0284c7]'}`} 
+                            className={`h-2 rounded-full transition-all duration-500 ${limitReached ? 'bg-red-500' : 'bg-gradient-to-r from-[#0ea5e9] to-[#0284c7]'}`} 
                             style={{ width: `${Math.min((purchasedAddon.used / (purchasedAddon.limit || 1)) * 100, 100)}%` }}
                           ></div>
                         </div>
+
                         {(purchasedAddon.freeLimit ?? 0) > 0 && (
-                          <div className="bg-emerald-50/70 border border-emerald-200/60 rounded-lg p-2 mb-2 text-[11px] space-y-1">
-                            <div className="flex justify-between text-emerald-800 font-medium">
-                              <span>Plan Free Credits:</span>
-                              <span className="font-bold">
-                                {Math.max(0, (purchasedAddon.freeLimit || 0) - (purchasedAddon.freeUsed || 0))} left of {purchasedAddon.freeLimit}/mo
+                          <div className="bg-emerald-50/90 border border-emerald-200/80 rounded-xl p-2.5 text-xs space-y-1">
+                            <div className="flex items-center justify-between text-emerald-800 font-semibold">
+                              <span className="whitespace-nowrap">Free Credits:</span>
+                              <span className="font-extrabold text-emerald-900">
+                                {Math.max(0, (purchasedAddon.freeLimit || 0) - (purchasedAddon.freeUsed || 0))} / {purchasedAddon.freeLimit} left
                               </span>
                             </div>
-                            {(purchasedAddon.paidLimit ?? 0) > 0 && (
-                              <div className="flex justify-between text-slate-600">
-                                <span>Paid Add-on Credits:</span>
-                                <span className="font-bold">
-                                  {Math.max(0, (purchasedAddon.paidLimit || 0) - (purchasedAddon.paidUsed || 0))} left
-                                </span>
-                              </div>
-                            )}
                             {purchasedAddon.nextResetDate && (
-                              <div className="flex justify-between text-slate-500 text-[10px]">
-                                <span>Next Monthly Refresh:</span>
-                                <span>{new Date(purchasedAddon.nextResetDate).toLocaleDateString()}</span>
+                              <div className="flex items-center justify-between text-slate-500 text-[11px]">
+                                <span className="whitespace-nowrap">Next Refresh:</span>
+                                <span className="font-medium">{new Date(purchasedAddon.nextResetDate).toLocaleDateString()}</span>
                               </div>
                             )}
                           </div>
                         )}
+
                         {subscriptionEndDate && (
-                          <div className="flex justify-between mt-2 pt-2 border-t border-slate-200">
-                            <span>Subscription Ends:</span>
+                          <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+                            <span className="whitespace-nowrap">Plan Valid Until:</span>
                             <span className="font-semibold text-slate-700">{new Date(subscriptionEndDate).toLocaleDateString()}</span>
                           </div>
                         )}
                       </div>
                     )}
+
                     {isPending && (
-                      <div className="text-xs text-yellow-700 font-medium border-t border-yellow-200 pt-2 mt-2 leading-relaxed flex items-center justify-between">
+                      <div className="text-xs text-yellow-700 font-medium border-t border-yellow-200 pt-2 flex items-center justify-between">
                         <span>Verification Pending</span>
-                        <Link
-                          href="/dashboard/subscription/payment-history"
-                          className="text-[#0284c7] underline font-bold hover:text-sky-900"
-                        >
-                          View Payment History
+                        <Link href="/dashboard/subscription/payment-history" className="text-[#0284c7] underline font-bold hover:text-sky-900">
+                          View History
                         </Link>
                       </div>
                     )}
+
                     {isInactive && (
-                      <div className="text-xs text-orange-600 font-medium border-t border-orange-200 pt-2 mt-2 leading-relaxed">
-                        Status: Temporarily On Hold. Contact support or click below to re-activate.
+                      <div className="text-xs text-orange-600 font-medium border-t border-orange-200 pt-2 leading-relaxed">
+                        Status: Temporarily On Hold. Contact support to re-activate.
                       </div>
                     )}
+
                     {isTerminated && (
-                      <div className="text-xs text-red-600 font-medium border-t border-red-200 pt-2 mt-2 leading-relaxed">
-                        Status: Add-on Terminated. Contact support for assistance.
+                      <div className="text-xs text-red-600 font-medium border-t border-red-200 pt-2 leading-relaxed">
+                        Status: Add-on Terminated.
                       </div>
                     )}
-                    {isLocked && (
-                      <div className="text-xs text-amber-800 font-medium border-t border-amber-200/80 pt-2 mt-2 leading-relaxed">
-                        This add-on is available for <strong>{eligibility.requiredPlanName}</strong> plan subscribers.
+
+                    {isLocked && !isPurchased && (
+                      <div className="text-xs text-amber-800 font-medium border-t border-amber-200/70 pt-2">
+                        Available for <strong>{eligibility.requiredPlanName}</strong> plan subscribers.
                       </div>
                     )}
                   </div>
                   
-                  {/* Action Buttons */}
-                  {limitReached ? (
-                    <button 
-                      onClick={() => handleOpenPaymentModal(addon)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:from-[#0d1e35] hover:to-[#0284c7] text-white font-semibold text-sm transition-all shadow-md shadow-sky-950/20 hover:shadow-lg flex items-center justify-center gap-2"
-                    >
-                      Limit Reached - Pay & Request Again
-                    </button>
-                  ) : isPurchased ? (
-                    <button disabled className="w-full py-2.5 px-4 rounded-xl bg-slate-100 text-slate-500 font-medium text-sm flex items-center justify-center gap-2 border border-slate-200 cursor-not-allowed">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Activated
-                    </button>
-                  ) : isPending ? (
-                    <button 
-                      disabled
-                      className="w-full py-2.5 px-4 rounded-xl bg-yellow-50 text-yellow-700 font-bold text-sm flex items-center justify-center gap-2 border border-yellow-300 cursor-not-allowed"
-                    >
-                      <Clock className="w-4 h-4 text-yellow-600" /> Pending Approval
-                    </button>
-                  ) : (isInactive || isTerminated || isRejected) ? (
-                    <button 
-                      onClick={() => handleOpenPaymentModal(addon)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:from-[#0d1e35] hover:to-[#0284c7] text-white font-semibold text-sm transition-all shadow-md shadow-sky-950/20 hover:shadow-lg flex items-center justify-center gap-2"
-                    >
-                      Re-request Add-on
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  ) : isLocked ? (
-                    <Link 
-                      href="/dashboard/subscription"
-                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:from-[#0d1e35] hover:via-[#0284c7] hover:to-[#0ea5e9] text-white font-bold text-sm transition-all shadow-md shadow-slate-900/15 hover:shadow-lg flex items-center justify-center gap-2 group/btn"
-                    >
-                      <Lock className="w-4 h-4 text-sky-300 group-hover/btn:scale-110 transition-transform" />
-                      Upgrade to {eligibility.upgradeTarget} to Unlock
-                    </Link>
-                  ) : isTrialAccount ? (
-                    <Link 
-                      href="/dashboard/subscription"
-                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:from-[#0d1e35] hover:via-[#0284c7] hover:to-[#0ea5e9] text-white font-bold text-sm transition-all shadow-md shadow-slate-900/15 hover:shadow-lg flex items-center justify-center gap-2 group/btn"
-                    >
-                      <Lock className="w-4 h-4 text-sky-300 group-hover/btn:scale-110 transition-transform" />
-                      Upgrade Plan to Unlock
-                    </Link>
-                  ) : (
-                    <button 
-                      onClick={() => handleOpenPaymentModal(addon)}
-                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:from-[#0d1e35] hover:via-[#0284c7] hover:to-[#0ea5e9] text-white font-semibold text-sm transition-all shadow-md shadow-slate-900/15 hover:shadow-lg flex items-center justify-center gap-2"
-                    >
-                      Activate Add-on
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  )}
+                  {/* Action Buttons: Spacious and High-Contrast */}
+                  <div className="mt-auto">
+                    {limitReached ? (
+                      <button 
+                        onClick={() => handleOpenPaymentModal(addon)}
+                        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:from-[#0d1e35] hover:to-[#0284c7] text-white font-semibold text-sm transition-all shadow-md shadow-sky-950/20 hover:shadow-lg flex items-center justify-center gap-2"
+                      >
+                        Limit Reached - Top Up
+                      </button>
+                    ) : isPurchased ? (
+                      <button disabled className="w-full py-2.5 px-4 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-sm flex items-center justify-center gap-2 border border-emerald-200 cursor-default">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Activated & Ready
+                      </button>
+                    ) : isPending ? (
+                      <button 
+                        disabled
+                        className="w-full py-2.5 px-4 rounded-xl bg-yellow-50 text-yellow-700 font-bold text-sm flex items-center justify-center gap-2 border border-yellow-300 cursor-not-allowed"
+                      >
+                        <Clock className="w-4 h-4 text-yellow-600 shrink-0" /> Pending Approval
+                      </button>
+                    ) : (isInactive || isTerminated || isRejected) ? (
+                      <button 
+                        onClick={() => handleOpenPaymentModal(addon)}
+                        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:from-[#0d1e35] hover:to-[#0284c7] text-white font-semibold text-sm transition-all shadow-md shadow-sky-950/20 hover:shadow-lg flex items-center justify-center gap-2"
+                      >
+                        Re-request Add-on
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    ) : isLocked ? (
+                      <Link 
+                        href="/dashboard/subscription"
+                        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:from-[#0d1e35] hover:via-[#0284c7] hover:to-[#0ea5e9] text-white font-bold text-sm transition-all shadow-md shadow-slate-900/15 hover:shadow-lg flex items-center justify-center gap-2 group/btn"
+                      >
+                        <Lock className="w-4 h-4 text-sky-300 group-hover/btn:scale-110 transition-transform shrink-0" />
+                        Upgrade to {eligibility.upgradeTarget}
+                      </Link>
+                    ) : isTrialAccount ? (
+                      <Link 
+                        href="/dashboard/subscription"
+                        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:from-[#0d1e35] hover:via-[#0284c7] hover:to-[#0ea5e9] text-white font-bold text-sm transition-all shadow-md shadow-slate-900/15 hover:shadow-lg flex items-center justify-center gap-2 group/btn"
+                      >
+                        <Lock className="w-4 h-4 text-sky-300 group-hover/btn:scale-110 transition-transform shrink-0" />
+                        Upgrade Plan to Unlock
+                      </Link>
+                    ) : (
+                      <button 
+                        onClick={() => handleOpenPaymentModal(addon)}
+                        className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:from-[#0d1e35] hover:via-[#0284c7] hover:to-[#0ea5e9] text-white font-semibold text-sm transition-all shadow-md shadow-slate-900/15 hover:shadow-lg flex items-center justify-center gap-2"
+                      >
+                        Activate Add-on
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}
