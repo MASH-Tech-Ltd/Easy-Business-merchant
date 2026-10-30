@@ -299,7 +299,7 @@ export function MultipleImageUpload({
 
       {previewUrls.length === 0 && !error && (
         <p className="text-xs text-gray-500">
-          Upload up to {maxFiles} images. The first image marked as &ldquo;Main&rdquo; will be shown first.
+          সর্বোচ্চ {maxFiles}টি ছবি আপলোড করতে পারবেন। &ldquo;Main&rdquo; চিহ্নিত ছবিটি ওয়েবসাইটে মূল কাভার ছবি হিসেবে প্রদর্শিত হবে।
         </p>
       )}
 

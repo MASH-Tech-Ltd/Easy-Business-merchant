@@ -2,18 +2,31 @@ import React from "react";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
+  hint?: string | React.ReactNode;
   error?: string;
   required?: boolean;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, required, className = "", ...props }, ref) => {
+  ({ label, hint, error, required, className = "", ...props }, ref) => {
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide">
-            {label} {required && <span className="text-red-500">*</span>}
-          </label>
+          <div className="mb-1.5">
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+              {label} {required && <span className="text-red-500">*</span>}
+            </label>
+            {hint && (
+              <p className="text-[11px] text-gray-500 mt-0.5 font-normal normal-case leading-relaxed">
+                {hint}
+              </p>
+            )}
+          </div>
+        )}
+        {!label && hint && (
+          <p className="text-[11px] text-gray-500 mb-1.5 font-normal leading-relaxed">
+            {hint}
+          </p>
         )}
         <input
           ref={ref}

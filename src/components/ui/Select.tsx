@@ -2,19 +2,32 @@ import React from "react";
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
+  hint?: string | React.ReactNode;
   error?: string;
   required?: boolean;
   options: { label: string; value: string }[];
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, required, options, className = "", ...props }, ref) => {
+  ({ label, hint, error, required, options, className = "", ...props }, ref) => {
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wide">
-            {label} {required && <span className="text-red-500">*</span>}
-          </label>
+          <div className="mb-1.5">
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+              {label} {required && <span className="text-red-500">*</span>}
+            </label>
+            {hint && (
+              <p className="text-[11px] text-gray-500 mt-0.5 font-normal normal-case leading-relaxed">
+                {hint}
+              </p>
+            )}
+          </div>
+        )}
+        {!label && hint && (
+          <p className="text-[11px] text-gray-500 mb-1.5 font-normal leading-relaxed">
+            {hint}
+          </p>
         )}
         <select
           ref={ref}

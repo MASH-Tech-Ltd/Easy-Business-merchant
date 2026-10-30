@@ -13,6 +13,7 @@ import {
 
 interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
+  hint?: string | React.ReactNode;
   error?: string;
   required?: boolean;
   maxLength?: number;
@@ -21,7 +22,7 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   (
-    { label, error, required, maxLength, richText, className = "", ...props },
+    { label, hint, error, required, maxLength, richText, className = "", ...props },
     ref,
   ) => {
     const isRich = Boolean(richText || props.id === "description");
@@ -93,13 +94,20 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     if (isRich) {
       return (
         <div className="w-full">
-          <div className="flex justify-between items-center mb-1.5">
-            {label && (
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                {label} {required && <span className="text-red-500">*</span>}
-              </label>
-            )}
-            <div className="flex items-center gap-2">
+          <div className="flex justify-between items-start mb-1.5 gap-2">
+            <div>
+              {label && (
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                  {label} {required && <span className="text-red-500">*</span>}
+                </label>
+              )}
+              {hint && (
+                <p className="text-[11px] text-gray-500 mt-0.5 font-normal normal-case leading-relaxed">
+                  {hint}
+                </p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
               <span className="text-[11px] font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
                 Visual Editor
               </span>
@@ -264,14 +272,21 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     // Standard Textarea for non-rich inputs (e.g. Short Description, Address)
     return (
       <div className="w-full">
-        <div className="flex justify-between items-center mb-1.5">
-          {label && (
-            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
-              {label} {required && <span className="text-red-500">*</span>}
-            </label>
-          )}
+        <div className="flex justify-between items-start mb-1.5 gap-2">
+          <div>
+            {label && (
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                {label} {required && <span className="text-red-500">*</span>}
+              </label>
+            )}
+            {hint && (
+              <p className="text-[11px] text-gray-500 mt-0.5 font-normal normal-case leading-relaxed">
+                {hint}
+              </p>
+            )}
+          </div>
           {maxLength && (
-            <span className="text-[10px] text-gray-400 font-medium">
+            <span className="text-[10px] text-gray-400 font-medium shrink-0">
               {(props.value as string)?.length || 0}/{maxLength}
             </span>
           )}
