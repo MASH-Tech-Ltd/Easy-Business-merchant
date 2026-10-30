@@ -54,6 +54,7 @@ export default function AddonsPage() {
   }[]>(billingCacheStore.purchasedAddons || []);
   const [subscriptionEndDate, setSubscriptionEndDate] = useState<string | null>(billingCacheStore.subscriptionEndDate);
   const [hasActiveSubscription, setHasActiveSubscription] = useState<boolean>(billingCacheStore.hasActiveSubscription || false);
+  const [isTrialAccount, setIsTrialAccount] = useState<boolean>(false);
   const [loading, setLoading] = useState(!hasCache);
   const [processingId, setProcessingId] = useState<string | null>(null);
   
@@ -107,11 +108,13 @@ export default function AddonsPage() {
       }
 
       if (subRes?.data?.data) {
-        const isActiveSub = subRes.data.data.status === 'active' && !subRes.data.data.isTrial;
+        const isTrial = Boolean(subRes.data.data.isTrial);
+        const isActiveSub = subRes.data.data.status === 'active';
         const subEndDate = subRes.data.data.endDate || null;
         setHasActiveSubscription(isActiveSub);
+        setIsTrialAccount(isTrial);
         setSubscriptionEndDate(subEndDate);
-        setCurrentPackage(subRes.data.data.packageId || null);
+        setCurrentPackage(subRes.data.data.packageId || (isTrial ? { name: 'Free Trial', billingCycle: 'monthly', price: 0 } as any : null));
         billingCacheStore.hasActiveSubscription = isActiveSub;
         billingCacheStore.subscriptionEndDate = subEndDate;
 
@@ -174,6 +177,11 @@ export default function AddonsPage() {
   }, [socket]);
 
   const handleOpenPaymentModal = (addon: any) => {
+    if (isTrialAccount) {
+      toast('Add-on purchases require a paid subscription. Please upgrade your plan.', { icon: 'ℹ️' });
+      router.push('/dashboard/subscription');
+      return;
+    }
     const eligibility = getPlanEligibility(addon);
     if (!eligibility.isEligible) {
       toast.error(`This add-on requires a ${eligibility.requiredPlanName} plan. Please upgrade your subscription.`);
@@ -467,6 +475,9 @@ export default function AddonsPage() {
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-sky-50 border border-sky-200/80 text-xs text-sky-950 font-medium shadow-2xs">
                 <span className="text-slate-500">Your Current Plan:</span>
                 <span className="font-extrabold text-[#0284c7] uppercase tracking-wide">{currentPackage.name}</span>
+                {isTrialAccount && (
+                  <span className="text-[11px] text-emerald-700 font-semibold">(10 Courier + 30 Abandoned Leads included)</span>
+                )}
               </div>
             )}
           </div>
@@ -708,6 +719,14 @@ export default function AddonsPage() {
                     >
                       <Lock className="w-4 h-4 text-sky-300 group-hover/btn:scale-110 transition-transform" />
                       Upgrade to {eligibility.upgradeTarget} to Unlock
+                    </Link>
+                  ) : isTrialAccount ? (
+                    <Link 
+                      href="/dashboard/subscription"
+                      className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#122846] via-[#0369a1] to-[#0284c7] hover:from-[#0d1e35] hover:via-[#0284c7] hover:to-[#0ea5e9] text-white font-bold text-sm transition-all shadow-md shadow-slate-900/15 hover:shadow-lg flex items-center justify-center gap-2 group/btn"
+                    >
+                      <Lock className="w-4 h-4 text-sky-300 group-hover/btn:scale-110 transition-transform" />
+                      Upgrade Plan to Unlock
                     </Link>
                   ) : (
                     <button 

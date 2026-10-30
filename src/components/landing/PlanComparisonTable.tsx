@@ -97,7 +97,7 @@ const buildComparisonData = (params: {
       {
         name: "Courier Automation (Pathao, Steadfast, Redx)",
         tooltip: "One-click order forwarding to courier partners directly from merchant dashboard.",
-        freeTrial: false,
+        freeTrial: "10 Free Orders / mo",
         basic: params.basicCourier,
         standard: params.stdCourier,
         premium: params.premCourier,
@@ -106,7 +106,7 @@ const buildComparisonData = (params: {
       {
         name: "Abandoned Cart Recovery Leads",
         tooltip: "Capture shopper checkout details for abandoned orders to recover lost sales.",
-        freeTrial: false,
+        freeTrial: "30 Free Leads / mo",
         basic: params.basicAbandoned,
         standard: params.stdAbandoned,
         premium: params.premAbandoned,

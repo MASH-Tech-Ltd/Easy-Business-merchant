@@ -14,6 +14,8 @@ interface Package {
   price: number;
   billingCycle: string;
   productLimit: number;
+  freeCourierLimit?: number;
+  freeAbandonedLimit?: number;
   features?: string[];
   tagline?: string;
   description?: string;
@@ -64,8 +66,8 @@ let globalSubscriptionLoaded = false;
 const PLAN_ESCALATING_FEATURES: Record<string, string[]> = {
   basic: [
     "Up to 199 Products Capacity",
-    "Courier Automation: 5 Free Orders / Month",
-    "Abandoned Checkout: 5 Free Leads / Month",
+    "Courier Automation: 29 Free Orders / Month",
+    "Abandoned Checkout: 59 Free Leads / Month",
     "Online Storefront & All 5 Modern Themes",
     "Mash Eco Subdomain & Custom Domain",
     "Cash on Delivery (COD) & Manual Payments",
@@ -80,8 +82,8 @@ const PLAN_ESCALATING_FEATURES: Record<string, string[]> = {
   ],
   standard: [
     "Up to 399 Products (2x Capacity)",
-    "Courier Automation: 10 Free Orders / Month (2x)",
-    "Abandoned Checkout: 10 Free Leads / Month (2x)",
+    "Courier Automation: 49 Free Orders / Month",
+    "Abandoned Checkout: 99 Free Leads / Month",
     "Online Storefront & All 5 Modern Themes",
     "Mash Eco Subdomain & Custom Domain",
     "Cash on Delivery (COD) & Manual Payments",
@@ -96,8 +98,8 @@ const PLAN_ESCALATING_FEATURES: Record<string, string[]> = {
   ],
   premium: [
     "Up to 1500 Products (Maximum Catalog Size)",
-    "Courier Automation: 15 Free Orders / Month (3x Volume)",
-    "Abandoned Checkout: 15 Free Leads / Month (3x Volume)",
+    "Courier Automation: 79 Free Orders / Month",
+    "Abandoned Checkout: 159 Free Leads / Month",
     "Online Storefront & All 5 Modern Themes",
     "Mash Eco Subdomain & Custom Domain",
     "Cash on Delivery (COD) & Manual Payments",
@@ -549,17 +551,17 @@ export default function SubscriptionPage() {
             const meta = nameLower.includes('basic') ? {
               badge: 'STARTER KIT',
               summary: 'Essential tools to launch your brand online with standard support.',
-              highlights: ['199 Products Capacity', '5 Free Courier Orders / mo', '5 Free Abandoned Leads / mo', 'Standard Ticket Support']
+              highlights: ['199 Products Capacity', `${pkg.freeCourierLimit ?? 29} Free Courier Orders / mo`, `${pkg.freeAbandonedLimit ?? 59} Free Abandoned Leads / mo`, 'Standard Ticket Support']
             } : nameLower.includes('standard') ? {
               badge: 'HIGH GROWTH',
               inheritance: 'Includes everything in Basic, plus:',
               summary: 'Double capacity, 2x free automations, and native analytics for growing stores.',
-              highlights: ['399 Products (+100% capacity)', '10 Free Courier Orders / mo', '10 Free Abandoned Leads / mo', 'GA4 & Meta Pixel Tracking']
+              highlights: ['399 Products (+100% capacity)', `${pkg.freeCourierLimit ?? 49} Free Courier Orders / mo`, `${pkg.freeAbandonedLimit ?? 99} Free Abandoned Leads / mo`, 'GA4 & Meta Pixel Tracking']
             } : nameLower.includes('premium') ? {
               badge: 'MAX SCALE & VIP',
               inheritance: 'Includes everything in Standard, plus:',
               summary: 'Maximum 699 product capacity, 3x free automations, and dedicated Swift VIP support.',
-              highlights: ['699 Products (Maximum)', '15 Free Courier Orders / mo', '15 Free Abandoned Leads / mo', 'Swift VIP Priority Support']
+              highlights: [`${pkg.productLimit ? pkg.productLimit.toLocaleString() : '1,500'} Products`, `${pkg.freeCourierLimit ?? 79} Free Courier Orders / mo`, `${pkg.freeAbandonedLimit ?? 159} Free Abandoned Leads / mo`, 'Swift VIP Priority Support']
             } : null;
             
             return (
@@ -721,7 +723,7 @@ export default function SubscriptionPage() {
                           : nameLower.includes("premium")
                             ? "premium"
                             : nameLower;
-                      const featuresList = PLAN_ESCALATING_FEATURES[planKey] || pkg.features || [];
+                      const featuresList = (pkg.features && pkg.features.length > 0 ? pkg.features : PLAN_ESCALATING_FEATURES[planKey]) || [];
                       return featuresList.map((feature, idx) => {
                         if (feature.startsWith('Key Features:')) return null;
                         

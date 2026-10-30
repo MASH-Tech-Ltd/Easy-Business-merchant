@@ -39,8 +39,8 @@ const PACKAGE_METADATA: Record<string, {
     summary: "All the core commerce tools you need to launch and start selling online.",
     highlights: [
       "199 Products Capacity",
-      "5 Free Courier Orders / Month",
-      "5 Free Abandoned Leads / Month",
+      "29 Free Courier Orders / Month",
+      "59 Free Abandoned Leads / Month",
       "Standard Ticket Support",
     ],
   },
@@ -51,8 +51,8 @@ const PACKAGE_METADATA: Record<string, {
     summary: "Double capacity, 2x free automations, and native analytics for growing stores.",
     highlights: [
       "399 Products (2x Capacity)",
-      "10 Free Courier Orders / Month (2x)",
-      "10 Free Abandoned Leads / Month (2x)",
+      "49 Free Courier Orders / Month",
+      "99 Free Abandoned Leads / Month",
       "Google Analytics 4 & Meta Pixel",
       "Priority Support Queue",
     ],
@@ -64,8 +64,8 @@ const PACKAGE_METADATA: Record<string, {
     summary: "Maximum catalog size, 3x free automations, and dedicated Swift VIP support.",
     highlights: [
       "Catalog Capacity & VIP Scale",
-      "15 Free Courier Orders / Month (3x)",
-      "15 Free Abandoned Leads / Month (3x)",
+      "79 Free Courier Orders / Month",
+      "159 Free Abandoned Leads / Month",
       "Multi-channel Tracking Setup",
       "Swift VIP Priority Support",
     ],
