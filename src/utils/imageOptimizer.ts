@@ -13,8 +13,9 @@
  *   so that res.cloudinary.com is never exposed in the browser.
  */
 
-/** Proxy host — swap this if the subdomain changes */
-const CDN_HOST = 'https://cdn.masheco.com';
+/** CDN proxy — maps /img/... → Cloudinary /dapjiys4/image/upload/... */
+const CDN_IMG_BASE = 'https://cdn.masheco.com/img';
+const CLOUDINARY_UPLOAD_PREFIX = 'https://res.cloudinary.com/dapjiys4/image/upload/';
 
 export type ImagePreset =
   | 'merchant-product'    // 100px
@@ -56,6 +57,7 @@ export function getOptimizedImageUrl(
   const parts = trimmed.split('/image/upload/');
   if (parts.length !== 2) return trimmed;
 
+  // baseUrl = https://res.cloudinary.com/dapjiys4/image/upload/
   const baseUrl = parts[0] + '/image/upload/';
   let rest = parts[1];
 
@@ -65,9 +67,11 @@ export function getOptimizedImageUrl(
     rest = rest.replace(transformSegmentRegex, '');
   }
 
-  const optimized = `${baseUrl}f_auto,q_auto:good,w_${width},c_limit/${rest}`;
-  // Rewrite res.cloudinary.com → cdn.masheco.com so the CDN worker is used
-  return optimized.replace('https://res.cloudinary.com', CDN_HOST);
+  // Build the Cloudinary optimized URL then rewrite to CDN:
+  // https://res.cloudinary.com/dapjiys4/image/upload/TRANSFORMS/photo.jpg
+  //   → https://cdn.masheco.com/img/TRANSFORMS/photo.jpg
+  const fullCloudinaryUrl = `${baseUrl}f_auto,q_auto:good,w_${width},c_limit/${rest}`;
+  return fullCloudinaryUrl.replace(CLOUDINARY_UPLOAD_PREFIX, `${CDN_IMG_BASE}/`);
 }
 
 // Semantic helper functions matching the Global Optimization Standard
