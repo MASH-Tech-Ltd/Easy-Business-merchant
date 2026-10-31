@@ -16,8 +16,8 @@ export default function HeroSection({ packages = [] }: HeroSectionProps) {
     if (packages && packages.length > 0) {
       setPkgList(packages);
     } else {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-      fetch(`${apiUrl}/packages/public-packages`)
+      // Route through Next.js BFF proxy — backend URL never exposed to browser
+      fetch(`/api/packages/public-packages`)
         .then((res) => res.json())
         .then((data) => {
           if (data?.success && Array.isArray(data?.data) && data.data.length > 0) {

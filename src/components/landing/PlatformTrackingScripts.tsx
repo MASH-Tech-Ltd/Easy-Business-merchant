@@ -21,8 +21,8 @@ export default function PlatformTrackingScripts() {
     // 2. Fetch platform tracking config for central SaaS landing pages
     const fetchPlatformTracking = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-        const res = await fetch(`${apiUrl}/storefront/main/tracking`);
+        // Route through Next.js BFF proxy — backend URL never exposed to browser
+        const res = await fetch(`/api/storefront/main/tracking`);
         if (!res.ok) return;
         const json = await res.json();
         const data = json?.data;

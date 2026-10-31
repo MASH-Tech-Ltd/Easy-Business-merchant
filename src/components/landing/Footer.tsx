@@ -36,7 +36,7 @@ export interface SocialLinksMap {
 async function getPublicSocialLinks(): Promise<SocialLinksMap | null> {
   try {
     const internalUrl = process.env.BACKEND_INTERNAL_URL || process.env.INTERNAL_API_URL;
-    let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+    let apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
     if (internalUrl) {
       const clean = internalUrl.replace(/\/$/, '');

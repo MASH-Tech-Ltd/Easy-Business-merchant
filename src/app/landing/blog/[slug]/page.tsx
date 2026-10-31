@@ -174,7 +174,7 @@ MASH ECO প্ল্যাটফর্মে কোডিংয়ের কোন
 async function getArticleBySlug(slug: string): Promise<IBlogPost | null> {
   try {
     const internalUrl = process.env.BACKEND_INTERNAL_URL || process.env.INTERNAL_API_URL;
-    let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+    let apiUrl = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
     if (internalUrl) {
       const clean = internalUrl.replace(/\/$/, "");

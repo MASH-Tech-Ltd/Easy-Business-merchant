@@ -246,8 +246,8 @@ export default function PricingSection({
 
   const fetchClientPackages = useCallback(async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-      const res = await fetch(`${apiUrl}/packages/public-packages`, {
+      // Route through Next.js BFF proxy — backend URL never exposed to browser
+      const res = await fetch(`/api/packages/public-packages`, {
         cache: "no-store",
       });
       if (res.ok) {
