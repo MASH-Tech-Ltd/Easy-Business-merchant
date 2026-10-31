@@ -1,3 +1,4 @@
+import { getMerchantProductThumbnailUrl } from '@/utils/imageOptimizer';
 import React, { useState, useEffect } from 'react';
 import { X, Trash2, Plus, Minus } from 'lucide-react';
 
@@ -107,7 +108,7 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
               {items.map((item, idx) => (
                 <div key={item.variantId ? `${item.productId}-${item.variantId}` : `${item.productId}-${idx}`} className="flex items-center gap-4 border border-gray-100 rounded-xl p-3 bg-white shadow-sm">
                   <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-200 p-1">
-                    <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                    <img src={getMerchantProductThumbnailUrl(item.image)} alt={item.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-bold text-gray-900 truncate">{item.title}</h4>

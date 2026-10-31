@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/utils/api";
+import { getMerchantCategoryThumbnailUrl } from '@/utils/imageOptimizer';
 import toast from "react-hot-toast";
 
 interface Category {
@@ -163,7 +164,7 @@ export default function CategoriesPage() {
                   {category.image?.secure_url ? (
                     <div className="w-12 h-12 rounded-lg border border-gray-200 bg-white p-0.5 shrink-0 overflow-hidden">
                       <img
-                        src={category.image.secure_url}
+                        src={getMerchantCategoryThumbnailUrl(category.image.secure_url)} loading="lazy" decoding="async"
                         alt={category.name}
                         className="w-full h-full object-cover rounded mix-blend-multiply"
                       />
@@ -288,7 +289,7 @@ export default function CategoriesPage() {
                       {category.image?.secure_url ? (
                         <div className="w-12 h-12 rounded-lg border border-gray-200 bg-white p-1 overflow-hidden">
                           <img
-                            src={category.image.secure_url}
+                            src={getMerchantCategoryThumbnailUrl(category.image.secure_url)} loading="lazy" decoding="async"
                             alt={category.name}
                             className="w-full h-full object-cover rounded mix-blend-multiply"
                           />

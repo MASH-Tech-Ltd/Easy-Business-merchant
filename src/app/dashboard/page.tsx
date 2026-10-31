@@ -1,5 +1,7 @@
 "use client";
 
+import { getMerchantProductThumbnailUrl } from '@/utils/imageOptimizer';
+
 import { useState, useEffect } from "react";
 import {
   TrendingUp,
@@ -925,7 +927,7 @@ export default function DashboardOverview() {
                       <div className="w-12 h-12 rounded-lg bg-white border border-gray-200 flex-shrink-0 overflow-hidden p-1 shadow-sm">
                         {product.images && product.images[0] ? (
                           <img
-                            src={product.images[0].secure_url}
+                            src={getMerchantProductThumbnailUrl(product.images[0].secure_url)} loading="lazy" decoding="async"
                             alt={product.title}
                             className="w-full h-full object-cover rounded-md"
                           />

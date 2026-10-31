@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { ImagePlus, Star, RefreshCw, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { getOptimizedImageUrl } from '@/utils/imageOptimizer';
 
 interface MultipleImageUploadProps {
   label?: string;
@@ -181,7 +182,7 @@ export function MultipleImageUpload({
               index === 0 ? 'border-purple-500 ring-2 ring-purple-100' : 'border-gray-200 hover:border-gray-300'
             }`}
           >
-            <img src={url} alt={`Banner ${index + 1}`} className="w-full h-full object-cover" />
+            <img src={getOptimizedImageUrl(url, 300)} alt={`Banner ${index + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
 
             {/* Main Badge */}
             {index === 0 ? (

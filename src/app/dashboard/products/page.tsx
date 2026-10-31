@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, Package, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '@/utils/api';
+import { getMerchantProductThumbnailUrl } from '@/utils/imageOptimizer';
 import toast from 'react-hot-toast';
 
 interface Product {
@@ -199,7 +200,7 @@ export default function ProductsPage() {
               <div key={product._id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
                 <div className="flex gap-4">
                   <div className="w-20 h-20 rounded-lg border border-gray-200 bg-white p-1 shrink-0 overflow-hidden">
-                    <img src={product.images?.[0]?.secure_url || '/placeholder.png'} alt={product.title} className="w-full h-full object-cover mix-blend-multiply" />
+                    <img src={getMerchantProductThumbnailUrl(product.images?.[0]?.secure_url) || '/placeholder.png'} alt={product.title} loading="lazy" decoding="async" className="w-full h-full object-cover mix-blend-multiply" />
                   </div>
                   <div className="flex-1">
                     <div className="font-bold text-gray-900 text-sm line-clamp-2 mb-1">{product.title}</div>
@@ -288,7 +289,7 @@ export default function ProductsPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-lg border border-gray-200 bg-white p-1 shrink-0 overflow-hidden">
-                          <img src={product.images?.[0]?.secure_url || '/placeholder.png'} alt={product.title} className="w-full h-full object-cover mix-blend-multiply" />
+                          <img src={getMerchantProductThumbnailUrl(product.images?.[0]?.secure_url) || '/placeholder.png'} alt={product.title} loading="lazy" decoding="async" className="w-full h-full object-cover mix-blend-multiply" />
                         </div>
                         <div className="font-bold text-gray-900 text-sm line-clamp-2">{product.title}</div>
                       </div>

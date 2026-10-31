@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Cell, AreaChart, Area, PieChart, Pie, Legend } from 'recharts';
 import { TrendingUp, Users, ShoppingBag, DollarSign, ArrowUpRight, ArrowDownRight, Package, Clock, CheckCircle, XCircle, CreditCard } from 'lucide-react';
 import { api } from '@/utils/api';
+import { getMerchantProductThumbnailUrl } from '@/utils/imageOptimizer';
 // Global cache to persist data during client-side navigation
 const globalStatsCache: Record<number, any> = {};
 
@@ -268,7 +269,7 @@ export default function AnalyticsPage() {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded bg-gray-200 overflow-hidden shrink-0">
                     {(product.images && product.images[0]?.secure_url) || product.image?.secure_url ? (
-                      <img src={(product.images && product.images[0]?.secure_url) || product.image?.secure_url} alt={product.title || product.name} className="w-full h-full object-cover" />
+                      <img src={getMerchantProductThumbnailUrl((product.images && product.images[0]?.secure_url) || product.image?.secure_url)} loading="lazy" decoding="async" alt={product.title || product.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400"><ShoppingBag size={20} /></div>
                     )}

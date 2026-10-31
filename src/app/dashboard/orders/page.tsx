@@ -1,5 +1,7 @@
 "use client";
 
+import { getMerchantProductThumbnailUrl } from '@/utils/imageOptimizer';
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -908,8 +910,8 @@ export default function OrdersPage() {
                               <div className="w-12 h-12 bg-gray-50 rounded overflow-hidden border border-gray-100 shrink-0">
                                 {item.image && (
                                   <img
-                                    src={item.image}
-                                    alt={item.title}
+                                    src={getMerchantProductThumbnailUrl(item.image)}
+                                    alt={item.title} loading="lazy" decoding="async"
                                     className="w-full h-full object-cover"
                                   />
                                 )}

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { ImagePlus, X } from 'lucide-react';
+import { getOptimizedImageUrl } from '@/utils/imageOptimizer';
 
 interface ImageUploadProps {
   label?: string;
@@ -55,7 +56,7 @@ export function ImageUpload({
       
       {previewUrl ? (
         <div className="relative w-full h-[200px] rounded-xl border border-gray-200 overflow-hidden group bg-gray-50">
-          <img src={previewUrl} alt="Preview" className="w-full h-full object-contain" />
+          <img src={getOptimizedImageUrl(previewUrl, 300)} alt="Preview" loading="lazy" decoding="async" className="w-full h-full object-contain" />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
             <button 
               type="button"
