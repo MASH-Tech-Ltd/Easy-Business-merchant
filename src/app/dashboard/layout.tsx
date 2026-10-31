@@ -1,5 +1,6 @@
-import { getOptimizedImageUrl } from '@/utils/imageOptimizer';
 "use client";
+
+import { getOptimizedImageUrl } from '@/utils/imageOptimizer';
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
