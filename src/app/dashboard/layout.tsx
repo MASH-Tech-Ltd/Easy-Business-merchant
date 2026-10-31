@@ -1,3 +1,4 @@
+import { getOptimizedImageUrl } from '@/utils/imageOptimizer';
 "use client";
 
 import { useEffect, useState } from "react";
@@ -1159,7 +1160,7 @@ export default function DashboardLayout({
                 <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-100 text-[#5022C3] flex items-center justify-center font-bold overflow-hidden border border-purple-200 shrink-0">
                   {merchantUser.avatar?.secure_url ? (
                     <img
-                      src={merchantUser.avatar.secure_url}
+                      src={getOptimizedImageUrl(merchantUser.avatar.secure_url, 100)}
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />

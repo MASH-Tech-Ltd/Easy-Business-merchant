@@ -11,6 +11,18 @@ const rawBackendUrl =
 const backendUrl = rawBackendUrl.replace(/\/api(\/v\d+)?\/?$/, '').replace(/\/$/, '');
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'cdn.masheco.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+    ],
+  },
   // Proxy socket.io traffic so client browser connects to dashboard domain (/socket.io)
   // and hides backend API domain (backapi.masheco.com) completely from browser DevTools
   async rewrites() {
