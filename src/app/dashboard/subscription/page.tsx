@@ -823,7 +823,7 @@ export default function SubscriptionPage() {
 
       {/* Side-by-Side Plan Comparison Section */}
       <div className="max-w-7xl mx-auto px-4 mt-8">
-        <PlanComparisonTable billing={billingCycle} />
+        <PlanComparisonTable billing={billingCycle} packages={packages} />
       </div>
 
       {/* Feature Highlight */}

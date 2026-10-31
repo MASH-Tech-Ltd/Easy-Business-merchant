@@ -8,7 +8,7 @@ import type { IPackage } from "./PricingSection";
 
 interface PlanComparisonTableProps {
   billing: "monthly" | "yearly";
-  packages?: IPackage[];
+  packages?: any[];
 }
 
 interface FeatureRow {
@@ -261,28 +261,28 @@ export default function PlanComparisonTable({ billing, packages = [] }: PlanComp
   const basicCourier =
     basicPkg?.freeCourierLimit !== undefined
       ? `${basicPkg.freeCourierLimit} Free Orders / mo`
-      : "5 Free Orders / mo";
+      : isYearly ? "24 Free Orders / mo" : "29 Free Orders / mo";
   const stdCourier =
     stdPkg?.freeCourierLimit !== undefined
       ? `${stdPkg.freeCourierLimit} Free Orders / mo`
-      : "10 Free Orders / mo";
+      : isYearly ? "41 Free Orders / mo" : "49 Free Orders / mo";
   const premCourier =
     premPkg?.freeCourierLimit !== undefined
       ? `${premPkg.freeCourierLimit} Free Orders / mo`
-      : "15 Free Orders / mo";
+      : isYearly ? "66 Free Orders / mo" : "79 Free Orders / mo";
 
   const basicAbandoned =
     basicPkg?.freeAbandonedLimit !== undefined
       ? `${basicPkg.freeAbandonedLimit} Free Leads / mo`
-      : "5 Free Leads / mo";
+      : isYearly ? "49 Free Leads / mo" : "59 Free Leads / mo";
   const stdAbandoned =
     stdPkg?.freeAbandonedLimit !== undefined
       ? `${stdPkg.freeAbandonedLimit} Free Leads / mo`
-      : "10 Free Leads / mo";
+      : isYearly ? "83 Free Leads / mo" : "99 Free Leads / mo";
   const premAbandoned =
     premPkg?.freeAbandonedLimit !== undefined
       ? `${premPkg.freeAbandonedLimit} Free Leads / mo`
-      : "15 Free Leads / mo";
+      : isYearly ? "133 Free Leads / mo" : "159 Free Leads / mo";
 
   const comparisonData = buildComparisonData({
     basicProducts,
