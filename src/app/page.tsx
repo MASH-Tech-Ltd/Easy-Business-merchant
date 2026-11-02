@@ -26,8 +26,14 @@ export const metadata: Metadata = {
     "ecommerce platform",
   ],
   icons: {
-    icon: "/masheco-logo.png",
-    apple: "/masheco-logo.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/masheco-logo.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/masheco-logo.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: ["/favicon.ico"],
   },
   openGraph: {
     title: "MASH ECO — All-in-One E-Commerce Store Builder",

@@ -21,19 +21,18 @@ export default function PlatformTrackingScripts() {
     // 2. Fetch platform tracking config for central SaaS landing pages
     const fetchPlatformTracking = async () => {
       try {
-        // Route through Next.js BFF proxy — backend URL never exposed to browser
-        const res = await fetch(`/api/storefront/main/tracking`);
+        const res = await fetch(`/api/system/public-settings`);
         if (!res.ok) return;
         const json = await res.json();
         const data = json?.data;
         if (!data) return;
 
         setTracking({
-          metaPixelId: data.metaPixel?.enabled ? data.metaPixel?.pixelId?.trim() : undefined,
-          gaMeasurementId: data.googleAnalytics?.enabled ? data.googleAnalytics?.measurementId?.trim() : undefined,
-          gtmContainerId: data.googleTagManager?.enabled ? data.googleTagManager?.containerId?.trim() : undefined,
+          metaPixelId: data.metaPixelId?.trim() || data.metaPixel?.pixelId?.trim() || undefined,
+          gaMeasurementId: data.gaMeasurementId?.trim() || data.googleAnalytics?.measurementId?.trim() || undefined,
+          gtmContainerId: data.gtmContainerId?.trim() || data.googleTagManager?.containerId?.trim() || undefined,
         });
-      } catch (err) {
+      } catch {
         // Silent catch for resilience
       }
     };
@@ -65,7 +64,7 @@ export default function PlatformTrackingScripts() {
         />
       )}
 
-      {/* 2. Google Analytics 4 (GA4) */}
+      {/* 2. Google Analytics 4 (gtag.js) */}
       {tracking.gaMeasurementId && (
         <>
           <Script
@@ -73,7 +72,7 @@ export default function PlatformTrackingScripts() {
             strategy="afterInteractive"
           />
           <Script
-            id="ga4-platform-script"
+            id="ga4-platform-init"
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{
               __html: `
@@ -92,7 +91,7 @@ export default function PlatformTrackingScripts() {
       {/* 3. Google Tag Manager (GTM) */}
       {tracking.gtmContainerId && (
         <Script
-          id="gtm-platform-script"
+          id="gtm-platform-init"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
