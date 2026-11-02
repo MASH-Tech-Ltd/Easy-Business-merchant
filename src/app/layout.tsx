@@ -164,6 +164,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${righteous.variable} h-full antialiased`}>
       <head>
+        {/* Explicit Site Name Signals for Google Search */}
+        <meta name="application-name" content="MASH ECO" />
+        <meta name="apple-mobile-web-app-title" content="MASH ECO" />
+        <meta property="og:site_name" content="MASH ECO" />
+
+        {/* Explicit Favicons for Googlebot-Image, Google Favicon & Browsers */}
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/masheco-logo.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/masheco-logo.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/masheco-logo.png" />
+
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
