@@ -2,8 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 const SESSION_SECONDS = 3 * 24 * 60 * 60; // 3 days
 
+const cleanEnv = (val?: string) => (val ? val.split('#')[0].trim() : '');
+
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+  (cleanEnv(process.env.BACKEND_INTERNAL_URL)
+    ? `${cleanEnv(process.env.BACKEND_INTERNAL_URL).replace(/\/$/, '')}/api/v1`
+    : '') ||
+  cleanEnv(process.env.API_URL) ||
+  cleanEnv(process.env.NEXT_PUBLIC_API_URL) ||
+  'http://localhost:8000/api/v1';
 
 async function handleProxy(req: NextRequest) {
   try {
