@@ -21,30 +21,44 @@ import toast from 'react-hot-toast';
 let globalStoreCache: any = null;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hold-to-Disconnect Button (hold for 3 seconds)
+// Hold-to-Disconnect Button — press & hold 3 s to confirm
 // ─────────────────────────────────────────────────────────────────────────────
-function HoldToDisconnect({ onConfirm, disabled }: { onConfirm: () => void; disabled: boolean }) {
+const SIZE = 96;          // px — outer box
+const STROKE = 5;         // ring stroke width
+const R = (SIZE / 2) - STROKE - 2; // radius leaving room for stroke
+const CIRC = 2 * Math.PI * R;
+
+function HoldToDisconnect({
+  onConfirm,
+  disabled,
+}: {
+  onConfirm: () => void;
+  disabled: boolean;
+}) {
   const HOLD_MS = 3000;
-  const [progress, setProgress] = useState(0); // 0–100
+  const [pct, setPct]       = useState(0);   // 0–100
   const [holding, setHolding] = useState(false);
   const startRef = useRef<number | null>(null);
-  const rafRef = useRef<number | null>(null);
+  const rafRef   = useRef<number | null>(null);
 
   const tick = useCallback(() => {
     if (startRef.current === null) return;
     const elapsed = Date.now() - startRef.current;
-    const pct = Math.min((elapsed / HOLD_MS) * 100, 100);
-    setProgress(pct);
-    if (pct < 100) {
+    const next = Math.min((elapsed / HOLD_MS) * 100, 100);
+    setPct(next);
+    if (next < 100) {
       rafRef.current = requestAnimationFrame(tick);
     } else {
+      // completed
+      startRef.current = null;
       setHolding(false);
-      setProgress(0);
+      setPct(0);
       onConfirm();
     }
   }, [onConfirm]);
 
-  const startHold = useCallback(() => {
+  const startHold = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
     if (disabled) return;
     startRef.current = Date.now();
     setHolding(true);
@@ -52,67 +66,94 @@ function HoldToDisconnect({ onConfirm, disabled }: { onConfirm: () => void; disa
   }, [disabled, tick]);
 
   const cancelHold = useCallback(() => {
-    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     startRef.current = null;
     setHolding(false);
-    setProgress(0);
+    setPct(0);
   }, []);
 
+  // cleanup on unmount
   useEffect(() => () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); }, []);
 
-  const radius = 14;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (progress / 100) * circumference;
+  const dashOffset = CIRC - (pct / 100) * CIRC;
+  const secsLeft   = Math.ceil(((100 - pct) / 100) * (HOLD_MS / 1000));
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      {/* Ring button */}
-      <div className="relative flex items-center justify-center">
-        {/* Outer glow when holding */}
+    <div className="flex flex-col items-center gap-2 select-none">
+      {/* ── Button wrapper — fixed size so SVG + icon layer correctly ── */}
+      <div
+        className="relative cursor-pointer"
+        style={{ width: SIZE, height: SIZE }}
+        onMouseDown={startHold}
+        onMouseUp={cancelHold}
+        onMouseLeave={cancelHold}
+        onTouchStart={startHold}
+        onTouchEnd={cancelHold}
+      >
+        {/* Ping glow while holding */}
         {holding && (
-          <span className="absolute inset-0 rounded-full animate-ping bg-red-400 opacity-30" />
+          <span
+            className="absolute rounded-full animate-ping bg-red-300 opacity-40 pointer-events-none"
+            style={{ inset: STROKE + 2 }}
+          />
         )}
 
-        <svg width="72" height="72" className="rotate-[-90deg]">
+        {/* SVG ring — fills the wrapper */}
+        <svg
+          width={SIZE}
+          height={SIZE}
+          className="absolute inset-0 rotate-[-90deg]"
+          style={{ pointerEvents: 'none' }}
+        >
           {/* Track */}
           <circle
-            cx="36" cy="36" r={radius + 8}
-            fill="none" stroke="#fee2e2" strokeWidth="4"
+            cx={SIZE / 2}
+            cy={SIZE / 2}
+            r={R}
+            fill="none"
+            stroke="#fee2e2"
+            strokeWidth={STROKE}
           />
           {/* Progress arc */}
           <circle
-            cx="36" cy="36" r={radius + 8}
+            cx={SIZE / 2}
+            cy={SIZE / 2}
+            r={R}
             fill="none"
             stroke="#ef4444"
-            strokeWidth="4"
+            strokeWidth={STROKE}
             strokeLinecap="round"
-            strokeDasharray={2 * Math.PI * (radius + 8)}
-            strokeDashoffset={2 * Math.PI * (radius + 8) - (progress / 100) * 2 * Math.PI * (radius + 8)}
-            style={{ transition: holding ? 'none' : 'stroke-dashoffset 0.15s ease' }}
+            strokeDasharray={CIRC}
+            strokeDashoffset={dashOffset}
           />
         </svg>
 
-        <button
-          type="button"
-          disabled={disabled}
-          onMouseDown={startHold}
-          onMouseUp={cancelHold}
-          onMouseLeave={cancelHold}
-          onTouchStart={startHold}
-          onTouchEnd={cancelHold}
-          className={`absolute inset-0 flex items-center justify-center rounded-full transition-colors select-none ${
-            holding ? 'bg-red-600' : 'bg-red-100 hover:bg-red-200'
-          } disabled:opacity-40 disabled:cursor-not-allowed`}
-          style={{ width: 72, height: 72 }}
-          aria-label="Hold to disconnect domain"
+        {/* Center icon circle */}
+        <div
+          className={`absolute flex items-center justify-center rounded-full transition-colors duration-150 ${
+            disabled
+              ? 'bg-gray-100 cursor-not-allowed'
+              : holding
+              ? 'bg-red-600'
+              : 'bg-red-100 hover:bg-red-200'
+          }`}
+          style={{ inset: STROKE + 4 }}
         >
-          <Unlink className={`w-6 h-6 ${holding ? 'text-white' : 'text-red-600'}`} />
-        </button>
+          <Unlink
+            className={`transition-colors ${
+              holding ? 'text-white' : disabled ? 'text-gray-300' : 'text-red-600'
+            }`}
+            style={{ width: 28, height: 28 }}
+          />
+        </div>
       </div>
 
-      <p className="text-xs text-gray-500 font-medium select-none">
-        {holding
-          ? `Release to cancel · ${Math.round(((100 - progress) / 100) * 3)}s`
+      {/* Label */}
+      <p className="text-xs font-medium text-gray-500 text-center">
+        {disabled
+          ? 'Processing…'
+          : holding
+          ? `Keep holding · ${secsLeft}s left`
           : 'Hold 3 seconds to disconnect'}
       </p>
     </div>
@@ -120,7 +161,7 @@ function HoldToDisconnect({ onConfirm, disabled }: { onConfirm: () => void; disa
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Disconnect Modal
+// Disconnect Confirmation Modal
 // ─────────────────────────────────────────────────────────────────────────────
 function DisconnectModal({
   domain,
@@ -141,7 +182,6 @@ function DisconnectModal({
       onDisconnected();
       onClose();
     } catch (error: any) {
-      console.error('Error disconnecting domain', error);
       toast.error(error.response?.data?.message || 'Failed to disconnect domain');
       setDisconnecting(false);
     }
@@ -149,73 +189,68 @@ function DisconnectModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
-        style={{ animation: 'modalIn 0.2s ease' }}
-      >
-        {/* Red header strip */}
-        <div className="bg-gradient-to-r from-red-500 to-red-600 p-6 flex flex-col items-center gap-3">
-          <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center">
-            <Unlink className="w-7 h-7 text-white" />
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+
+        {/* Red header */}
+        <div className="bg-gradient-to-br from-red-500 to-red-600 px-6 pt-8 pb-6 flex flex-col items-center gap-3">
+          <div className="w-16 h-16 bg-white/25 rounded-full flex items-center justify-center ring-4 ring-white/30">
+            <Unlink className="w-7 h-7 text-white" strokeWidth={2} />
           </div>
-          <h3 className="text-xl font-bold text-white tracking-tight">Disconnect Domain</h3>
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-white">Disconnect Domain</h3>
+            <p className="text-red-100 text-xs mt-0.5">This action removes SSL &amp; DNS records</p>
+          </div>
         </div>
 
         {/* Body */}
-        <div className="p-6">
+        <div className="px-6 pt-6 pb-4">
           {/* Domain pill */}
-          <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-xl mb-4 w-fit mx-auto">
-            <Globe className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-semibold text-gray-700 break-all">{domain}</span>
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 rounded-xl mb-5 w-fit mx-auto max-w-full">
+            <Globe className="w-4 h-4 text-gray-500 flex-shrink-0" />
+            <span className="text-sm font-semibold text-gray-800 break-all">{domain}</span>
           </div>
 
-          <p className="text-sm text-gray-600 text-center leading-relaxed mb-2">
-            Disconnecting will remove SSL certificates and DNS records from Cloudflare.
+          <p className="text-sm text-gray-600 text-center leading-relaxed mb-1">
             Your store will revert to its default system domain immediately.
           </p>
-          <p className="text-xs text-gray-400 text-center mb-6">
+          <p className="text-xs text-gray-400 text-center mb-5">
             You can reconnect a new domain at any time.
           </p>
 
-          {/* Warning box */}
-          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl mb-6">
+          {/* Warning */}
+          <div className="flex items-start gap-2.5 p-3.5 bg-amber-50 border border-amber-200 rounded-xl mb-6">
             <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-amber-700 leading-relaxed">
-              Any existing visitors using <strong>{domain}</strong> may temporarily see errors
-              while DNS propagates (5–30 minutes).
+              Visitors using <strong className="break-all">{domain}</strong> may see errors
+              for <strong>5–30 minutes</strong> while DNS propagates globally.
             </p>
           </div>
 
-          {/* Hold-to-disconnect */}
-          {!disconnecting ? (
-            <HoldToDisconnect onConfirm={handleConfirm} disabled={disconnecting} />
-          ) : (
-            <div className="flex flex-col items-center gap-2">
-              <Loader2 className="w-8 h-8 text-red-500 animate-spin" />
-              <p className="text-sm text-gray-500">Removing domain and SSL records…</p>
-            </div>
-          )}
+          {/* Hold-to-disconnect OR spinner */}
+          <div className="flex justify-center mb-2">
+            {disconnecting ? (
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="w-10 h-10 text-red-500 animate-spin" />
+                <p className="text-sm text-gray-400">Removing domain &amp; SSL…</p>
+              </div>
+            ) : (
+              <HoldToDisconnect onConfirm={handleConfirm} disabled={disconnecting} />
+            )}
+          </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer cancel */}
         <div className="border-t border-gray-100 px-6 py-4">
           <button
             type="button"
             onClick={onClose}
             disabled={disconnecting}
-            className="w-full py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
+            className="w-full py-2.5 text-sm font-semibold text-gray-500 hover:text-gray-800 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed rounded-xl hover:bg-gray-50"
           >
             Cancel — Keep Domain Connected
           </button>
         </div>
       </div>
-
-      <style>{`
-        @keyframes modalIn {
-          from { opacity: 0; transform: scale(0.95) translateY(8px); }
-          to   { opacity: 1; transform: scale(1)    translateY(0);   }
-        }
-      `}</style>
     </div>
   );
 }
@@ -223,34 +258,33 @@ function DisconnectModal({
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
-function isValidDomain(value: string) {
-  return /^(www\.)?[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/.test(value);
+function isValidDomain(v: string) {
+  return /^(www\.)?[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$/.test(v);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Main Page Content
+// Main Page
 // ─────────────────────────────────────────────────────────────────────────────
 function DomainContent() {
-  useSearchParams(); // keep Suspense boundary happy
-  const [store, setStore] = useState<any>(globalStoreCache);
-  const [pageLoading, setPageLoading] = useState(!globalStoreCache);
-  const [saving, setSaving] = useState(false);
+  useSearchParams();
+  const [store, setStore]               = useState<any>(globalStoreCache);
+  const [pageLoading, setPageLoading]   = useState(!globalStoreCache);
+  const [saving, setSaving]             = useState(false);
   const [customDomain, setCustomDomain] = useState(globalStoreCache?.customDomain || '');
-  const [showRetry, setShowRetry] = useState(false);
+  const [showRetry, setShowRetry]       = useState(false);
   const [isEditingSlug, setIsEditingSlug] = useState(false);
-  const [newSlug, setNewSlug] = useState('');
-  const [savingSlug, setSavingSlug] = useState(false);
-  const [errorSlug, setErrorSlug] = useState('');
+  const [newSlug, setNewSlug]           = useState('');
+  const [savingSlug, setSavingSlug]     = useState(false);
+  const [errorSlug, setErrorSlug]       = useState('');
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
 
   const inputHasError = customDomain.length > 0 && !isValidDomain(customDomain);
-  const canSubmit = customDomain.length > 0 && isValidDomain(customDomain) && !saving;
+  const canSubmit     = customDomain.length > 0 && isValidDomain(customDomain) && !saving;
 
-  /* Retry timer */
+  // Retry timer
   useEffect(() => {
     if (store?.domainStatus === 'pending' && store?.updatedAt) {
-      const elapsed = Date.now() - new Date(store.updatedAt).getTime();
-      const delay = 2 * 60 * 1000 - elapsed;
+      const delay = 2 * 60 * 1000 - (Date.now() - new Date(store.updatedAt).getTime());
       if (delay <= 0) { setShowRetry(true); return; }
       const t = setTimeout(() => setShowRetry(true), delay);
       return () => clearTimeout(t);
@@ -258,10 +292,8 @@ function DomainContent() {
     setShowRetry(false);
   }, [store]);
 
-  /* Initial fetch */
   useEffect(() => { fetchStoreInfo(); }, []);
 
-  /* Polling while pending */
   useEffect(() => {
     if (store?.domainStatus !== 'pending') return;
     const id = setInterval(fetchStoreInfo, 50_000);
@@ -276,18 +308,17 @@ function DomainContent() {
         setStore(res.data.data);
         setCustomDomain(res.data.data.customDomain || '');
       }
-    } catch (err) {
-      console.error('Failed to fetch store data', err);
+    } catch {
+      // silent
     } finally {
       setPageLoading(false);
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!canSubmit) return;
     let domain = customDomain.trim().toLowerCase();
-    // silently normalize
     if (!domain.startsWith('www.')) domain = `www.${domain}`;
     setSaving(true);
     try {
@@ -325,9 +356,9 @@ function DomainContent() {
     </div>
   );
 
-  const isPending = store?.domainStatus === 'pending';
   const isActive  = store?.domainStatus === 'active';
   const isFailed  = store?.domainStatus === 'failed';
+  const isPending = store?.domainStatus === 'pending';
 
   return (
     <>
@@ -341,26 +372,27 @@ function DomainContent() {
 
       <div className="p-3 sm:p-6 w-full max-w-[1800px] mx-auto min-h-[calc(100vh-64px)]">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 pt-2 sm:pt-4">
-          {/* ── Left column ── */}
+
+          {/* ── Left ── */}
           <div className="lg:col-span-2 space-y-6">
             <div id="custom-domain-section" className="bg-white rounded-2xl p-4 sm:p-6 border border-gray-100 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
               <h2 className="text-lg font-bold text-gray-900 mb-1">Custom Domain Settings</h2>
               <p className="text-sm text-gray-500 mb-6">Point your own domain to your store.</p>
 
-              {/* 5–30 min banner — shown when a custom domain is connecting */}
+              {/* 5–30 min banner */}
               {store?.customDomain && !isActive && (
                 <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl mb-6">
                   <Wifi className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-semibold text-blue-800">DNS &amp; SSL verification in progress</p>
                     <p className="text-xs text-blue-700 mt-1 leading-relaxed">
-                      It typically takes <strong>5 to 30 minutes</strong> for DNS changes to propagate across global networks and for your SSL certificate to be issued. This page refreshes automatically — please wait patiently.
+                      It typically takes <strong>5 to 30 minutes</strong> for DNS changes to propagate globally and for your SSL certificate to be issued. This page auto-refreshes — please wait patiently.
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Input form */}
+              {/* Input */}
               <form onSubmit={handleSave} className="space-y-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Primary Domain</label>
@@ -383,9 +415,9 @@ function DomainContent() {
                       <button
                         type="submit"
                         disabled={!canSubmit}
-                        className={`px-6 py-3 rounded-xl font-bold shadow-md transition-all flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto ${
+                        className={`px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto ${
                           canSubmit
-                            ? 'bg-[#5022C3] hover:bg-[#401a9c] text-white shadow-purple-500/20'
+                            ? 'bg-[#5022C3] hover:bg-[#401a9c] text-white shadow-md shadow-purple-500/20 cursor-pointer'
                             : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         }`}
                       >
@@ -394,23 +426,22 @@ function DomainContent() {
                       <button
                         type="button"
                         onClick={() => toast('Support team will contact you shortly!', { icon: '👋' })}
-                        className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
+                        className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-6 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto cursor-pointer"
                       >
                         <LifeBuoy className="w-5 h-5 text-gray-500" /> Get Help
                       </button>
                     </div>
                   </div>
-
                   <p className={`text-xs mt-3 flex items-center gap-1.5 ${inputHasError ? 'text-red-500' : 'text-gray-500'}`}>
                     <AlertCircle className={`w-4 h-4 flex-shrink-0 ${inputHasError ? 'text-red-500' : 'text-amber-500'}`} />
                     {inputHasError
                       ? 'Please enter a valid domain — e.g. mystore.com or www.mystore.com'
-                      : "Enter your domain with or without 'www' — we'll normalize it automatically."}
+                      : "Enter with or without 'www' — we'll normalize it automatically."}
                   </p>
                 </div>
               </form>
 
-              {/* ── Domain list ── */}
+              {/* Domain list */}
               <div className="mt-8 pt-8 border-t border-gray-100">
                 <h3 className="text-md font-bold text-gray-900 mb-4">Current Active Domains</h3>
                 <div className="space-y-3">
@@ -431,7 +462,7 @@ function DomainContent() {
                               className={`w-full px-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5022C3] ${errorSlug ? 'border-red-500' : 'border-gray-300'}`}
                               placeholder="my-store-name"
                             />
-                            <span className="text-gray-500 font-medium">.{process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000'}</span>
+                            <span className="text-gray-500 font-medium text-sm">.{process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000'}</span>
                           </div>
                         ) : (
                           <p className="font-bold text-gray-900">{store?.slug}.{process.env.NEXT_PUBLIC_BASE_DOMAIN || 'localhost:3000'}</p>
@@ -447,12 +478,12 @@ function DomainContent() {
                     <div className="flex items-center gap-3 sm:ml-auto whitespace-nowrap">
                       {isEditingSlug ? (
                         <>
-                          <button onClick={() => setIsEditingSlug(false)} disabled={savingSlug} className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 disabled:opacity-50">Cancel</button>
-                          <button onClick={handleSaveSlug} disabled={savingSlug || !newSlug} className="px-4 py-1.5 bg-[#5022C3] hover:bg-[#401a9c] text-white text-sm font-medium rounded-lg shadow-sm transition-colors disabled:opacity-70">{savingSlug ? 'Saving…' : 'Save'}</button>
+                          <button onClick={() => setIsEditingSlug(false)} disabled={savingSlug} className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer disabled:opacity-50">Cancel</button>
+                          <button onClick={handleSaveSlug} disabled={savingSlug || !newSlug} className="px-4 py-1.5 bg-[#5022C3] hover:bg-[#401a9c] text-white text-sm font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-70">{savingSlug ? 'Saving…' : 'Save'}</button>
                         </>
                       ) : (
                         <>
-                          <button onClick={() => { setNewSlug(store?.slug || ''); setErrorSlug(''); setIsEditingSlug(true); }} className="px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg shadow-sm transition-colors">Edit</button>
+                          <button onClick={() => { setNewSlug(store?.slug || ''); setErrorSlug(''); setIsEditingSlug(true); }} className="px-4 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors cursor-pointer">Edit</button>
                           <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Connected</span>
                         </>
                       )}
@@ -469,21 +500,28 @@ function DomainContent() {
                         <div>
                           <p className={`font-bold ${isActive ? 'text-green-900' : isFailed ? 'text-red-900' : 'text-amber-900'}`}>{store.customDomain}</p>
                           <p className={`text-xs ${isActive ? 'text-green-700/70' : isFailed ? 'text-red-700/70' : 'text-amber-700/70'}`}>
-                            {isActive ? 'SSL Active — Fully Connected' : isFailed ? 'Verification Failed · Check DNS records' : 'Verifying DNS & Provisioning SSL · 5–30 min'}
+                            {isActive
+                              ? 'SSL Active — Fully Connected'
+                              : isFailed
+                              ? 'Verification Failed · Check DNS records'
+                              : 'Verifying DNS & Provisioning SSL · 5–30 min'}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
                         {isPending && showRetry && (
-                          <button onClick={handleSave as any} disabled={saving} className="px-3 py-1 bg-white hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-full border border-gray-200 transition-colors shadow-sm disabled:opacity-50">
+                          <button
+                            onClick={() => handleSave()}
+                            disabled={saving}
+                            className="px-3 py-1 bg-white hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-full border border-gray-200 transition-colors cursor-pointer disabled:opacity-50"
+                          >
                             {saving ? 'Retrying…' : 'Retry'}
                           </button>
                         )}
                         <button
                           type="button"
                           onClick={() => setShowDisconnectModal(true)}
-                          className="px-3 py-1 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-xs font-bold rounded-full border border-red-200 transition-colors shadow-sm"
-                          title="Disconnect Domain"
+                          className="px-3 py-1 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-xs font-bold rounded-full border border-red-200 transition-colors cursor-pointer"
                         >
                           Disconnect
                         </button>
@@ -498,7 +536,7 @@ function DomainContent() {
             </div>
           </div>
 
-          {/* ── Right column ── */}
+          {/* ── Right ── */}
           <div className="lg:col-span-1 space-y-6">
             <div className="bg-gradient-to-br from-[#1E1B4B] to-[#312E81] rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
               <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
@@ -507,8 +545,7 @@ function DomainContent() {
                   <ShieldCheck className="w-5 h-5 text-emerald-400" /> Free SSL Included
                 </h3>
                 <p className="text-indigo-200 text-sm leading-relaxed">
-                  Every custom domain automatically receives a free, auto-renewing SSL certificate.
-                  Your store is completely secure from day one.
+                  Every custom domain automatically gets a free, auto-renewing SSL certificate. Fully secure from day one.
                 </p>
               </div>
             </div>
@@ -517,31 +554,28 @@ function DomainContent() {
               <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
                 <h3 className="text-md font-bold text-gray-900 mb-4">DNS Configuration</h3>
                 <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                  Log in to your domain registrar (GoDaddy, Namecheap, etc.) and add these DNS records:
+                  Log in to your registrar (GoDaddy, Namecheap, etc.) and add these records:
                 </p>
-
                 <div className="space-y-4">
                   <div className="p-3 bg-indigo-50/80 rounded-xl border border-indigo-100 text-xs text-indigo-800 flex gap-2">
                     <ShieldCheck className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    Use CNAME flattening or ALIAS instead of an A Record to keep your origin IP hidden.
+                    Use CNAME flattening or ALIAS to keep your origin IP hidden.
                   </div>
-
                   {[
-                    { step: 1, title: 'Root / Apex', name: '@', note: 'CNAME or ALIAS/ANAME' },
-                    { step: 2, title: 'WWW subdomain', name: 'www', note: 'CNAME' },
-                  ].map(({ step, title, name, note }) => (
+                    { step: 1, title: 'Root / Apex', name: '@', type: 'CNAME or ALIAS/ANAME' },
+                    { step: 2, title: 'WWW subdomain', name: 'www', type: 'CNAME' },
+                  ].map(({ step, title, name, type }) => (
                     <div key={step} className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm">
                       <p className="font-bold text-gray-800 mb-2">Step {step}: {title}</p>
                       <div className="space-y-1 text-xs">
-                        <div className="flex justify-between"><span className="font-semibold text-gray-600">Type</span><span>{note}</span></div>
+                        <div className="flex justify-between"><span className="font-semibold text-gray-600">Type</span><span>{type}</span></div>
                         <div className="flex justify-between"><span className="font-semibold text-gray-600">Name</span><span>{name}</span></div>
                         <div className="flex justify-between"><span className="font-semibold text-gray-600">Value</span><span className="font-mono bg-white px-2 py-0.5 border rounded">merchant.masheco.com</span></div>
                       </div>
                     </div>
                   ))}
                 </div>
-
-                <button className="w-full mt-6 flex items-center justify-center gap-2 text-sm font-bold text-[#5022C3] hover:text-[#401a9c] transition-colors">
+                <button className="w-full mt-6 flex items-center justify-center gap-2 text-sm font-bold text-[#5022C3] hover:text-[#401a9c] transition-colors cursor-pointer">
                   Read Detailed Guide <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -556,7 +590,11 @@ function DomainContent() {
 // ─────────────────────────────────────────────────────────────────────────────
 export default function DomainManagementPage() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-[400px]"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" /></div>}>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+      </div>
+    }>
       <DomainContent />
     </Suspense>
   );
