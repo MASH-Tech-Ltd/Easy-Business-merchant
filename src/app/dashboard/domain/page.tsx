@@ -82,6 +82,22 @@ function DomainContent() {
     }
   };
 
+  const handleRemoveDomain = async () => {
+    if (!window.confirm('Are you sure you want to disconnect this custom domain?')) return;
+    setSaving(true);
+    try {
+      await api.delete('/tenants/custom-domain');
+      toast.success('Custom domain disconnected successfully');
+      setCustomDomain('');
+      fetchStoreInfo();
+    } catch (error: any) {
+      console.error('Error disconnecting domain', error);
+      toast.error(error.response?.data?.message || 'Failed to disconnect domain');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleEditSlugClick = () => {
     setNewSlug(store?.slug || '');
     setErrorSlug('');
@@ -272,6 +288,15 @@ function DomainContent() {
                           {saving ? 'Retrying...' : 'Retry'}
                         </button>
                       )}
+                      <button 
+                        type="button"
+                        onClick={handleRemoveDomain}
+                        disabled={saving}
+                        className="px-3 py-1 bg-white hover:bg-red-50 text-red-600 hover:text-red-700 text-xs font-bold rounded-full border border-red-200 transition-colors shadow-sm disabled:opacity-50"
+                        title="Disconnect Domain"
+                      >
+                        Disconnect
+                      </button>
                       <span className={`px-3 py-1 text-xs font-bold rounded-full border ${store.domainStatus === 'active' ? 'bg-green-100 text-green-800 border-green-200' : store.domainStatus === 'failed' ? 'bg-red-100 text-red-800 border-red-200' : 'bg-amber-100 text-amber-800 border-amber-200'}`}>
                         {store.domainStatus === 'active' ? 'Connected' : store.domainStatus === 'failed' ? 'Failed' : 'Connecting'}
                       </span>
