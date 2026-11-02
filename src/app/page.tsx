@@ -186,6 +186,7 @@ export default async function LandingPage() {
       streetAddress: "Badda Link Road",
       addressLocality: "Gulshan",
       addressRegion: "Dhaka",
+      postalCode: "1212",
       addressCountry: "BD",
     },
   };
