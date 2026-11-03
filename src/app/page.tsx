@@ -2,6 +2,7 @@ import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import PricingSection, { IPackage, FALLBACK_PACKAGES } from "@/components/landing/PricingSection";
+import AffiliatePromoSection from "@/components/landing/AffiliatePromoSection";
 import FAQSection from "@/components/landing/FAQSection";
 import Footer from "@/components/landing/Footer";
 import TrialPromoModal from "@/components/landing/TrialPromoModal";
@@ -24,6 +25,8 @@ export const metadata: Metadata = {
     "online store builder Bangladesh",
     "sell online Bangladesh",
     "ecommerce platform",
+    "MASH ECO Affiliate Program",
+    "affiliate.masheco.com",
   ],
   icons: {
     icon: [
@@ -165,8 +168,6 @@ export default async function LandingPage() {
       "MASH ECO is an all-in-one platform for Bangladeshi merchants to build, manage, and scale an online store with inventory, courier automation, and fraud checks, no coding required.",
   };
 
-
-
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -208,6 +209,7 @@ export default async function LandingPage() {
         <HeroSection packages={packages} />
         <FeaturesSection />
         <PricingSection packages={packages} />
+        <AffiliatePromoSection />
         <FAQSection />
       </main>
 

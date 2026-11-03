@@ -3,12 +3,14 @@ import Link from 'next/link';
 const footerNavigation = {
   platform: [
     { name: 'About Us', href: '/landing/about-us' },
+    { name: 'Affiliate', href: '/landing/affiliate' },
     { name: 'Blog', href: '/landing/blog' },
     { name: 'Contact', href: '/landing/contact' },
   ],
   merchant: [
     { name: 'Become a Partner', href: '/register' },
     { name: 'Merchant Login', href: '/login' },
+    { name: 'Affiliate Portal', href: process.env.NEXT_PUBLIC_AFFILIATE_URL || 'https://affiliate.masheco.com' },
     { name: 'Documentation', href: '/landing/documentation' },
   ],
   legal: [

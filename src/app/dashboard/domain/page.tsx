@@ -14,6 +14,7 @@ import {
   Loader2,
   Unlink,
   Wifi,
+  X,
 } from 'lucide-react';
 import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
@@ -256,6 +257,81 @@ function DisconnectModal({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Connect Initiated Modal (Auto-closes after 3 seconds)
+// ─────────────────────────────────────────────────────────────────────────────
+function ConnectNoticeModal({
+  domain,
+  onClose,
+}: {
+  domain: string;
+  onClose: () => void;
+}) {
+  const [progress, setProgress] = useState(100);
+
+  useEffect(() => {
+    const duration = 3000;
+    const start = Date.now();
+    const timer = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+      setProgress(remaining);
+      if (elapsed >= duration) {
+        clearInterval(timer);
+        onClose();
+      }
+    }, 30);
+    return () => clearInterval(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 relative">
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className="bg-gradient-to-br from-[#5022C3] to-indigo-700 px-6 pt-8 pb-6 flex flex-col items-center gap-3">
+          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center ring-4 ring-white/25">
+            <Clock className="w-8 h-8 text-white animate-pulse" />
+          </div>
+          <div className="text-center">
+            <h3 className="text-xl font-bold text-white">Domain Connection Initiated!</h3>
+            <p className="text-indigo-100 text-xs mt-0.5">DNS &amp; Free SSL Provisioning Started</p>
+          </div>
+        </div>
+
+        <div className="px-6 py-6 text-center">
+          <div className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-50 border border-purple-100 rounded-xl mb-4 w-fit mx-auto max-w-full">
+            <Globe className="w-4 h-4 text-[#5022C3] flex-shrink-0" />
+            <span className="text-sm font-bold text-[#5022C3] break-all">{domain}</span>
+          </div>
+
+          <p className="text-sm text-gray-700 leading-relaxed mb-3">
+            Please wait while our system verifies your DNS records and issues a free SSL certificate.
+          </p>
+
+          <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 font-medium leading-relaxed">
+            ⏱️ It typically takes <strong>5 to 30 minutes</strong> for your custom domain to become fully active worldwide.
+          </div>
+        </div>
+
+        {/* 3-second countdown bar */}
+        <div className="h-1.5 w-full bg-gray-100 overflow-hidden">
+          <div
+            className="h-full bg-[#5022C3] transition-all duration-75 ease-linear"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 function isValidDomain(v: string) {
@@ -277,6 +353,7 @@ function DomainContent() {
   const [savingSlug, setSavingSlug]     = useState(false);
   const [errorSlug, setErrorSlug]       = useState('');
   const [showDisconnectModal, setShowDisconnectModal] = useState(false);
+  const [connectedNoticeDomain, setConnectedNoticeDomain] = useState<string | null>(null);
 
   const inputHasError = customDomain.length > 0 && !isValidDomain(customDomain);
   const canSubmit     = customDomain.length > 0 && isValidDomain(customDomain) && !saving;
@@ -324,6 +401,7 @@ function DomainContent() {
     try {
       const res = await api.post('/tenants/custom-domain', { customDomain: domain });
       toast.success(res.data?.message || 'Domain connection initiated!');
+      setConnectedNoticeDomain(domain);
       fetchStoreInfo();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to connect domain');
@@ -362,6 +440,12 @@ function DomainContent() {
 
   return (
     <>
+      {connectedNoticeDomain && (
+        <ConnectNoticeModal
+          domain={connectedNoticeDomain}
+          onClose={() => setConnectedNoticeDomain(null)}
+        />
+      )}
       {showDisconnectModal && (
         <DisconnectModal
           domain={store?.customDomain || ''}

@@ -10,6 +10,7 @@ export default function Navbar() {
   const pathname = usePathname();
 
   const isHome = pathname === '/';
+  const isAffiliate = pathname?.startsWith('/landing/affiliate');
   const isBlog = pathname?.startsWith('/landing/blog');
   const isContact = pathname?.startsWith('/landing/contact');
 
@@ -49,6 +50,18 @@ export default function Navbar() {
               className="relative py-1 text-sm font-medium text-gray-600 hover:text-slate-900 transition-colors"
             >
               <span>Pricing</span>
+            </Link>
+
+            <Link
+              href="/landing/affiliate"
+              className={`relative py-1 text-sm transition-colors ${
+                isAffiliate ? "text-[#0284c7] font-bold" : "text-gray-600 hover:text-slate-900 font-medium"
+              }`}
+            >
+              <span>Affiliate</span>
+              {isAffiliate && (
+                <span className="absolute -bottom-2 left-0 right-0 h-[2.5px] bg-[#0284c7] rounded-full shadow-xs shadow-[#0284c7]/40" />
+              )}
             </Link>
 
             <Link
@@ -110,6 +123,15 @@ export default function Navbar() {
             </Link>
             <Link href="/#features" onClick={() => setIsMobileMenuOpen(false)} className="px-3 py-2 rounded-xl text-base font-medium text-gray-700 hover:bg-gray-50">Features</Link>
             <Link href="/#pricing" onClick={() => setIsMobileMenuOpen(false)} className="px-3 py-2 rounded-xl text-base font-medium text-gray-700 hover:bg-gray-50">Pricing</Link>
+            <Link
+              href="/landing/affiliate"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`px-3 py-2 rounded-xl text-base transition-colors ${
+                isAffiliate ? "bg-sky-50 text-[#0284c7] font-bold border-l-4 border-[#0284c7]" : "text-gray-700 hover:bg-gray-50 font-medium"
+              }`}
+            >
+              Affiliate
+            </Link>
             <Link
               href="/landing/blog"
               onClick={() => setIsMobileMenuOpen(false)}
