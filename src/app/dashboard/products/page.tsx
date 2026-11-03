@@ -20,6 +20,8 @@ interface Product {
   createdAt: string;
   salesCount?: number;
   stock?: number;
+  impressionsCount?: number;
+  clicksCount?: number;
 }
 
 let globalProductsCache: Product[] = [];
@@ -154,6 +156,10 @@ export default function ProductsPage() {
                 className="border border-gray-300 rounded-lg text-xs sm:text-sm px-2.5 sm:px-3 py-2 sm:py-2.5 focus:outline-none focus:border-[#5022C3] bg-white text-gray-600 font-medium flex-1 sm:flex-none min-w-0">
                 <option value="default-default">Sort: Newest</option>
                 <option value="createdAt-asc">Oldest</option>
+                <option value="impressionsCount-desc">Impressions: High to Low</option>
+                <option value="impressionsCount-asc">Impressions: Low to High</option>
+                <option value="clicksCount-desc">Clicks: High to Low</option>
+                <option value="clicksCount-asc">Clicks: Low to High</option>
                 <option value="discountedPrice-asc">Price: Low to High</option>
                 <option value="discountedPrice-desc">Price: High to Low</option>
                 <option value="salesCount-desc">Best Selling</option>
@@ -221,6 +227,14 @@ export default function ProductsPage() {
                         </div>
                       </div>
                     </div>
+                    <div className="flex items-center gap-2 pt-2 border-t border-gray-100 text-xs">
+                      <span className="bg-purple-50 text-[#5022C3] font-semibold px-2 py-0.5 rounded">
+                        {(product.impressionsCount || 0).toLocaleString()} Impressions
+                      </span>
+                      <span className="bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded">
+                        {(product.clicksCount || 0).toLocaleString()} Clicks
+                      </span>
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-gray-100">
@@ -252,6 +266,8 @@ export default function ProductsPage() {
               <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
                 <th className="px-6 py-4 font-bold">Product</th>
                 <th className="px-6 py-4 font-bold">Category</th>
+                <th className="px-6 py-4 font-bold">Impressions</th>
+                <th className="px-6 py-4 font-bold">Clicks</th>
                 <th className="px-6 py-4 font-bold">Sales & Stock</th>
                 <th className="px-6 py-4 font-bold">Price</th>
                 <th className="px-6 py-4 font-bold">Status</th>
@@ -261,14 +277,14 @@ export default function ProductsPage() {
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-20 text-gray-500">
+                  <td colSpan={8} className="text-center py-20 text-gray-500">
                     <div className="w-8 h-8 border-4 border-purple-200 border-t-[#5022C3] rounded-full animate-spin mx-auto mb-4"></div>
                     Loading products...
                   </td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-20">
+                  <td colSpan={8} className="text-center py-20">
                     <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-4 mx-auto">
                       <Package className="w-8 h-8" />
                     </div>
@@ -297,6 +313,16 @@ export default function ProductsPage() {
                     <td className="px-6 py-4">
                       <span className="text-sm font-medium text-gray-700 bg-gray-100 px-2.5 py-1 rounded-md">
                         {product.categoryId?.name || 'Uncategorized'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-semibold text-gray-900 text-sm">
+                        {(product.impressionsCount || 0).toLocaleString()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-semibold text-gray-900 text-sm">
+                        {(product.clicksCount || 0).toLocaleString()}
                       </span>
                     </td>
                     <td className="px-6 py-4">

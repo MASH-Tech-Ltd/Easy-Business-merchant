@@ -42,6 +42,7 @@ import {
   Banknote,
   Bell,
   Activity,
+  Eye,
 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import { api } from "@/utils/api";
@@ -620,6 +621,11 @@ export default function DashboardLayout({
     {
       title: "Shop & Growth",
       items: [
+        {
+          name: "Impressions & Clicks",
+          path: "/dashboard/impressions",
+          icon: Eye
+        },
         { name: "Analytics", path: "/dashboard/analytics", icon: BarChart2 },
         {
           name: "Tracking & Pixels",
@@ -1064,8 +1070,11 @@ export default function DashboardLayout({
                                               : pathname === "/dashboard/domain"
                                                 ? "Domain Management"
                                                 : pathname ===
-                                                    "/dashboard/analytics"
-                                                  ? "Analytics"
+                                                    "/dashboard/impressions"
+                                                  ? "Product Impressions & Telemetry"
+                                                  : pathname ===
+                                                      "/dashboard/analytics"
+                                                    ? "Analytics"
                                                   : pathname ===
                                                       "/dashboard/pixels"
                                                     ? "Marketing & Tracking"
@@ -1114,8 +1123,11 @@ export default function DashboardLayout({
                                                     "/dashboard/domain"
                                                   ? "Enter your custom domain below and configure your DNS. Our system will automatically verify the records and issue a free SSL certificate."
                                                   : pathname ===
-                                                      "/dashboard/analytics"
-                                                    ? "Track your store's performance"
+                                                      "/dashboard/impressions"
+                                                    ? "Monitor product visibility, impression counts, customer click intent, and conversion rates"
+                                                    : pathname ===
+                                                        "/dashboard/analytics"
+                                                      ? "Track your store's performance"
                                                     : pathname ===
                                                         "/dashboard/pixels"
                                                       ? "Configure analytics and marketing tracking IDs for your store"
