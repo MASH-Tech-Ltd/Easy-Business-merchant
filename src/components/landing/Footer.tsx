@@ -91,13 +91,14 @@ export default async function Footer({ socialLinks: propSocialLinks }: { socialL
     <footer className="bg-gray-900 pt-8 pb-4 sm:pt-16 sm:pb-8 border-t border-gray-800" aria-labelledby="footer-heading">
       <h2 id="footer-heading" className="sr-only">Footer</h2>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="xl:grid xl:grid-cols-3 xl:gap-8 mb-8 sm:mb-12">
-          <div className="space-y-6 sm:space-y-8 xl:col-span-1">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8 sm:gap-12 mb-8 sm:mb-12">
+          {/* Brand Info */}
+          <div className="space-y-4 sm:space-y-5 max-w-sm shrink-0">
             <div className="flex items-center gap-2">
-              <img src="/masheco-logo.png" alt="MASH ECO" className="w-10 h-10 sm:w-14 sm:h-14 object-contain" />
+              <img src="/masheco-logo.png" alt="MASH ECO" className="w-10 h-10 sm:w-12 sm:h-12 object-contain" />
               <span className="text-2xl sm:text-3xl font-righteous text-white tracking-tight">MASH ECO</span>
             </div>
-            <p className="text-gray-400 text-sm max-w-xs">
+            <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">
               Making e-commerce simple, accessible, and powerful for businesses of all sizes.
             </p>
             {/* <p className="text-gray-400 text-xs max-w-xs leading-relaxed">
@@ -106,14 +107,14 @@ export default async function Footer({ socialLinks: propSocialLinks }: { socialL
 
             {/* Conditional Rendering: Only rendered server-side when admin has configured and enabled active social links */}
             {activeSocialList.length > 0 && (
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-3 sm:gap-4 pt-1">
                 {activeSocialList.map((item) => (
                   <a
                     key={item.name}
                     href={item.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
+                    className="text-xs sm:text-sm font-medium text-gray-400 hover:text-white transition-colors"
                   >
                     {item.name}
                   </a>
@@ -121,13 +122,15 @@ export default async function Footer({ socialLinks: propSocialLinks }: { socialL
               </div>
             )}
           </div>
-          <div className="mt-8 sm:mt-12 grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8 xl:mt-0 xl:col-span-2">
+
+          {/* Links Grid - Evenly distributed across the right side on large devices */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 sm:gap-12 lg:gap-14 xl:gap-20">
             <div>
-              <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase">Platform</h3>
-              <ul role="list" className="mt-3 sm:mt-4 space-y-3 sm:space-y-4">
+              <h3 className="text-[11px] sm:text-xs font-bold text-gray-300 tracking-wider uppercase">Platform</h3>
+              <ul role="list" className="mt-2.5 sm:mt-3 space-y-2 sm:space-y-2.5">
                 {footerNavigation.platform.map((item) => (
                   <li key={item.name}>
-                    <Link href={item.href} className="text-base text-gray-400 hover:text-white transition-colors">
+                    <Link href={item.href} className="text-xs sm:text-[13px] text-gray-400 hover:text-white transition-colors block py-0.5 whitespace-nowrap">
                       {item.name}
                     </Link>
                   </li>
@@ -136,11 +139,11 @@ export default async function Footer({ socialLinks: propSocialLinks }: { socialL
             </div>
             
             <div>
-              <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase">Merchant</h3>
-              <ul role="list" className="mt-3 sm:mt-4 space-y-3 sm:space-y-4">
+              <h3 className="text-[11px] sm:text-xs font-bold text-gray-300 tracking-wider uppercase">Merchant</h3>
+              <ul role="list" className="mt-2.5 sm:mt-3 space-y-2 sm:space-y-2.5">
                 {footerNavigation.merchant.map((item) => (
                   <li key={item.name}>
-                    <Link href={item.href} className="text-sm sm:text-base text-gray-400 hover:text-white transition-colors">
+                    <Link href={item.href} className="text-xs sm:text-[13px] text-gray-400 hover:text-white transition-colors block py-0.5 whitespace-nowrap">
                       {item.name}
                     </Link>
                   </li>
@@ -149,11 +152,11 @@ export default async function Footer({ socialLinks: propSocialLinks }: { socialL
             </div>
             
             <div>
-              <h3 className="text-sm font-semibold text-gray-300 tracking-wider uppercase">Legal</h3>
-              <ul role="list" className="mt-3 sm:mt-4 space-y-3 sm:space-y-4">
+              <h3 className="text-[11px] sm:text-xs font-bold text-gray-300 tracking-wider uppercase">Legal</h3>
+              <ul role="list" className="mt-2.5 sm:mt-3 space-y-2 sm:space-y-2.5">
                 {footerNavigation.legal.map((item) => (
                   <li key={item.name}>
-                    <Link href={item.href} className="text-base text-gray-400 hover:text-white transition-colors">
+                    <Link href={item.href} className="text-xs sm:text-[13px] text-gray-400 hover:text-white transition-colors block py-0.5 whitespace-nowrap">
                       {item.name}
                     </Link>
                   </li>
@@ -162,11 +165,11 @@ export default async function Footer({ socialLinks: propSocialLinks }: { socialL
             </div>
           </div>
         </div>
-        <div className="border-t border-gray-800 pt-6 sm:pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
-          <p className="text-sm text-gray-400">
+        <div className="border-t border-gray-800 pt-6 sm:pt-8 flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 text-center md:text-left">
+          <p className="text-xs sm:text-sm text-gray-400">
             &copy; {new Date().getFullYear()} MASH ECO. All rights reserved.
           </p>
-          <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-400">
+          <div className="flex flex-col sm:flex-row items-center space-y-1.5 sm:space-y-0 sm:space-x-4 text-xs sm:text-sm text-gray-400">
             <span className="font-medium">A product of <span className="text-white">Mash Tech</span></span>
             <span className="hidden sm:inline-block text-gray-600">•</span>
             <span>Made with ❤️ for merchants</span>
