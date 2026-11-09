@@ -26,8 +26,8 @@ export const CDN_IMG_BASE = USE_CDN
   : 'https://res.cloudinary.com/dapjiys4/image/upload';
 
 export type ImagePreset =
-  | 'merchant-product'    // 100px
-  | 'merchant-category'   // 100px
+  | 'merchant-product'    // 80px (80x80 thumbnail)
+  | 'merchant-category'   // 80px (80x80 thumbnail)
   | 'product-card'        // 300px
   | 'category-card'       // 300px
   | 'logo'                // 150px
@@ -35,8 +35,8 @@ export type ImagePreset =
   | 'cart';               // 50px
 
 export const IMAGE_WIDTHS: Record<ImagePreset, number> = {
-  'merchant-product': 100,
-  'merchant-category': 100,
+  'merchant-product': 80,
+  'merchant-category': 80,
   'product-card': 300,
   'category-card': 300,
   'logo': 150,
@@ -55,7 +55,8 @@ function stripCloudinaryTransforms(rawRest: string): string {
 
 export function getOptimizedImageUrl(
   url?: string | null,
-  presetOrWidth: ImagePreset | number = 'merchant-product'
+  presetOrWidth: ImagePreset | number = 'merchant-product',
+  explicitHeight?: number
 ): string {
   if (!url || typeof url !== 'string') return '';
   const trimmed = url.trim();
@@ -64,14 +65,19 @@ export function getOptimizedImageUrl(
   const width =
     typeof presetOrWidth === 'number'
       ? presetOrWidth
-      : IMAGE_WIDTHS[presetOrWidth] || 100;
+      : IMAGE_WIDTHS[presetOrWidth] || 80;
+
+  const height = explicitHeight ?? (width <= 100 ? width : undefined);
+  const transform = height
+    ? `f_auto,q_auto:good,w_${width},h_${height},c_fill`
+    : `f_auto,q_auto:good,w_${width},c_limit`;
 
   // Cloudinary upload URL
   if (trimmed.includes('res.cloudinary.com') && trimmed.includes('/image/upload/')) {
     const parts = trimmed.split('/image/upload/');
     if (parts.length === 2) {
       const rest = stripCloudinaryTransforms(parts[1]);
-      return `${CDN_IMG_BASE}/f_auto,q_auto:good,w_${width},c_limit/${rest}`;
+      return `${CDN_IMG_BASE}/${transform}/${rest}`;
     }
   }
 
@@ -80,14 +86,33 @@ export function getOptimizedImageUrl(
     const parts = trimmed.split('/img/');
     if (parts.length === 2) {
       const rest = stripCloudinaryTransforms(parts[1]);
-      return `${CDN_IMG_BASE}/f_auto,q_auto:good,w_${width},c_limit/${rest}`;
+      return `${CDN_IMG_BASE}/${transform}/${rest}`;
+    }
+  }
+
+  // Optimize external Unsplash URLs (e.g. seeded catalog images) to exact dimensions
+  if (trimmed.includes('unsplash.com/')) {
+    try {
+      const parsed = new URL(trimmed);
+      parsed.searchParams.set('w', String(width));
+      if (height) {
+        parsed.searchParams.set('h', String(height));
+        parsed.searchParams.set('fit', 'crop');
+      }
+      parsed.searchParams.set('q', '75');
+      parsed.searchParams.set('auto', 'format');
+      return parsed.toString();
+    } catch {
+      return trimmed;
     }
   }
 
   return trimmed;
 }
 
-// Semantic helper functions matching the Global Optimization Standard
-export const getMerchantProductThumbnailUrl = (url?: string | null) => getOptimizedImageUrl(url, 100);
-export const getMerchantCategoryThumbnailUrl = (url?: string | null) => getOptimizedImageUrl(url, 100);
+// Semantic helper functions matching the Global Optimization Standard (80x80 preview)
+export const getMerchantProductThumbnailUrl = (url?: string | null, size: number = 80) =>
+  getOptimizedImageUrl(url, size, size);
+export const getMerchantCategoryThumbnailUrl = (url?: string | null, size: number = 80) =>
+  getOptimizedImageUrl(url, size, size);
 export const getStoreLogoUrl = (url?: string | null) => getOptimizedImageUrl(url, 150);

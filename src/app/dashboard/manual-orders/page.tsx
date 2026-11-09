@@ -864,15 +864,19 @@ export default function ManualOrderPage() {
                                 : "bg-white border-gray-200/90 hover:border-[#5022C3] hover:bg-purple-50/15 hover:shadow-sm cursor-pointer"
                           }`}
                         >
-                          <div className="w-16 h-16 sm:w-[68px] sm:h-[68px] rounded-xl border border-gray-200/80 bg-gray-50 p-1 shrink-0 overflow-hidden shadow-2xs">
+                          <div className="w-20 h-20 rounded-xl border border-gray-200/80 bg-gray-50 p-1 shrink-0 overflow-hidden shadow-2xs">
                             <img
                               src={
                                 getMerchantProductThumbnailUrl(
-                                  product.images?.[0]?.secure_url
+                                  product.images?.[0]?.secure_url,
+                                  80
                                 ) || "/placeholder.png"
                               }
                               alt={product.title}
+                              width={80}
+                              height={80}
                               loading="lazy"
+                              decoding="async"
                               className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-200"
                             />
                           </div>
@@ -1004,10 +1008,14 @@ export default function ManualOrderPage() {
                           <div className="w-14 h-14 rounded-lg border border-gray-200 bg-gray-50 p-1 shrink-0 overflow-hidden">
                             <img
                               src={
-                                getMerchantProductThumbnailUrl(item.image) ||
+                                getMerchantProductThumbnailUrl(item.image, 80) ||
                                 "/placeholder.png"
                               }
                               alt={item.title}
+                              width={80}
+                              height={80}
+                              loading="lazy"
+                              decoding="async"
                               className="w-full h-full object-cover"
                             />
                           </div>
@@ -1525,11 +1533,16 @@ export default function ManualOrderPage() {
                 <img
                   src={
                     getMerchantProductThumbnailUrl(
-                      variantModalProduct.images?.[0]?.secure_url
+                      variantModalProduct.images?.[0]?.secure_url,
+                      80
                     ) || "/placeholder.png"
                   }
                   alt={variantModalProduct.title}
-                  className="w-14 h-14 rounded-lg object-cover border border-gray-200"
+                  width={80}
+                  height={80}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-16 h-16 rounded-lg object-cover border border-gray-200"
                 />
                 <div>
                   <h4 className="font-bold text-gray-900 text-sm">
