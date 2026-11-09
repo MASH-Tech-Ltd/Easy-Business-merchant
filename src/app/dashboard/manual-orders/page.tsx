@@ -58,7 +58,7 @@ const FaWhatsappIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 const FaInstagramIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 448 512" fill="currentColor" aria-hidden="true">
-    <path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z" />
+    <path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z" />
   </svg>
 );
 
@@ -109,6 +109,7 @@ interface CustomerRecord {
   name: string;
   phone: string;
   email?: string;
+  address?: string;
   totalOrders: number;
   totalSpent: number;
 }
@@ -227,6 +228,11 @@ export default function ManualOrderPage() {
   const [upazila, setUpazila] = useState("");
   const [streetAddress, setStreetAddress] = useState("");
   const [orderNote, setOrderNote] = useState("");
+  const [pendingAutoLocation, setPendingAutoLocation] = useState<{
+    division?: string;
+    district?: string;
+    upazila?: string;
+  } | null>(null);
 
   // Order source
   const [orderSource, setOrderSource] = useState<OrderSourceType>("Facebook");
@@ -266,11 +272,11 @@ export default function ManualOrderPage() {
     fetchThemeSettings();
   }, []);
 
-  // Debounce product search
+  // Debounce product search (1.5 seconds after user finishes typing)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedProductSearch(productSearch.trim());
-    }, 350);
+    }, 1500);
     return () => clearTimeout(timer);
   }, [productSearch]);
 
@@ -297,7 +303,70 @@ export default function ManualOrderPage() {
     fetchMyProducts();
   }, [debouncedProductSearch]);
 
-  // Existing customer lookup by phone number
+  // Helper to parse saved full shipping address ("street, upazila, district, division") and auto-fill location fields
+  const applyCustomerSavedAddress = (savedAddress: string) => {
+    if (!savedAddress || !savedAddress.trim()) return;
+    const parts = savedAddress
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
+
+    if (parts.length >= 4) {
+      const maybeDivision = parts[parts.length - 1];
+      const maybeDistrict = parts[parts.length - 2];
+      const maybeUpazila = parts[parts.length - 3];
+      const streetPart = parts.slice(0, parts.length - 3).join(", ");
+
+      const matchedDiv = bdLocations.find(
+        (d) => d.division.toLowerCase() === maybeDivision.toLowerCase()
+      );
+      if (matchedDiv) {
+        const matchedDist = matchedDiv.districts.find(
+          (dist) => dist.district.toLowerCase() === maybeDistrict.toLowerCase()
+        );
+        const matchedUpz = matchedDist?.upazilas.find(
+          (u) => u.toLowerCase() === maybeUpazila.toLowerCase()
+        );
+
+        setPendingAutoLocation({
+          division: matchedDiv.division,
+          district: matchedDist?.district,
+          upazila: matchedUpz,
+        });
+        setDivision(matchedDiv.division);
+        if (matchedDist) setDistrict(matchedDist.district);
+        if (matchedUpz) setUpazila(matchedUpz);
+        setStreetAddress(streetPart || savedAddress.trim());
+        return;
+      }
+    } else if (parts.length === 3) {
+      const maybeDivision = parts[2];
+      const maybeDistrict = parts[1];
+      const streetPart = parts[0];
+
+      const matchedDiv = bdLocations.find(
+        (d) => d.division.toLowerCase() === maybeDivision.toLowerCase()
+      );
+      if (matchedDiv) {
+        const matchedDist = matchedDiv.districts.find(
+          (dist) => dist.district.toLowerCase() === maybeDistrict.toLowerCase()
+        );
+        setPendingAutoLocation({
+          division: matchedDiv.division,
+          district: matchedDist?.district,
+        });
+        setDivision(matchedDiv.division);
+        if (matchedDist) setDistrict(matchedDist.district);
+        setStreetAddress(streetPart || savedAddress.trim());
+        return;
+      }
+    }
+
+    // Fallback: populate streetAddress directly
+    setStreetAddress(savedAddress.trim());
+  };
+
+  // Existing customer lookup by phone number (1.5 seconds after user finishes typing)
   useEffect(() => {
     const cleanDigits = customerPhone.replace(/[\s\-()]/g, "").trim();
     const normalizedPhone = cleanDigits.startsWith("+880")
@@ -308,6 +377,7 @@ export default function ManualOrderPage() {
 
     if (!/^01[3-9]\d{8}$/.test(normalizedPhone)) {
       setMatchedCustomer(null);
+      setLookingUpCustomer(false);
       return;
     }
 
@@ -324,11 +394,14 @@ export default function ManualOrderPage() {
         });
         if (exact) {
           setMatchedCustomer(exact);
-          if (!customerName.trim()) {
-            setCustomerName(exact.name || "");
+          if (exact.name) {
+            setCustomerName(exact.name);
           }
-          if (!customerEmail.trim() && exact.email) {
+          if (exact.email) {
             setCustomerEmail(exact.email);
+          }
+          if (exact.address) {
+            applyCustomerSavedAddress(exact.address);
           }
         } else {
           setMatchedCustomer(null);
@@ -338,7 +411,7 @@ export default function ManualOrderPage() {
       } finally {
         setLookingUpCustomer(false);
       }
-    }, 350);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, [customerPhone]);
@@ -354,20 +427,42 @@ export default function ManualOrderPage() {
     [districtsList, district]
   );
 
-  // Keep district & upazila synced when division/district changes
+  // Keep district & upazila synced when division/district changes, respecting auto-filled customer address
   useEffect(() => {
-    if (districtsList.length > 0 && !districtsList.some((d) => d.district === district)) {
+    if (districtsList.length === 0) return;
+    if (
+      pendingAutoLocation?.district &&
+      districtsList.some((d) => d.district === pendingAutoLocation.district)
+    ) {
+      if (district !== pendingAutoLocation.district) {
+        setDistrict(pendingAutoLocation.district);
+      }
+      return;
+    }
+    if (!districtsList.some((d) => d.district === district)) {
       setDistrict(districtsList[0].district);
     }
-  }, [division, districtsList, district]);
+  }, [division, districtsList, district, pendingAutoLocation]);
 
   useEffect(() => {
-    if (upazilasList.length > 0 && !upazilasList.includes(upazila)) {
-      setUpazila(upazilasList[0]);
-    } else if (upazilasList.length === 0) {
+    if (upazilasList.length === 0) {
       setUpazila("");
+      return;
     }
-  }, [district, upazilasList, upazila]);
+    if (
+      pendingAutoLocation?.upazila &&
+      upazilasList.includes(pendingAutoLocation.upazila)
+    ) {
+      if (upazila !== pendingAutoLocation.upazila) {
+        setUpazila(pendingAutoLocation.upazila);
+      }
+      setPendingAutoLocation(null);
+      return;
+    }
+    if (!upazilasList.includes(upazila)) {
+      setUpazila(upazilasList[0]);
+    }
+  }, [district, upazilasList, upazila, pendingAutoLocation]);
 
   // Compute zone shipping charge
   const { cost: zoneShippingCost, zoneName: matchedZoneName } = useMemo(
@@ -1093,6 +1188,29 @@ export default function ManualOrderPage() {
                       className="w-full pl-10 pr-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3]"
                     />
                   </div>
+                  {matchedCustomer && (
+                    <div className="mt-2 p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-start justify-between gap-2 text-xs text-emerald-900">
+                      <div className="min-w-0">
+                        <div className="font-bold truncate">
+                          Auto-filled: {matchedCustomer.name}
+                        </div>
+                        {matchedCustomer.address && (
+                          <div className="text-[11px] text-emerald-700 truncate mt-0.5">
+                            Saved Address: {matchedCustomer.address}
+                          </div>
+                        )}
+                      </div>
+                      {matchedCustomer.address && (
+                        <button
+                          type="button"
+                          onClick={() => applyCustomerSavedAddress(matchedCustomer.address!)}
+                          className="shrink-0 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          Re-apply Address
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Customer Name & Optional Email */}
