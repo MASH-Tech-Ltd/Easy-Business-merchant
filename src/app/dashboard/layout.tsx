@@ -571,9 +571,13 @@ export default function DashboardLayout({
       };
     return {
       badge:
-        config.badge !== "none" ? config.badge.toUpperCase() : defaultBadge,
+        config.badge && config.badge !== "none"
+          ? config.badge.toUpperCase()
+          : undefined,
       badgeType:
-        config.badge !== "none" ? config.badge.toUpperCase() : defaultBadgeType,
+        config.badge && config.badge !== "none"
+          ? config.badge.toUpperCase()
+          : undefined,
       isActive: config.isActive,
       message: config.message || "",
     };
@@ -588,8 +592,7 @@ export default function DashboardLayout({
           name: "Manual Order",
           path: "/dashboard/manual-orders",
           icon: ClipboardPlus,
-          badge: "NEW",
-          badgeType: "NEW",
+          ...getSidebarItemProps("manualOrders", "NEW", "NEW"),
         },
         { name: "Products", path: "/dashboard/products", icon: Package },
         { name: "Categories", path: "/dashboard/categories", icon: ListTree },
