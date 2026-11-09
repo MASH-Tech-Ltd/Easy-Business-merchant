@@ -43,6 +43,7 @@ import {
   Bell,
   Activity,
   Eye,
+  ClipboardPlus,
 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import { api } from "@/utils/api";
@@ -583,6 +584,13 @@ export default function DashboardLayout({
       items: [
         { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
         { name: "Orders", path: "/dashboard/orders", icon: ShoppingBag },
+        {
+          name: "Manual Order",
+          path: "/dashboard/manual-orders",
+          icon: ClipboardPlus,
+          badge: "NEW",
+          badgeType: "NEW",
+        },
         { name: "Products", path: "/dashboard/products", icon: Package },
         { name: "Categories", path: "/dashboard/categories", icon: ListTree },
         { name: "Customers", path: "/dashboard/customers", icon: Users },
@@ -1036,7 +1044,9 @@ export default function DashboardLayout({
               <h2 className="text-sm sm:text-lg font-bold text-gray-900 truncate">
                 {pathname === "/dashboard/orders"
                   ? "Orders Management"
-                  : pathname === "/dashboard/products"
+                  : pathname === "/dashboard/manual-orders"
+                    ? "Manual Order Entry"
+                    : pathname === "/dashboard/products"
                     ? "Products Management"
                     : pathname === "/dashboard/categories"
                       ? "Categories Management"
@@ -1087,7 +1097,9 @@ export default function DashboardLayout({
                 <p className="text-xs text-gray-500 hidden sm:block truncate">
                   {pathname === "/dashboard/orders"
                     ? "View and process customer orders"
-                    : pathname === "/dashboard/products"
+                    : pathname === "/dashboard/manual-orders"
+                      ? "Create manual orders from Facebook, Messenger, WhatsApp, or phone calls"
+                      : pathname === "/dashboard/products"
                       ? "Manage your store's inventory"
                       : pathname === "/dashboard/categories"
                         ? "Organize your products into categories"

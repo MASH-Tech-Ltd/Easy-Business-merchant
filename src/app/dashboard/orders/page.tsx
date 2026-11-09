@@ -4,9 +4,9 @@ import { getMerchantProductThumbnailUrl } from '@/utils/imageOptimizer';
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Search,
-  MoreVertical,
   ShoppingBag,
   Eye,
   Edit,
@@ -20,6 +20,8 @@ import {
   Truck,
   ExternalLink,
   RefreshCw,
+  CheckCircle2,
+  ClipboardPlus,
 } from "lucide-react";
 import { api } from "@/utils/api";
 import { toast } from "react-hot-toast";
@@ -43,6 +45,7 @@ interface Order {
   orderId?: string;
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
   shippingAddress: string;
   note: string;
   totalPrice: number;
@@ -51,8 +54,11 @@ interface Order {
   items: OrderItem[];
   subTotal: number;
   shippingCharge: number;
+  discount?: number;
   paymentStatus: string;
   isDeliveryChargePaid?: boolean;
+  orderSourceType?: "storefront" | "manual";
+  orderSource?: string;
   consignmentId?: string;
   courierProvider?: string;
   trackingUrl?: string;
@@ -77,6 +83,7 @@ export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sourceTypeFilter, setSourceTypeFilter] = useState("all");
 
   const router = useRouter();
   // Modals
@@ -84,6 +91,7 @@ export default function OrdersPage() {
   const [editOrder, setEditOrder] = useState<Order | null>(null);
   const [deleteOrder, setDeleteOrder] = useState<Order | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [confirmingOrderId, setConfirmingOrderId] = useState<string | null>(null);
   const [checkingFraud, setCheckingFraud] = useState<string | null>(null);
   const [fraudErrorModal, setFraudErrorModal] = useState<{
     show: boolean;
@@ -150,13 +158,19 @@ export default function OrdersPage() {
     fetchOrders();
     window.addEventListener("dashboard:refresh", fetchOrders);
     return () => window.removeEventListener("dashboard:refresh", fetchOrders);
-  }, [page, statusFilter, debouncedSearch]);
+  }, [page, statusFilter, sourceTypeFilter, debouncedSearch]);
 
   const fetchOrders = async () => {
     if (globalOrdersCache.length === 0) setLoading(true);
     try {
       const response = await api.get("/orders/my-orders", {
-        params: { page, limit, status: statusFilter, search: debouncedSearch },
+        params: {
+          page,
+          limit,
+          status: statusFilter,
+          orderSourceType: sourceTypeFilter,
+          search: debouncedSearch,
+        },
       });
       const newOrders = response.data.data || [];
       const newTotalPages = response.data.meta?.totalPages || 1;
@@ -180,6 +194,9 @@ export default function OrdersPage() {
     try {
       const response = await api.patch(`/orders/update-order/${id}`, payload);
       setEditOrder(null);
+      if (viewOrder && viewOrder._id === id) {
+        setViewOrder({ ...viewOrder, ...payload });
+      }
       fetchOrders();
       toast.success(response.data?.message || "Order updated successfully");
     } catch (error: any) {
@@ -188,6 +205,27 @@ export default function OrdersPage() {
         error.response?.data?.message || "Failed to update order";
       toast.error(errorMessage);
       throw error;
+    }
+  };
+
+  const handleQuickConfirmOrder = async (order: Order) => {
+    setConfirmingOrderId(order._id);
+    try {
+      const response = await api.patch(`/orders/update-order/${order._id}`, {
+        status: "confirmed",
+      });
+      toast.success(response.data?.message || "Order confirmed and stock updated!");
+      if (viewOrder && viewOrder._id === order._id) {
+        setViewOrder({ ...viewOrder, status: "confirmed" });
+      }
+      fetchOrders();
+    } catch (error: any) {
+      console.error("Failed to confirm order", error);
+      toast.error(
+        error.response?.data?.message || "Failed to confirm order",
+      );
+    } finally {
+      setConfirmingOrderId(null);
     }
   };
 
@@ -238,6 +276,10 @@ export default function OrdersPage() {
     }
     if (order.status === "cancelled") {
       toast.error("This order is cancelled and cannot be forwarded to courier.");
+      return;
+    }
+    if (order.status === "pending") {
+      toast.error("Please confirm the order first before forwarding it to a courier.");
       return;
     }
     setCheckingCourier(order._id);
@@ -340,12 +382,37 @@ export default function OrdersPage() {
     }
   };
 
+  const getOrderSourceBadges = (order: Order) => {
+    const isManual = order.orderSourceType === "manual";
+    if (isManual) {
+      return (
+        <div className="flex flex-wrap items-center gap-1 mt-1">
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-[#5022C3] border border-purple-200">
+            Manual Order
+          </span>
+          {order.orderSource && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+              {order.orderSource}
+            </span>
+          )}
+        </div>
+      );
+    }
+    return (
+      <div className="flex flex-wrap items-center gap-1 mt-1">
+        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 border border-gray-200">
+          Storefront
+        </span>
+      </div>
+    );
+  };
+
   return (
     <div className="w-full h-full font-sans flex flex-col">
       <div className="bg-white border-t border-gray-200 flex-1 flex flex-col min-h-0">
         {/* Filters Bar */}
-        <div className="p-3 sm:p-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3 bg-[#fcfcfc] shrink-0">
-          <div className="relative w-full sm:w-80">
+        <div className="p-3 sm:p-4 border-b border-gray-200 flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-3 bg-[#fcfcfc] shrink-0">
+          <div className="relative w-full lg:w-80">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -358,14 +425,26 @@ export default function OrdersPage() {
               className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
             />
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full lg:w-auto">
+            <select
+              value={sourceTypeFilter}
+              onChange={(e) => {
+                setSourceTypeFilter(e.target.value);
+                setPage(1);
+              }}
+              className="border border-gray-300 rounded-lg text-xs sm:text-sm px-3 py-2 bg-white focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] flex-1 sm:flex-none font-medium text-gray-700"
+            >
+              <option value="all">All Order Types</option>
+              <option value="storefront">Storefront Orders</option>
+              <option value="manual">Manual Orders</option>
+            </select>
             <select
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="border border-gray-300 rounded-lg text-xs sm:text-sm px-3 sm:px-4 py-2 bg-white focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full sm:w-auto font-medium text-gray-700"
+              className="border border-gray-300 rounded-lg text-xs sm:text-sm px-3 py-2 bg-white focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] flex-1 sm:flex-none font-medium text-gray-700"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
@@ -374,6 +453,13 @@ export default function OrdersPage() {
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
             </select>
+            <Link
+              href="/dashboard/manual-orders"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#5022C3] hover:bg-[#401a9c] text-white text-xs sm:text-sm font-bold rounded-lg transition-colors shadow-sm whitespace-nowrap w-full sm:w-auto"
+            >
+              <ClipboardPlus className="w-4 h-4" />
+              <span>+ Manual Order</span>
+            </Link>
           </div>
         </div>
 
@@ -411,6 +497,7 @@ export default function OrdersPage() {
                           ?.substring(order._id.length - 6)
                           .toUpperCase()}
                     </span>
+                    {getOrderSourceBadges(order)}
                     <div className="text-xs text-gray-500 mt-1.5 font-medium">
                       {new Date(order.createdAt).toLocaleDateString("en-GB")} at{" "}
                       {new Date(order.createdAt).toLocaleTimeString([], {
@@ -458,7 +545,22 @@ export default function OrdersPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2 mt-1">
+                <div className="flex justify-end items-center gap-2 mt-1">
+                  {order.status === "pending" && (
+                    <button
+                      onClick={() => handleQuickConfirmOrder(order)}
+                      disabled={confirmingOrderId === order._id}
+                      className="px-2.5 h-8 flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-bold transition-colors disabled:opacity-50"
+                      title="Confirm Order"
+                    >
+                      {confirmingOrderId === order._id ? (
+                        <div className="w-3.5 h-3.5 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      )}
+                      <span>Confirm</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => handleFraudCheck(order._id)}
                     disabled={checkingFraud === order._id}
@@ -476,12 +578,16 @@ export default function OrdersPage() {
                     className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors tooltip ${
                       order.consignmentId
                         ? "bg-green-100 text-green-600"
-                        : "bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100"
+                        : order.status === "pending" || order.status === "cancelled"
+                          ? "bg-gray-100 text-gray-400"
+                          : "bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100"
                     }`}
                     title={
                       order.consignmentId
                         ? "Already forwarded"
-                        : "Forward to Courier"
+                        : order.status === "pending"
+                          ? "Confirm order before forwarding to courier"
+                          : "Forward to Courier"
                     }
                   >
                     {checkingCourier === order._id ? (
@@ -564,6 +670,7 @@ export default function OrdersPage() {
                             ?.substring(order._id.length - 6)
                             .toUpperCase()}
                       </span>
+                      {getOrderSourceBadges(order)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-bold text-gray-900 text-sm">
@@ -605,6 +712,20 @@ export default function OrdersPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
+                        {order.status === "pending" && (
+                          <button
+                            onClick={() => handleQuickConfirmOrder(order)}
+                            disabled={confirmingOrderId === order._id}
+                            className="w-8 h-8 flex items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-colors tooltip disabled:opacity-50"
+                            title="Confirm Order (Deduct Stock)"
+                          >
+                            {confirmingOrderId === order._id ? (
+                              <div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <CheckCircle2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        )}
                         <button
                           onClick={() => handleFraudCheck(order._id)}
                           disabled={checkingFraud === order._id}
@@ -627,7 +748,9 @@ export default function OrdersPage() {
                                 ? "bg-green-100 text-green-600 hover:bg-green-200"
                                 : order.status === "cancelled"
                                   ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  : "bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100"
+                                  : order.status === "pending"
+                                    ? "bg-amber-50 text-amber-600 hover:bg-amber-100 border border-amber-200"
+                                    : "bg-[#f0f4ff] text-[#3b82f6] hover:bg-blue-100"
                           }`}
                           title={
                             order.consignmentId && order.status === "cancelled"
@@ -636,7 +759,9 @@ export default function OrdersPage() {
                                 ? `Courier: ${order.courierProvider?.toUpperCase() || "Courier"} (Forwarded)`
                                 : order.status === "cancelled"
                                   ? "Order is cancelled"
-                                  : "Forward to Courier"
+                                  : order.status === "pending"
+                                    ? "Confirm order first before forwarding to courier"
+                                    : "Forward to Courier"
                           }
                         >
                           {checkingCourier === order._id ? (
@@ -778,9 +903,20 @@ export default function OrdersPage() {
             {/* Modal Header (Hidden on Print) */}
             <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center gap-2 print:hidden">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Order Details
-                </h2>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Order Details
+                  </h2>
+                  {viewOrder.orderSourceType === "manual" ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-[#5022C3] border border-purple-200">
+                      Manual Order{viewOrder.orderSource ? ` • ${viewOrder.orderSource}` : ""}
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                      Storefront Order
+                    </span>
+                  )}
+                </div>
                 <div className="text-sm font-mono text-[#5022C3] mt-1 bg-purple-50 inline-block px-2 py-0.5 rounded">
                   #
                   {viewOrder.orderId ||
@@ -839,6 +975,14 @@ export default function OrdersPage() {
                   <p className="text-xs text-gray-500 mt-1">
                     Date: {new Date(viewOrder.createdAt).toLocaleDateString()}
                   </p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Source:{" "}
+                    <span className="font-semibold text-gray-700">
+                      {viewOrder.orderSourceType === "manual"
+                        ? `Manual Order (${viewOrder.orderSource || "Manual"})`
+                        : "Storefront"}
+                    </span>
+                  </p>
                 </div>
               </div>
 
@@ -854,6 +998,11 @@ export default function OrdersPage() {
                     <p className="text-gray-600 mt-1">
                       {viewOrder.customerPhone}
                     </p>
+                    {viewOrder.customerEmail && (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {viewOrder.customerEmail}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -990,20 +1139,40 @@ export default function OrdersPage() {
                       BDT
                     </span>
                   </div>
+                  {(viewOrder.discount || 0) > 0 && (
+                    <div className="flex justify-between items-center text-emerald-600 font-medium">
+                      <span>Discount</span>
+                      <span>- {(viewOrder.discount || 0).toLocaleString()} BDT</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center text-gray-600">
                     <span>Shipping</span>
                     <span>
-                      {viewOrder.totalPrice -
-                        viewOrder.items.reduce(
-                          (acc, item) => acc + item.price * item.quantity,
+                      {(viewOrder.shippingCharge ??
+                        Math.max(
                           0,
-                        ) >
-                      0
-                        ? (
-                            viewOrder.totalPrice -
-                            viewOrder.items.reduce(
-                              (acc, item) => acc + item.price * item.quantity,
+                          viewOrder.totalPrice -
+                            Math.max(
                               0,
+                              viewOrder.items.reduce(
+                                (acc, item) => acc + item.price * item.quantity,
+                                0,
+                              ) - (viewOrder.discount || 0),
+                            ),
+                        )) > 0
+                        ? (
+                            viewOrder.shippingCharge ??
+                            Math.max(
+                              0,
+                              viewOrder.totalPrice -
+                                Math.max(
+                                  0,
+                                  viewOrder.items.reduce(
+                                    (acc, item) =>
+                                      acc + item.price * item.quantity,
+                                    0,
+                                  ) - (viewOrder.discount || 0),
+                                ),
                             )
                           ).toLocaleString() + " BDT"
                         : "Free"}
@@ -1020,19 +1189,42 @@ export default function OrdersPage() {
             </div>
 
             {/* Modal Footer (Hidden on Print) */}
-            <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex justify-between items-center gap-3 print:hidden">
-              <div>
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
-                  Current Status
+            <div className="p-4 sm:p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl flex flex-wrap justify-between items-center gap-3 print:hidden">
+              <div className="flex items-center gap-3">
+                <div>
+                  <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                    Current Status
+                  </div>
+                  {getStatusBadge(viewOrder.status)}
                 </div>
-                {getStatusBadge(viewOrder.status)}
+                {viewOrder.status === "pending" && (
+                  <span className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
+                    Awaiting Customer Confirmation
+                  </span>
+                )}
               </div>
-              <button
-                onClick={() => setViewOrder(null)}
-                className="px-5 sm:px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl transition-colors"
-              >
-                Close
-              </button>
+              <div className="flex items-center gap-2.5">
+                {viewOrder.status === "pending" && (
+                  <button
+                    onClick={() => handleQuickConfirmOrder(viewOrder)}
+                    disabled={confirmingOrderId === viewOrder._id}
+                    className="px-4 sm:px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors flex items-center gap-1.5 text-sm shadow-sm disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>
+                      {confirmingOrderId === viewOrder._id
+                        ? "Confirming..."
+                        : "Confirm Order"}
+                    </span>
+                  </button>
+                )}
+                <button
+                  onClick={() => setViewOrder(null)}
+                  className="px-5 sm:px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl transition-colors text-sm"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

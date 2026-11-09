@@ -1,5 +1,5 @@
 import { getMerchantProductThumbnailUrl } from '@/utils/imageOptimizer';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { X, Trash2, Plus, Minus } from 'lucide-react';
 
 interface OrderItem {
@@ -17,14 +17,18 @@ interface Order {
   _id: string;
   customerName: string;
   customerPhone: string;
+  customerEmail?: string;
   shippingAddress: string;
   note: string;
   totalPrice: number;
   subTotal: number;
   shippingCharge: number;
+  discount?: number;
   paymentStatus: string;
   isDeliveryChargePaid?: boolean;
   status: string;
+  orderSourceType?: 'storefront' | 'manual';
+  orderSource?: string;
   createdAt: string;
   items: OrderItem[];
   consignmentId?: string;
@@ -38,19 +42,23 @@ interface EditOrderModalProps {
 
 export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) {
   const initialSubTotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const initialDiscount = order.discount || 0;
   const derivedShippingCharge = order.shippingCharge !== undefined && order.shippingCharge !== 0 
     ? order.shippingCharge 
-    : Math.max(0, order.totalPrice - initialSubTotal);
+    : Math.max(0, order.totalPrice - Math.max(0, initialSubTotal - initialDiscount));
 
   const [items, setItems] = useState<OrderItem[]>(order.items);
   const [status, setStatus] = useState(order.status);
   const [paymentStatus, setPaymentStatus] = useState(order.paymentStatus || 'unpaid');
   const [isDeliveryChargePaid, setIsDeliveryChargePaid] = useState(order.isDeliveryChargePaid || false);
   const [shippingCharge] = useState(derivedShippingCharge);
+  const [discount, setDiscount] = useState(initialDiscount);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const subTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const totalPrice = isDeliveryChargePaid ? subTotal : subTotal + shippingCharge;
+  const normalizedDiscount = Math.min(Math.max(0, Number(discount) || 0), subTotal);
+  const discountedSubTotal = Math.max(0, subTotal - normalizedDiscount);
+  const totalPrice = isDeliveryChargePaid ? discountedSubTotal : discountedSubTotal + shippingCharge;
 
   const handleUpdateQuantity = (index: number, delta: number) => {
     setItems(items.map((item, idx) => {
@@ -75,6 +83,7 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
       paymentStatus,
       isDeliveryChargePaid,
       shippingCharge,
+      discount: normalizedDiscount,
       subTotal,
       totalPrice,
       items
@@ -94,7 +103,14 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-sans">
       <div className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
         <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-          <h2 className="text-lg font-bold text-gray-900">Edit Order Details</h2>
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-lg font-bold text-gray-900">Edit Order Details</h2>
+            {order.orderSourceType === 'manual' && (
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-[#5022C3] border border-purple-200">
+                Manual Order{order.orderSource ? ` • ${order.orderSource}` : ''}
+              </span>
+            )}
+          </div>
           <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-200 rounded-full transition-colors">
             <X className="w-5 h-5" />
           </button>
@@ -176,7 +192,7 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
                   onChange={(e) => setStatus(e.target.value)}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-[#5022C3] bg-white font-medium text-gray-700"
                 >
-                  <option value="pending">Pending</option>
+                  <option value="pending">Pending (Awaiting Confirmation)</option>
                   <option value="confirmed">Confirmed</option>
                   <option value="shipped">Shipped</option>
                   <option value="delivered">Delivered</option>
@@ -194,9 +210,6 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
                 >
                   <option value="unpaid">Unpaid</option>
                   <option value="paid">Paid</option>
-                  {/* no need for now */}
-                  {/* <option value="failed">Failed</option> */}
-                  {/* <option value="refunded">Refunded</option> */}
                 </select>
                 
                 <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
@@ -219,6 +232,17 @@ export function EditOrderModal({ order, onClose, onSave }: EditOrderModalProps) 
                 <div className="flex justify-between items-center text-sm font-medium text-gray-600">
                   <span>Subtotal</span>
                   <span>{subTotal.toLocaleString()} BDT</span>
+                </div>
+                <div className="flex justify-between items-center text-sm font-medium text-gray-600">
+                  <span>Discount (BDT)</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={subTotal}
+                    value={discount}
+                    onChange={(e) => setDiscount(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-24 text-right border border-gray-300 rounded-lg px-2.5 py-1 text-sm font-bold text-gray-900 bg-white focus:outline-none focus:border-[#5022C3]"
+                  />
                 </div>
                 <div className="flex justify-between items-center text-sm font-medium text-gray-600">
                   <span>Shipping Charge</span>
