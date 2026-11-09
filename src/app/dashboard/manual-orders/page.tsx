@@ -58,7 +58,7 @@ const FaWhatsappIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 
 const FaInstagramIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
   <svg className={className} viewBox="0 0 448 512" fill="currentColor" aria-hidden="true">
-    <path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z" />
+    <path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z" />
   </svg>
 );
 
@@ -737,7 +737,7 @@ export default function ManualOrderPage() {
                 </div>
               </div>
 
-              <div className="p-3.5 sm:p-4 max-h-[420px] overflow-y-auto custom-scrollbar">
+              <div className="p-3.5 sm:p-4 max-h-[450px] overflow-y-auto custom-scrollbar">
                 {loadingProducts ? (
                   <div className="py-12 text-center text-gray-500 text-sm">
                     <div className="w-7 h-7 border-3 border-purple-200 border-t-[#5022C3] rounded-full animate-spin mx-auto mb-3"></div>
@@ -752,7 +752,7 @@ export default function ManualOrderPage() {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     {products.map((product) => {
                       const isActive = !product.status || product.status.toUpperCase() === "ACTIVE";
                       const stock = product.stock ?? 0;
@@ -766,15 +766,16 @@ export default function ManualOrderPage() {
                         <div
                           key={product._id}
                           onClick={() => !isOut && handleSelectProduct(product)}
-                          className={`group relative flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                          title={product.title}
+                          className={`group relative flex items-start gap-3.5 p-3.5 rounded-2xl border transition-all duration-200 ${
                             isOut
-                              ? "bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed"
+                              ? "bg-gray-50/70 border-gray-200 opacity-60 cursor-not-allowed"
                               : inOrderQty > 0
-                                ? "bg-purple-50/40 border-[#5022C3] cursor-pointer shadow-2xs"
-                                : "bg-white border-gray-200 hover:border-[#5022C3] hover:shadow-xs cursor-pointer"
+                                ? "bg-purple-50/60 border-[#5022C3] ring-1 ring-[#5022C3]/20 cursor-pointer shadow-xs"
+                                : "bg-white border-gray-200/90 hover:border-[#5022C3] hover:bg-purple-50/15 hover:shadow-sm cursor-pointer"
                           }`}
                         >
-                          <div className="w-14 h-14 rounded-lg border border-gray-200 bg-white p-1 shrink-0 overflow-hidden">
+                          <div className="w-16 h-16 sm:w-[68px] sm:h-[68px] rounded-xl border border-gray-200/80 bg-gray-50 p-1 shrink-0 overflow-hidden shadow-2xs">
                             <img
                               src={
                                 getMerchantProductThumbnailUrl(
@@ -783,36 +784,60 @@ export default function ManualOrderPage() {
                               }
                               alt={product.title}
                               loading="lazy"
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-200"
                             />
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <div className="text-xs sm:text-sm font-bold text-gray-900 truncate group-hover:text-[#5022C3] transition-colors">
-                              {product.title}
+                            <div className="flex items-start justify-between gap-2">
+                              <h3 className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-[#5022C3] transition-colors">
+                                {product.title}
+                              </h3>
+                              <button
+                                type="button"
+                                disabled={isOut}
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all shadow-2xs ${
+                                  isOut
+                                    ? "bg-gray-200 text-gray-400"
+                                    : inOrderQty > 0
+                                      ? "bg-[#5022C3] text-white"
+                                      : "bg-purple-100 text-[#5022C3] group-hover:bg-[#5022C3] group-hover:text-white"
+                                }`}
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
                             </div>
 
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs sm:text-sm font-extrabold text-[#5022C3]">
+                            <div className="flex items-baseline gap-2 mt-1.5 flex-wrap">
+                              <span className="text-sm sm:text-base font-extrabold text-[#5022C3]">
                                 ৳{sellingPrice.toLocaleString()}
                               </span>
                               {product.originalPrice > sellingPrice && (
-                                <span className="text-[11px] text-gray-400 line-through">
+                                <span className="text-[11px] text-gray-400 line-through font-medium">
                                   ৳{product.originalPrice.toLocaleString()}
                                 </span>
                               )}
                             </div>
 
-                            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                               <span
-                                className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                                className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${
                                   !isActive
                                     ? "bg-gray-200 text-gray-700"
                                     : stock > 0
-                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                      : "bg-red-50 text-red-600 border border-red-200"
+                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80"
+                                      : "bg-red-50 text-red-600 border border-red-200/80"
                                 }`}
                               >
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    !isActive
+                                      ? "bg-gray-500"
+                                      : stock > 0
+                                        ? "bg-emerald-500"
+                                        : "bg-red-500"
+                                  }`}
+                                />
                                 {!isActive
                                   ? product.status
                                   : stock > 0
@@ -823,32 +848,20 @@ export default function ManualOrderPage() {
                               {product.hasVariants &&
                                 product.variants &&
                                 product.variants.length > 0 && (
-                                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200/80">
                                     <Layers className="w-2.5 h-2.5" />
                                     {product.variants.length} Variants
                                   </span>
                                 )}
 
                               {inOrderQty > 0 && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#5022C3] text-white">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#5022C3] text-white shadow-2xs">
                                   <Check className="w-2.5 h-2.5" />
                                   Added ({inOrderQty})
                                 </span>
                               )}
                             </div>
                           </div>
-
-                          <button
-                            type="button"
-                            disabled={isOut}
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                              isOut
-                                ? "bg-gray-200 text-gray-400"
-                                : "bg-purple-100 text-[#5022C3] group-hover:bg-[#5022C3] group-hover:text-white"
-                            }`}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
                         </div>
                       );
                     })}
@@ -910,7 +923,7 @@ export default function ManualOrderPage() {
                             />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h4 className="text-xs sm:text-sm font-bold text-gray-900 truncate">
+                            <h4 className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-1">
                               {item.title}
                             </h4>
                             {(item.color || item.size) && (
