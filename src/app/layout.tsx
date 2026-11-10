@@ -73,31 +73,71 @@ export const metadata: Metadata = {
   },
 };
 
-const organizationSchema = {
+const platformGraphSchema = {
   '@context': 'https://schema.org',
-  '@type': 'Organization',
-  '@id': 'https://www.masheco.com/#organization',
-  name: 'MASH ECO',
-  legalName: 'MASH TECH',
-  url: 'https://www.masheco.com/',
-  logo: {
-    '@type': 'ImageObject',
-    url: 'https://www.masheco.com/masheco-logo.png',
-    width: 512,
-    height: 512,
-  },
-};
-
-const websiteSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  '@id': 'https://www.masheco.com/#website',
-  name: 'MASH ECO',
-  alternateName: ['MashEco', 'Mash Eco'],
-  url: 'https://www.masheco.com/',
-  publisher: {
-    '@id': 'https://www.masheco.com/#organization',
-  },
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': 'https://www.masheco.com/#website',
+      url: 'https://www.masheco.com/',
+      name: 'MASH ECO',
+      alternateName: [
+        'Mash Eco',
+        'MashEco',
+        'masheco',
+        'MASH ECO Bangladesh',
+        'MASH ECO Store Builder',
+        'MASH TECH LTD',
+      ],
+      inLanguage: 'en-US',
+      publisher: {
+        '@id': 'https://www.masheco.com/#organization',
+      },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://www.masheco.com/landing/blog?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'Organization',
+      '@id': 'https://www.masheco.com/#organization',
+      name: 'MASH ECO',
+      legalName: 'MASH TECH LTD',
+      alternateName: ['Mash Eco', 'MashEco', 'masheco', 'MASH ECO Platform'],
+      url: 'https://www.masheco.com/',
+      logo: {
+        '@type': 'ImageObject',
+        '@id': 'https://www.masheco.com/#logo',
+        url: 'https://www.masheco.com/masheco-logo.png',
+        contentUrl: 'https://www.masheco.com/masheco-logo.png',
+        width: 512,
+        height: 512,
+        caption: 'MASH ECO',
+      },
+      image: {
+        '@id': 'https://www.masheco.com/#logo',
+      },
+      description:
+        'MASH ECO is an all-in-one e-commerce store builder and business platform for merchants in Bangladesh.',
+      contactPoint: {
+        '@type': 'ContactPoint',
+        contactType: 'customer support',
+        availableLanguage: ['English', 'Bengali'],
+      },
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'Badda Link Road',
+        addressLocality: 'Gulshan',
+        addressRegion: 'Dhaka',
+        postalCode: '1212',
+        addressCountry: 'BD',
+      },
+    },
+  ],
 };
 
 const siteNavigationSchema = {
@@ -108,47 +148,54 @@ const siteNavigationSchema = {
       '@type': 'SiteNavigationElement',
       position: 1,
       name: 'Become a Merchant',
-      description: 'Get your branded e-commerce website up and running in minutes.',
+      description: 'Register as a merchant on MASH ECO. Create your branded online store in minutes with zero coding required.',
       url: 'https://www.masheco.com/register',
     },
     {
       '@type': 'SiteNavigationElement',
       position: 2,
-      name: 'Merchant Login',
-      description: 'Log in to your MASH ECO merchant dashboard.',
-      url: 'https://www.masheco.com/login',
+      name: 'MASH ECO Affiliate Partner Program',
+      description: 'Join the official MASH ECO Affiliate Partner Program at affiliate.masheco.com and earn 30% recurring commission.',
+      url: 'https://www.masheco.com/landing/affiliate',
     },
     {
       '@type': 'SiteNavigationElement',
       position: 3,
-      name: 'Documentation',
-      description: 'Platform documentation, custom domain DNS guide, and courier automation.',
-      url: 'https://www.masheco.com/landing/documentation',
+      name: 'About Us',
+      description: 'Learn about MASH ECO — Bangladesh’s leading all-in-one e-commerce store builder and merchant platform.',
+      url: 'https://www.masheco.com/landing/about-us',
     },
     {
       '@type': 'SiteNavigationElement',
       position: 4,
-      name: 'Contact Us',
-      description: 'Get in touch with the MASH ECO support and sales team.',
+      name: 'Contact',
+      description: 'Get in touch with the MASH ECO team. We are here to help you launch and scale your online store.',
       url: 'https://www.masheco.com/landing/contact',
     },
     {
       '@type': 'SiteNavigationElement',
       position: 5,
-      name: 'About Us',
-      description: 'Learn about MASH ECO — Bangladesh all-in-one e-commerce store builder and business platform.',
-      url: 'https://www.masheco.com/landing/about-us',
+      name: 'Blog & E-Commerce Guides',
+      description: 'Insights, updates, courier strategies, and proven tactics to scale your online store in Bangladesh.',
+      url: 'https://www.masheco.com/landing/blog',
     },
     {
       '@type': 'SiteNavigationElement',
       position: 6,
+      name: 'Documentation',
+      description: 'Platform documentation, custom domain DNS guide, and courier automation setup.',
+      url: 'https://www.masheco.com/landing/documentation',
+    },
+    {
+      '@type': 'SiteNavigationElement',
+      position: 7,
       name: 'Terms of Service',
       description: 'Review the MASH ECO Terms of Service and merchant governance policies.',
       url: 'https://www.masheco.com/landing/terms-of-service',
     },
     {
       '@type': 'SiteNavigationElement',
-      position: 7,
+      position: 8,
       name: 'Privacy Policy',
       description: 'MASH ECO Privacy Policy, data protection, and account deletion procedures.',
       url: 'https://www.masheco.com/landing/privacy-policy',
@@ -164,11 +211,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${righteous.variable} h-full antialiased`}>
       <head>
-        {/* Explicit Site Name Signals for Google Search */}
-        <meta name="application-name" content="MASH ECO" />
-        <meta name="apple-mobile-web-app-title" content="MASH ECO" />
-        <meta property="og:site_name" content="MASH ECO" />
-
         {/* Explicit Favicons for Googlebot-Image, Google Favicon & Browsers */}
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="192x192" href="/masheco-logo.png" />
@@ -177,11 +219,7 @@ export default function RootLayout({
 
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(platformGraphSchema) }}
         />
         <script
           type="application/ld+json"

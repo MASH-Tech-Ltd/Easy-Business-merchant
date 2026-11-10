@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import AuthSupportButton from '@/components/AuthSupportButton';
 
 export const metadata: Metadata = {
-  title: 'Become a Merchant | MASH ECO',
+  title: 'Become a Merchant',
   description: 'Register as a merchant on MASH ECO. Create your branded online store in minutes with zero coding required. Get started with a free trial today.',
   keywords: 'MASH ECO register, become a merchant, create online store, sell online Bangladesh, ecommerce Bangladesh',
   openGraph: {

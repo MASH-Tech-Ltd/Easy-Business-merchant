@@ -15,7 +15,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Blog & E-Commerce Guides | MASH ECO",
+  title: "Blog & E-Commerce Guides",
   description:
     "The Merchant's Journal — Insights, updates, courier strategies, and proven tactics to help you scale your online store in Bangladesh.",
   keywords: [

@@ -51,13 +51,13 @@ export default function HeroSection({ packages = [] }: HeroSectionProps) {
         </div>
 
         <h1 className="text-3xl sm:text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 mb-6 sm:mb-8 leading-tight">
-          One Platform <br/> 
+          <span className="sr-only">MASH ECO – </span>One Platform <br/> 
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#122846] via-[#0284c7] to-[#0ea5e9]">
             Thousands of Success Stories
           </span>
         </h1>
         <p className="mt-4 max-w-2xl mx-auto text-base sm:text-xl text-gray-600 mb-8 sm:mb-10">
-          Take your business online at the <strong className="text-[#122846] font-bold">lowest price in Bangladesh</strong>. Setup your automated e-commerce store with just a few clicks. No coding required.
+          Take your business online with <strong className="text-[#122846] font-bold">MASH ECO</strong> at the <strong className="text-[#122846] font-bold">lowest price in Bangladesh</strong>. Setup your automated e-commerce store with just a few clicks. No coding required.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

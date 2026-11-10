@@ -214,13 +214,11 @@ export async function generateMetadata({
   const article = await getArticleBySlug(slug);
 
   if (!article) {
-    return {
-      title: "Article Not Found | MASH ECO Blog",
-    };
+    notFound();
   }
 
   return {
-    title: `${article.title} | MASH ECO Blog`,
+    title: article.title,
     description: article.excerpt,
     keywords: ["MASH ECO Blog", article.category, ...(article.tags || [])].join(", "),
     openGraph: {

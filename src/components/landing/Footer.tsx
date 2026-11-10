@@ -8,7 +8,7 @@ const footerNavigation = {
     { name: 'Contact', href: '/landing/contact' },
   ],
   merchant: [
-    { name: 'Become a Partner', href: '/register' },
+    { name: 'Become a Merchant', href: '/register' },
     { name: 'Merchant Login', href: '/login' },
     { name: 'Affiliate Portal', href: process.env.NEXT_PUBLIC_AFFILIATE_URL || 'https://affiliate.masheco.com' },
     { name: 'Documentation', href: '/landing/documentation' },

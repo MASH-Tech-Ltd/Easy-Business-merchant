@@ -149,11 +149,16 @@ export default async function LandingPage() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
+    "@id": "https://www.masheco.com/#software",
     name: "MASH ECO",
+    alternateName: ["Mash Eco", "MashEco", "masheco"],
     applicationCategory: "BusinessApplication",
     operatingSystem: "Any",
-    url: "https://www.masheco.com",
+    url: "https://www.masheco.com/",
     image: "https://www.masheco.com/masheco-logo.png",
+    publisher: {
+      "@id": "https://www.masheco.com/#organization",
+    },
     offers: packages.map((pkg) => {
       const label = pkg.billingCycle === "yearly" ? "Yearly" : pkg.billingCycle === "monthly" ? "Monthly" : "";
       return {
@@ -168,39 +173,11 @@ export default async function LandingPage() {
       "MASH ECO is an all-in-one platform for Bangladeshi merchants to build, manage, and scale an online store with inventory, courier automation, and fraud checks, no coding required.",
   };
 
-  const organizationJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "MASH ECO",
-    alternateName: ["MashEco", "Mash Eco"],
-    url: "https://www.masheco.com",
-    logo: "https://www.masheco.com/masheco-logo.png",
-    description:
-      "MASH ECO is an all-in-one e-commerce store builder and business platform for merchants in Bangladesh.",
-    contactPoint: {
-      "@type": "ContactPoint",
-      contactType: "customer support",
-      availableLanguage: ["English", "Bengali"],
-    },
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "Badda Link Road",
-      addressLocality: "Gulshan",
-      addressRegion: "Dhaka",
-      postalCode: "1212",
-      addressCountry: "BD",
-    },
-  };
-
   return (
     <div className="min-h-screen bg-white">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
       />
       <TrialPromoModal />
       <Navbar />

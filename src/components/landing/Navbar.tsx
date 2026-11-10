@@ -12,6 +12,7 @@ export default function Navbar() {
   const isHome = pathname === '/';
   const isAffiliate = pathname?.startsWith('/landing/affiliate');
   const isBlog = pathname?.startsWith('/landing/blog');
+  const isAbout = pathname?.startsWith('/landing/about-us');
   const isContact = pathname?.startsWith('/landing/contact');
 
   return (
@@ -72,6 +73,18 @@ export default function Navbar() {
             >
               <span>Blog</span>
               {isBlog && (
+                <span className="absolute -bottom-2 left-0 right-0 h-[2.5px] bg-[#0284c7] rounded-full shadow-xs shadow-[#0284c7]/40" />
+              )}
+            </Link>
+
+            <Link
+              href="/landing/about-us"
+              className={`relative py-1 text-sm transition-colors ${
+                isAbout ? "text-[#0284c7] font-bold" : "text-gray-600 hover:text-slate-900 font-medium"
+              }`}
+            >
+              <span>About Us</span>
+              {isAbout && (
                 <span className="absolute -bottom-2 left-0 right-0 h-[2.5px] bg-[#0284c7] rounded-full shadow-xs shadow-[#0284c7]/40" />
               )}
             </Link>
@@ -140,6 +153,15 @@ export default function Navbar() {
               }`}
             >
               Blog
+            </Link>
+            <Link
+              href="/landing/about-us"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`px-3 py-2 rounded-xl text-base transition-colors ${
+                isAbout ? "bg-sky-50 text-[#0284c7] font-bold border-l-4 border-[#0284c7]" : "text-gray-700 hover:bg-gray-50 font-medium"
+              }`}
+            >
+              About Us
             </Link>
             <Link
               href="/landing/contact"
