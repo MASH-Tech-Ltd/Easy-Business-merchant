@@ -26,6 +26,7 @@ import {
   Zap,
   Eye,
   ExternalLink,
+  MessageCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../../utils/api";
@@ -165,6 +166,31 @@ function ThemesContent() {
   >(globalThemeCache?.bannerExistingImages || []);
   const [bannerErrors, setBannerErrors] = useState<Record<string, string>>({});
 
+  const [chatWidget, setChatWidget] = useState<{
+    enabled: boolean;
+    whatsappEnabled: boolean;
+    whatsappNumber: string;
+    whatsappMessage: string;
+    messengerEnabled: boolean;
+    messengerUsername: string;
+    autoOpen: boolean;
+    displayStyle: "expandable" | "stacked";
+    greetingText: string;
+  }>(
+    globalThemeCache?.chatWidget || {
+      enabled: false,
+      whatsappEnabled: false,
+      whatsappNumber: "",
+      whatsappMessage:
+        "Hello! I have a question about a product on your store.",
+      messengerEnabled: false,
+      messengerUsername: "",
+      autoOpen: false,
+      displayStyle: "expandable",
+      greetingText: "Need help? Chat with us!",
+    },
+  );
+
   const [loading, setLoading] = useState(!globalThemeCache);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("template");
@@ -235,9 +261,14 @@ function ThemesContent() {
   useEffect(() => {
     if (
       tabParam &&
-      ["template", "customization", "banner", "footer", "shipping"].includes(
-        tabParam,
-      )
+      [
+        "template",
+        "customization",
+        "banner",
+        "footer",
+        "shipping",
+        "chat",
+      ].includes(tabParam)
     ) {
       setActiveTab(tabParam);
     }
@@ -374,6 +405,28 @@ function ThemesContent() {
         setBannerPreviewUrls(existingImgs.map((img) => img.secure_url));
         setBannerImagesFiles([]);
 
+        const newChatWidget = {
+          enabled: Boolean(themeData.chatWidget?.enabled),
+          whatsappEnabled: Boolean(themeData.chatWidget?.whatsappEnabled),
+          whatsappNumber:
+            themeData.chatWidget?.whatsappNumber || contactPhone || "",
+          whatsappMessage:
+            themeData.chatWidget?.whatsappMessage ||
+            "Hello! I have a question about a product on your store.",
+          messengerEnabled: Boolean(themeData.chatWidget?.messengerEnabled),
+          messengerUsername:
+            themeData.chatWidget?.messengerUsername ||
+            themeData.footer?.socialLinks?.facebook ||
+            "",
+          autoOpen: Boolean(themeData.chatWidget?.autoOpen),
+          displayStyle: (themeData.chatWidget?.displayStyle === "stacked"
+            ? "stacked"
+            : "expandable") as "expandable" | "stacked",
+          greetingText:
+            themeData.chatWidget?.greetingText || "Need help? Chat with us!",
+        };
+        setChatWidget(newChatWidget);
+
         // Save to global cache
         globalThemeCache = {
           activeTheme: dbTheme,
@@ -388,6 +441,7 @@ function ThemesContent() {
           currencySymbol: themeData.currencySymbol || "৳",
           footer: newFooter,
           banner: newBanner,
+          chatWidget: newChatWidget,
           bannerPreviewUrls: existingImgs.map((img) => img.secure_url),
           bannerExistingImages: existingImgs,
           defaultShippingCost: themeData.defaultShippingCost ?? 120,
@@ -549,6 +603,7 @@ function ThemesContent() {
           },
           shippingZones,
           defaultShippingCost,
+          chatWidget,
         }),
       );
 
@@ -621,7 +676,7 @@ function ThemesContent() {
         </div>
       </div>
 
-      <div className="flex flex-col pb-24">
+      <div className="flex flex-col pb-32">
         {/* Tabs Navigation */}
         <div className="flex flex-nowrap sm:flex-wrap justify-start items-center gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-gray-50/80 p-1.5 sm:p-2 rounded-xl border border-gray-100 shadow-sm w-full overflow-x-auto">
           {[
@@ -634,6 +689,11 @@ function ThemesContent() {
             { id: "banner", label: "Banner Settings", icon: ImageIcon },
             { id: "footer", label: "Footer & Policies", icon: Type },
             { id: "shipping", label: "Shipping", icon: Truck },
+            {
+              id: "chat",
+              label: "Live Chat (WhatsApp & Messenger)",
+              icon: MessageCircle,
+            },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -2032,22 +2092,345 @@ function ThemesContent() {
               </div>
             </Card>
           )}
+
+          {/* Live Chat (WhatsApp & Messenger) Settings Tab */}
+          {activeTab === "chat" && (
+            <Card
+              id="chat-section"
+              className="border-0 shadow-lg shadow-gray-200/50 rounded-2xl overflow-hidden bg-white/80 backdrop-blur-xl h-full mb-0"
+            >
+              {/* Top Header */}
+              <div className="border-b border-gray-100 bg-gray-50/70 p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3.5">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-[#25D366] to-[#006AFF] text-white shadow-sm shrink-0">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="w-6 h-6"
+                      aria-hidden="true"
+                    >
+                      <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.758.459 3.473 1.331 4.988L2 22l5.169-1.356a9.927 9.927 0 0 0 4.862 1.262h.004c5.515 0 9.969-4.453 9.969-9.969 0-2.663-1.037-5.168-2.92-7.051A9.905 9.905 0 0 0 12.031 2zm5.822 14.28c-.246.693-1.425 1.326-1.979 1.411-.506.077-1.147.109-1.852-.115-.428-.136-.977-.318-1.678-.621-2.952-1.275-4.881-4.246-5.028-4.443-.147-.197-1.2-1.597-1.2-3.047 0-1.45.759-2.163 1.029-2.458.27-.295.59-.369.786-.369.197 0 .393.002.565.01.181.009.424-.069.663.507.246.59.836 2.04.909 2.187.074.148.123.32.025.516-.098.197-.148.32-.295.492-.147.172-.31.384-.442.516-.148.147-.302.307-.13.602.172.295.764 1.26 1.64 2.041 1.127 1.004 2.077 1.316 2.372 1.463.295.148.467.123.639-.074.172-.197.737-.86.934-1.155.197-.295.393-.246.664-.148.27.098 1.721.811 2.016.959.295.147.492.221.565.344.074.123.074.713-.173 1.406z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
+                      Messenger & WhatsApp Chat
+                    </h2>
+                    <p className="text-xs text-gray-500 font-medium mt-0.5 leading-relaxed">
+                      Floating live chat buttons in the bottom-right corner of your storefront
+                    </p>
+                  </div>
+                </div>
+
+                {/* Master Toggle */}
+                <label className="flex items-center justify-between sm:justify-start gap-3 cursor-pointer bg-white px-3.5 py-2.5 rounded-xl border border-gray-200 shadow-2xs w-full sm:w-auto shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        chatWidget.enabled ? "bg-emerald-500" : "bg-gray-300"
+                      }`}
+                    />
+                    <span className="text-xs sm:text-sm font-bold text-gray-800">
+                      {chatWidget.enabled ? "Widget Active" : "Widget Disabled"}
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={chatWidget.enabled}
+                    onChange={(e) =>
+                      setChatWidget((prev) => ({
+                        ...prev,
+                        enabled: e.target.checked,
+                      }))
+                    }
+                  />
+                  <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600 shrink-0" />
+                </label>
+              </div>
+
+              <div className="p-3.5 sm:p-6 space-y-5 sm:space-y-7">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  {/* WhatsApp Configuration */}
+                  <div
+                    className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-4 ${
+                      chatWidget.whatsappEnabled
+                        ? "border-emerald-200 bg-emerald-50/30 shadow-2xs"
+                        : "border-gray-200 bg-gray-50/40"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {/* Real Official WhatsApp Brand Icon */}
+                        <div className="w-11 h-11 rounded-2xl bg-[#25D366] text-white flex items-center justify-center shadow-sm shrink-0">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="w-6 h-6"
+                            aria-hidden="true"
+                          >
+                            <path d="M12.031 2c-5.516 0-9.969 4.453-9.969 9.969 0 1.758.459 3.473 1.331 4.988L2 22l5.169-1.356a9.927 9.927 0 0 0 4.862 1.262h.004c5.515 0 9.969-4.453 9.969-9.969 0-2.663-1.037-5.168-2.92-7.051A9.905 9.905 0 0 0 12.031 2zm5.822 14.28c-.246.693-1.425 1.326-1.979 1.411-.506.077-1.147.109-1.852-.115-.428-.136-.977-.318-1.678-.621-2.952-1.275-4.881-4.246-5.028-4.443-.147-.197-1.2-1.597-1.2-3.047 0-1.45.759-2.163 1.029-2.458.27-.295.59-.369.786-.369.197 0 .393.002.565.01.181.009.424-.069.663.507.246.59.836 2.04.909 2.187.074.148.123.32.025.516-.098.197-.148.32-.295.492-.147.172-.31.384-.442.516-.148.147-.302.307-.13.602.172.295.764 1.26 1.64 2.041 1.127 1.004 2.077 1.316 2.372 1.463.295.148.467.123.639-.074.172-.197.737-.86.934-1.155.197-.295.393-.246.664-.148.27.098 1.721.811 2.016.959.295.147.492.221.565.344.074.123.074.713-.173 1.406z" />
+                          </svg>
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-bold text-gray-900">
+                            WhatsApp Chat
+                          </h4>
+                          <p className="text-xs text-gray-500 leading-snug">
+                            Direct customer chat via WhatsApp
+                          </p>
+                        </div>
+                      </div>
+                      <label className="inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={chatWidget.whatsappEnabled}
+                          onChange={(e) =>
+                            setChatWidget((prev) => ({
+                              ...prev,
+                              whatsappEnabled: e.target.checked,
+                              enabled: e.target.checked ? true : prev.enabled,
+                            }))
+                          }
+                        />
+                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#25D366]" />
+                      </label>
+                    </div>
+
+                    <div className="space-y-4 pt-1">
+                      <div>
+                        <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
+                          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                            WhatsApp Number or Link
+                          </label>
+                          {footer.contactInfo.phone && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setChatWidget((prev) => ({
+                                  ...prev,
+                                  whatsappNumber: footer.contactInfo.phone,
+                                }))
+                              }
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-100/80 hover:bg-emerald-100 text-[11px] font-bold text-emerald-800 transition-colors"
+                            >
+                              Use Store Phone ({footer.contactInfo.phone})
+                            </button>
+                          )}
+                        </div>
+                        <Input
+                          type="text"
+                          value={chatWidget.whatsappNumber}
+                          onChange={(e) =>
+                            setChatWidget((prev) => ({
+                              ...prev,
+                              whatsappNumber: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. 017XXXXXXXX or +88017XXXXXXXX"
+                        />
+                        <p className="text-[11px] text-gray-500 mt-1.5 leading-relaxed">
+                          11-digit BD numbers (01XXXXXXXXX) are automatically converted to +880 format.
+                        </p>
+                      </div>
+
+                      <Input
+                        label="Pre-filled Customer Message"
+                        type="text"
+                        value={chatWidget.whatsappMessage}
+                        onChange={(e) =>
+                          setChatWidget((prev) => ({
+                            ...prev,
+                            whatsappMessage: e.target.value,
+                          }))
+                        }
+                        placeholder="Hello! I have a question about a product on your store."
+                      />
+                    </div>
+                  </div>
+
+                  {/* Messenger Configuration */}
+                  <div
+                    className={`p-4 sm:p-5 rounded-2xl border transition-all space-y-4 ${
+                      chatWidget.messengerEnabled
+                        ? "border-blue-200 bg-blue-50/30 shadow-2xs"
+                        : "border-gray-200 bg-gray-50/40"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {/* Real Official Facebook Messenger Brand Icon */}
+                        <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#006AFF] to-[#00B2FF] text-white flex items-center justify-center shadow-sm shrink-0">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            className="w-6 h-6"
+                            aria-hidden="true"
+                          >
+                            <path d="M12 2C6.36 2 2 6.13 2 11.7c0 2.91 1.19 5.44 3.14 7.17.16.14.26.35.27.57l.05 1.78c.02.57.61.94 1.13.71l1.98-.87c.17-.07.36-.1.55-.06.91.25 1.87.38 2.88.38 5.64 0 10-4.13 10-9.7C22 6.13 17.64 2 12 2zm5.95 7.56-2.93 4.65c-.47.74-1.47.92-2.17.4l-2.34-1.75a.6.6 0 0 0-.72 0l-3.16 2.4c-.42.32-.97-.18-.69-.63l2.93-4.65c.47-.74 1.47-.92 2.17-.4l2.34 1.75a.6.6 0 0 0 .72 0l3.16-2.4c.42-.32.97.18.69.63z" />
+                          </svg>
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-bold text-gray-900">
+                            Facebook Messenger
+                          </h4>
+                          <p className="text-xs text-gray-500 leading-snug">
+                            Direct customer chat via Messenger
+                          </p>
+                        </div>
+                      </div>
+                      <label className="inline-flex items-center cursor-pointer shrink-0">
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={chatWidget.messengerEnabled}
+                          onChange={(e) =>
+                            setChatWidget((prev) => ({
+                              ...prev,
+                              messengerEnabled: e.target.checked,
+                              enabled: e.target.checked ? true : prev.enabled,
+                            }))
+                          }
+                        />
+                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#006AFF]" />
+                      </label>
+                    </div>
+
+                    <div className="space-y-4 pt-1">
+                      <div>
+                        <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
+                          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                            Page Username or Facebook Link
+                          </label>
+                          {footer.socialLinks.facebook && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setChatWidget((prev) => ({
+                                  ...prev,
+                                  messengerUsername: footer.socialLinks.facebook,
+                                }))
+                              }
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-100/80 hover:bg-blue-100 text-[11px] font-bold text-blue-700 transition-colors"
+                            >
+                              Use Store Facebook Link
+                            </button>
+                          )}
+                        </div>
+                        <Input
+                          type="text"
+                          value={chatWidget.messengerUsername}
+                          onChange={(e) =>
+                            setChatWidget((prev) => ({
+                              ...prev,
+                              messengerUsername: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. mashiatfashion or https://facebook.com/mashiatfashion"
+                        />
+                        <p className="text-[11px] text-gray-500 mt-1.5 leading-relaxed">
+                          Paste your Facebook Page URL, m.me link, or Page username—customers will be redirected directly to Messenger.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Behavior & Display Style */}
+                <div className="p-4 sm:p-5 rounded-2xl border border-gray-200 bg-gray-50/50 space-y-4">
+                  <h4 className="text-sm font-bold text-gray-900 border-b border-gray-200/70 pb-2.5">
+                    Widget Behavior & Corner Appearance
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
+                        Corner Button Style
+                      </label>
+                      <Select
+                        value={chatWidget.displayStyle}
+                        onChange={(e) =>
+                          setChatWidget((prev) => ({
+                            ...prev,
+                            displayStyle: e.target.value as
+                              | "expandable"
+                              | "stacked",
+                          }))
+                        }
+                        options={[
+                          {
+                            label: "Expandable Popup Card (Recommended)",
+                            value: "expandable",
+                          },
+                          {
+                            label: "Stacked Direct Buttons (1-Click Redirect)",
+                            value: "stacked",
+                          },
+                        ]}
+                      />
+                    </div>
+
+                    <div>
+                      <Input
+                        label="Greeting / Popup Prompt"
+                        type="text"
+                        value={chatWidget.greetingText}
+                        onChange={(e) =>
+                          setChatWidget((prev) => ({
+                            ...prev,
+                            greetingText: e.target.value,
+                          }))
+                        }
+                        placeholder="Need help? Chat with us!"
+                      />
+                    </div>
+
+                    <div className="flex flex-col justify-end">
+                      <label className="flex items-center justify-between gap-3 p-3.5 bg-white rounded-xl border border-gray-200 cursor-pointer">
+                        <div className="min-w-0">
+                          <span className="block text-xs font-bold text-gray-900">
+                            Auto-Open on Store Visit
+                          </span>
+                          <span className="block text-[11px] text-gray-500 leading-snug mt-0.5">
+                            Automatically opens chat prompt after 2 seconds
+                          </span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={chatWidget.autoOpen}
+                          onChange={(e) =>
+                            setChatWidget((prev) => ({
+                              ...prev,
+                              autoOpen: e.target.checked,
+                            }))
+                          }
+                        />
+                        <div className="relative w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 shrink-0" />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
 
       {/* Floating Action Bar */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-auto md:right-10 z-50">
-        <div className="bg-white/90 backdrop-blur-xl p-3 md:p-4 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100/50 flex items-center gap-4">
-          <p className="text-sm text-gray-500 font-medium ml-2 hidden sm:block">
+      <div className="fixed bottom-4 sm:bottom-6 inset-x-4 sm:inset-x-auto sm:right-8 z-50 flex justify-center sm:justify-end pointer-events-none">
+        <div className="pointer-events-auto bg-white/95 backdrop-blur-xl p-2 sm:p-3.5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.14)] border border-gray-200/70 flex items-center gap-3 w-full max-w-xs sm:max-w-none sm:w-auto">
+          <p className="text-xs sm:text-sm text-gray-500 font-medium ml-2 hidden md:block whitespace-nowrap">
             Update theme to save changes
           </p>
           <button
             onClick={handleSaveTheme}
             disabled={saving}
-            className="px-6 md:px-8 py-3 text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:-translate-y-0.5 w-full md:w-auto"
+            className="px-5 sm:px-7 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-70 shadow-md shadow-indigo-500/25 hover:shadow-indigo-500/40 w-full sm:w-auto whitespace-nowrap cursor-pointer"
           >
-            <Save className="w-5 h-5" />
-            {saving ? "Saving Changes..." : "Save Theme Settings"}
+            <Save className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+            <span>{saving ? "Saving Changes..." : "Save Theme Settings"}</span>
           </button>
         </div>
       </div>
