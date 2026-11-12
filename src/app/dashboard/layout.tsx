@@ -29,6 +29,7 @@ import {
   CreditCard,
   GraduationCap,
   ShieldCheck,
+  PhoneOff,
   Handshake,
   ChevronRight,
   Globe,
@@ -616,6 +617,11 @@ export default function DashboardLayout({
           ...getSidebarItemProps("checkoutLeads"),
         },
         {
+          name: "Blocked Phones",
+          path: "/dashboard/blocked-phones",
+          icon: PhoneOff,
+        },
+        {
           name: "Notifications",
           path: "/dashboard/notifications",
           icon: Bell,
@@ -1065,6 +1071,8 @@ export default function DashboardLayout({
                                 ? "Fraud Check & Risk"
                                 : pathname === "/dashboard/checkout-leads"
                                   ? "Checkout Leads"
+                                  : pathname === "/dashboard/blocked-phones"
+                                    ? "Blocked Phone Numbers"
                                   : pathname === "/dashboard/themes"
                                     ? "Store Themes & Branding"
                                     : pathname === "/dashboard/subscription"
@@ -1118,6 +1126,8 @@ export default function DashboardLayout({
                                   ? "Monitor orders for fraud detection"
                                   : pathname === "/dashboard/checkout-leads"
                                     ? "Track abandoned checkout leads and recovered sales"
+                                    : pathname === "/dashboard/blocked-phones"
+                                      ? "Block specific customer phone numbers from ordering on your store"
                                     : pathname === "/dashboard/themes"
                                       ? "Customize your storefront appearance"
                                       : pathname === "/dashboard/subscription"

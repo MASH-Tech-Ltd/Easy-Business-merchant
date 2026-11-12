@@ -2,9 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Users, ChevronLeft, ChevronRight, ShieldCheck, ShoppingCart, CheckCircle, TrendingUp } from 'lucide-react';
+import { Search, Users, ChevronLeft, ChevronRight, ShieldCheck, ShoppingCart, CheckCircle, TrendingUp, PhoneOff, Package } from 'lucide-react';
 import { api } from '@/utils/api';
 import { toast } from 'react-hot-toast';
+
+interface CheckoutLeadItem {
+  productId?: string;
+  title: string;
+  price?: number;
+  quantity: number;
+  image?: string;
+  color?: string;
+  size?: string;
+}
 
 interface CheckoutLead {
   _id: string;
@@ -16,10 +26,19 @@ interface CheckoutLead {
   division?: string;
   district?: string;
   upazila?: string;
+  items?: CheckoutLeadItem[];
+  subTotal?: number;
   status: string;
   createdAt: string;
   updatedAt: string;
 }
+
+const normalizeBDPhone = (phone: string): string => {
+  const digits = (phone || '').replace(/[\s\-()]/g, '').trim();
+  if (digits.startsWith('+880')) return '0' + digits.slice(4);
+  if (digits.startsWith('880')) return '0' + digits.slice(3);
+  return digits;
+};
 
 export default function CheckoutLeadsPage() {
   const router = useRouter();
@@ -40,8 +59,10 @@ export default function CheckoutLeadsPage() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [timeframe, setTimeframe] = useState('allTime');
 
-  // Modals
+  // Modals & Phone Blocklist
   const [fraudErrorModal, setFraudErrorModal] = useState<{show: boolean, message: string} | null>(null);
+  const [blockedPhones, setBlockedPhones] = useState<Set<string>>(new Set());
+  const [togglingPhone, setTogglingPhone] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLeads();
@@ -49,7 +70,48 @@ export default function CheckoutLeadsPage() {
 
   useEffect(() => {
     fetchStats();
+    fetchBlockedPhones();
   }, []);
+
+  const fetchBlockedPhones = async () => {
+    try {
+      const res = await api.get('/blocked-phones', { params: { page: 1, limit: 100 } });
+      const list = res.data?.data?.data || [];
+      setBlockedPhones(new Set(list.map((b: any) => b.normalizedPhone)));
+    } catch {
+      // ignore silently
+    }
+  };
+
+  const handleToggleBlockPhone = async (lead: CheckoutLead) => {
+    if (!lead.phone) return;
+    const norm = normalizeBDPhone(lead.phone);
+    setTogglingPhone(norm);
+    try {
+      if (blockedPhones.has(norm)) {
+        await api.delete(`/blocked-phones/${encodeURIComponent(norm)}`);
+        setBlockedPhones((prev) => {
+          const next = new Set(prev);
+          next.delete(norm);
+          return next;
+        });
+        toast.success(`${lead.phone} unblocked`);
+      } else {
+        const customerName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim();
+        await api.post('/blocked-phones', {
+          phone: lead.phone,
+          customerName,
+          reason: 'Blocked from Checkout Leads',
+        });
+        setBlockedPhones((prev) => new Set(prev).add(norm));
+        toast.success(`${lead.phone} blocked for your store`);
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to update phone block status');
+    } finally {
+      setTogglingPhone(null);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -221,11 +283,51 @@ export default function CheckoutLeadsPage() {
                   {lead.district && `, ${lead.district}`}
                   {lead.division && `, ${lead.division}`}
                 </div>
-                <div className="mt-1 flex justify-between items-center pt-2 border-t border-gray-50">
-                  <div className="text-[9px] text-gray-400 uppercase tracking-wider font-bold">Time Tracked</div>
-                  <div className="text-xs font-medium text-gray-900 text-right">
-                    {new Date(lead.updatedAt).toLocaleDateString('en-GB')} {new Date(lead.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                {lead.items && lead.items.length > 0 && (
+                  <div className="bg-gray-50 border border-gray-100 rounded-lg p-2 space-y-1.5">
+                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                      <Package className="w-3 h-3 text-[#5022C3]" />
+                      Products ({lead.items.length})
+                    </div>
+                    {lead.items.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="text-gray-800 font-medium truncate">
+                          {item.title}
+                          {(item.color || item.size) && (
+                            <span className="text-gray-400 text-[10px] ml-1">
+                              ({[item.color, item.size].filter(Boolean).join('/')})
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-gray-600 shrink-0 font-semibold">
+                          ×{item.quantity}
+                          {item.price ? ` · ৳${(item.price * item.quantity).toLocaleString()}` : ''}
+                        </span>
+                      </div>
+                    ))}
                   </div>
+                )}
+                <div className="mt-1 flex justify-between items-center pt-2 border-t border-gray-50 gap-2">
+                  <div>
+                    <div className="text-[9px] text-gray-400 uppercase tracking-wider font-bold">Time Tracked</div>
+                    <div className="text-xs font-medium text-gray-900">
+                      {new Date(lead.updatedAt).toLocaleDateString('en-GB')} {new Date(lead.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                  </div>
+                  {lead.phone && (
+                    <button
+                      onClick={() => handleToggleBlockPhone(lead)}
+                      disabled={togglingPhone === normalizeBDPhone(lead.phone)}
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
+                        blockedPhones.has(normalizeBDPhone(lead.phone))
+                          ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
+                          : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                      }`}
+                    >
+                      <PhoneOff className="w-3 h-3" />
+                      {blockedPhones.has(normalizeBDPhone(lead.phone)) ? 'Blocked' : 'Block'}
+                    </button>
+                  )}
                 </div>
               </div>
             ))
@@ -239,22 +341,24 @@ export default function CheckoutLeadsPage() {
               <tr className="bg-gray-50 text-gray-600 text-xs uppercase tracking-wider border-b border-gray-200">
                 <th className="px-6 py-4 font-bold">Customer Name</th>
                 <th className="px-6 py-4 font-bold">Contact Info</th>
+                <th className="px-6 py-4 font-bold">Products</th>
                 <th className="px-6 py-4 font-bold">Location</th>
                 <th className="px-6 py-4 font-bold">Time Tracked</th>
                 <th className="px-6 py-4 font-bold">Status</th>
+                <th className="px-6 py-4 font-bold text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-20 text-gray-500">
+                  <td colSpan={7} className="text-center py-20 text-gray-500">
                     <div className="w-8 h-8 border-4 border-purple-200 border-t-[#5022C3] rounded-full animate-spin mx-auto mb-4"></div>
                     Loading leads...
                   </td>
                 </tr>
               ) : leads.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-20">
+                  <td colSpan={7} className="text-center py-20">
                     <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center text-[#5022C3] mb-4 mx-auto">
                       <Users className="w-8 h-8" />
                     </div>
@@ -272,6 +376,44 @@ export default function CheckoutLeadsPage() {
                       {lead.phone && <div className="text-sm text-gray-700 font-medium">{lead.phone}</div>}
                       {lead.email && <div className="text-xs text-gray-500 mt-0.5">{lead.email}</div>}
                     </td>
+                    <td className="px-6 py-4 max-w-[260px]">
+                      {lead.items && lead.items.length > 0 ? (
+                        <div className="space-y-1.5">
+                          {lead.items.slice(0, 3).map((item, idx) => (
+                            <div key={idx} className="flex items-center gap-2 text-xs">
+                              {item.image ? (
+                                <img
+                                  src={item.image}
+                                  alt={item.title}
+                                  className="w-7 h-7 rounded object-cover border border-gray-200 shrink-0"
+                                />
+                              ) : (
+                                <div className="w-7 h-7 rounded bg-purple-50 text-[#5022C3] flex items-center justify-center shrink-0">
+                                  <Package className="w-3.5 h-3.5" />
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium text-gray-800 truncate" title={item.title}>
+                                  {item.title}
+                                </div>
+                                <div className="text-[11px] text-gray-500">
+                                  Qty: {item.quantity}
+                                  {item.price ? ` · ৳${(item.price * item.quantity).toLocaleString()}` : ''}
+                                  {(item.color || item.size) && ` · ${[item.color, item.size].filter(Boolean).join('/')}`}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {lead.items.length > 3 && (
+                            <div className="text-[11px] text-[#5022C3] font-semibold">
+                              +{lead.items.length - 3} more item(s)
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-400">No items recorded</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 max-w-[200px]">
                       <div className="text-sm text-gray-700 truncate" title={lead.address}>
                         {lead.address}
@@ -288,6 +430,24 @@ export default function CheckoutLeadsPage() {
                       <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200 capitalize">
                         {lead.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {lead.phone ? (
+                        <button
+                          onClick={() => handleToggleBlockPhone(lead)}
+                          disabled={togglingPhone === normalizeBDPhone(lead.phone)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
+                            blockedPhones.has(normalizeBDPhone(lead.phone))
+                              ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
+                              : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                          }`}
+                        >
+                          <PhoneOff className="w-3.5 h-3.5" />
+                          {blockedPhones.has(normalizeBDPhone(lead.phone)) ? 'Blocked' : 'Block Phone'}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
                     </td>
                   </tr>
                 ))
