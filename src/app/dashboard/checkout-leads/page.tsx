@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Users, ChevronLeft, ChevronRight, ShieldCheck, ShoppingCart, CheckCircle, TrendingUp, PhoneOff, Package } from 'lucide-react';
+import { Search, Users, ChevronLeft, ChevronRight, ShieldCheck, ShoppingCart, CheckCircle, TrendingUp, PhoneOff, Package, Eye, X, Phone, Mail, MapPin, Copy, Clock } from 'lucide-react';
 import { api } from '@/utils/api';
 import { toast } from 'react-hot-toast';
 
@@ -61,6 +61,7 @@ export default function CheckoutLeadsPage() {
 
   // Modals & Phone Blocklist
   const [fraudErrorModal, setFraudErrorModal] = useState<{show: boolean, message: string} | null>(null);
+  const [selectedLead, setSelectedLead] = useState<CheckoutLead | null>(null);
   const [blockedPhones, setBlockedPhones] = useState<Set<string>>(new Set());
   const [togglingPhone, setTogglingPhone] = useState<string | null>(null);
 
@@ -284,28 +285,27 @@ export default function CheckoutLeadsPage() {
                   {lead.division && `, ${lead.division}`}
                 </div>
                 {lead.items && lead.items.length > 0 && (
-                  <div className="bg-gray-50 border border-gray-100 rounded-lg p-2 space-y-1.5">
-                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
-                      <Package className="w-3 h-3 text-[#5022C3]" />
-                      Products ({lead.items.length})
-                    </div>
-                    {lead.items.map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between gap-2 text-xs">
-                        <span className="text-gray-800 font-medium truncate">
-                          {item.title}
-                          {(item.color || item.size) && (
-                            <span className="text-gray-400 text-[10px] ml-1">
-                              ({[item.color, item.size].filter(Boolean).join('/')})
-                            </span>
-                          )}
-                        </span>
-                        <span className="text-gray-600 shrink-0 font-semibold">
-                          ×{item.quantity}
-                          {item.price ? ` · ৳${(item.price * item.quantity).toLocaleString()}` : ''}
-                        </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLead(lead)}
+                    className="w-full text-left bg-purple-50/50 hover:bg-purple-50 border border-purple-100 rounded-lg p-2.5 flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-7 h-7 rounded-md bg-white border border-purple-100 flex items-center justify-center text-[#5022C3] shrink-0">
+                        <Package className="w-3.5 h-3.5" />
                       </div>
-                    ))}
-                  </div>
+                      <div className="min-w-0">
+                        <div className="text-xs font-bold text-gray-900 truncate">
+                          {lead.items.length} {lead.items.length === 1 ? 'Product' : 'Products'}
+                          {typeof lead.subTotal === 'number' && lead.subTotal > 0 ? ` · ৳${lead.subTotal.toLocaleString()}` : ''}
+                        </div>
+                        <div className="text-[11px] text-gray-500 truncate">{lead.items[0]?.title}</div>
+                      </div>
+                    </div>
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5022C3] shrink-0">
+                      <Eye className="w-3.5 h-3.5" /> View
+                    </span>
+                  </button>
                 )}
                 <div className="mt-1 flex justify-between items-center pt-2 border-t border-gray-50 gap-2">
                   <div>
@@ -378,38 +378,39 @@ export default function CheckoutLeadsPage() {
                     </td>
                     <td className="px-6 py-4 max-w-[260px]">
                       {lead.items && lead.items.length > 0 ? (
-                        <div className="space-y-1.5">
-                          {lead.items.slice(0, 3).map((item, idx) => (
-                            <div key={idx} className="flex items-center gap-2 text-xs">
-                              {item.image ? (
-                                <img
-                                  src={item.image}
-                                  alt={item.title}
-                                  className="w-7 h-7 rounded object-cover border border-gray-200 shrink-0"
-                                />
-                              ) : (
-                                <div className="w-7 h-7 rounded bg-purple-50 text-[#5022C3] flex items-center justify-center shrink-0">
-                                  <Package className="w-3.5 h-3.5" />
-                                </div>
-                              )}
-                              <div className="min-w-0 flex-1">
-                                <div className="font-medium text-gray-800 truncate" title={item.title}>
-                                  {item.title}
-                                </div>
-                                <div className="text-[11px] text-gray-500">
-                                  Qty: {item.quantity}
-                                  {item.price ? ` · ৳${(item.price * item.quantity).toLocaleString()}` : ''}
-                                  {(item.color || item.size) && ` · ${[item.color, item.size].filter(Boolean).join('/')}`}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                          {lead.items.length > 3 && (
-                            <div className="text-[11px] text-[#5022C3] font-semibold">
-                              +{lead.items.length - 3} more item(s)
+                        <button
+                          type="button"
+                          onClick={() => setSelectedLead(lead)}
+                          className="w-full text-left flex items-center gap-2.5 p-2 rounded-xl border border-gray-200/80 bg-gray-50/70 hover:bg-purple-50/60 hover:border-[#5022C3]/35 transition-all cursor-pointer group/btn"
+                        >
+                          {lead.items[0]?.image ? (
+                            <img
+                              src={lead.items[0].image}
+                              alt={lead.items[0].title}
+                              className="w-9 h-9 rounded-lg object-cover border border-gray-200 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-lg bg-purple-100 text-[#5022C3] flex items-center justify-center shrink-0">
+                              <Package className="w-4 h-4" />
                             </div>
                           )}
-                        </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-xs font-bold text-gray-900 truncate group-hover/btn:text-[#5022C3] transition-colors">
+                              {lead.items[0]?.title}
+                            </div>
+                            <div className="text-[11px] text-gray-500 flex items-center gap-1.5 mt-0.5">
+                              <span className="font-semibold text-gray-700">
+                                {lead.items.length} {lead.items.length === 1 ? 'item' : 'items'}
+                              </span>
+                              {typeof lead.subTotal === 'number' && lead.subTotal > 0 && (
+                                <span>· ৳{lead.subTotal.toLocaleString()}</span>
+                              )}
+                              <span className="text-[#5022C3] font-semibold inline-flex items-center gap-0.5 ml-auto">
+                                <Eye className="w-3 h-3" /> View
+                              </span>
+                            </div>
+                          </div>
+                        </button>
                       ) : (
                         <span className="text-xs text-gray-400">No items recorded</span>
                       )}
@@ -533,6 +534,204 @@ export default function CheckoutLeadsPage() {
                 className="flex-1 py-3 text-sm font-bold bg-[#5022C3] text-white hover:bg-[#401b9c] rounded-xl transition-colors shadow-md"
               >
                 Purchase Add-on
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Premium Lead & Products Modal */}
+      {selectedLead && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/60 backdrop-blur-sm p-4"
+          onClick={() => setSelectedLead(null)}
+        >
+          <div
+            className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Gradient Header */}
+            <div className="bg-gradient-to-r from-[#5022C3] to-[#6D38EB] px-6 py-5 text-white flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h2 className="text-lg font-bold tracking-tight">
+                    {`${selectedLead.firstName || ''} ${selectedLead.lastName || ''}`.trim() || 'Guest Customer'}
+                  </h2>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                    selectedLead.status === 'completed'
+                      ? 'bg-emerald-400/20 text-emerald-100 border border-emerald-300/30'
+                      : 'bg-amber-400/20 text-amber-100 border border-amber-300/30'
+                  }`}>
+                    {selectedLead.status}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-purple-100 mt-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>
+                    Last updated {new Date(selectedLead.updatedAt).toLocaleDateString('en-GB')} at{' '}
+                    {new Date(selectedLead.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedLead(null)}
+                className="w-8 h-8 rounded-lg bg-white/15 hover:bg-white/25 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 overflow-y-auto space-y-5">
+              {/* Customer Contact & Shipping */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-gray-50 border border-gray-100 rounded-xl p-3.5 space-y-2">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Contact Information</div>
+                  {selectedLead.phone ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <a
+                        href={`tel:${selectedLead.phone}`}
+                        className="inline-flex items-center gap-2 text-sm font-bold text-gray-900 hover:text-[#5022C3] transition-colors"
+                      >
+                        <Phone className="w-3.5 h-3.5 text-[#5022C3]" />
+                        {selectedLead.phone}
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(selectedLead.phone || '');
+                          toast.success('Phone number copied');
+                        }}
+                        className="text-xs text-gray-400 hover:text-[#5022C3] p-1 rounded cursor-pointer"
+                        title="Copy phone"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-400">No phone provided</div>
+                  )}
+                  {selectedLead.email && (
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                      <span className="truncate">{selectedLead.email}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-gray-50 border border-gray-100 rounded-xl p-3.5 space-y-1.5">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Delivery Location</div>
+                  <div className="flex items-start gap-2 text-xs text-gray-700 leading-relaxed">
+                    <MapPin className="w-3.5 h-3.5 text-[#5022C3] shrink-0 mt-0.5" />
+                    <span>
+                      {[selectedLead.address, selectedLead.upazila, selectedLead.district, selectedLead.division]
+                        .filter(Boolean)
+                        .join(', ') || 'No address recorded'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cart Items */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
+                    <ShoppingCart className="w-3.5 h-3.5 text-[#5022C3]" />
+                    Cart Products ({selectedLead.items?.length || 0})
+                  </h3>
+                  {typeof selectedLead.subTotal === 'number' && selectedLead.subTotal > 0 && (
+                    <span className="text-xs font-bold text-[#5022C3] bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-100">
+                      Subtotal: ৳{selectedLead.subTotal.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+
+                {selectedLead.items && selectedLead.items.length > 0 ? (
+                  <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden bg-white">
+                    {selectedLead.items.map((item, idx) => {
+                      const lineTotal = (item.price || 0) * (item.quantity || 1);
+                      return (
+                        <div key={idx} className="p-3.5 flex items-center gap-3.5 hover:bg-gray-50/60 transition-colors">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-xl bg-purple-50 text-[#5022C3] flex items-center justify-center shrink-0">
+                              <Package className="w-5 h-5" />
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-semibold text-gray-900 leading-snug">{item.title}</div>
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                              {item.color && (
+                                <span className="text-[11px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md font-medium">
+                                  Color: {item.color}
+                                </span>
+                              )}
+                              {item.size && (
+                                <span className="text-[11px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md font-medium">
+                                  Size: {item.size}
+                                </span>
+                              )}
+                              <span className="text-xs text-gray-500">
+                                {item.price ? `৳${item.price.toLocaleString()} × ${item.quantity}` : `Qty: ${item.quantity}`}
+                              </span>
+                            </div>
+                          </div>
+                          {lineTotal > 0 && (
+                            <div className="text-sm font-bold text-gray-900 shrink-0">
+                              ৳{lineTotal.toLocaleString()}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-xs text-gray-500">
+                    No cart items recorded for this lead.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                {selectedLead.phone && (
+                  <>
+                    <a
+                      href={`tel:${selectedLead.phone}`}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-sm"
+                    >
+                      <Phone className="w-3.5 h-3.5" />
+                      Call Customer
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleBlockPhone(selectedLead)}
+                      disabled={togglingPhone === normalizeBDPhone(selectedLead.phone)}
+                      className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
+                        blockedPhones.has(normalizeBDPhone(selectedLead.phone))
+                          ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
+                          : 'bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                      }`}
+                    >
+                      <PhoneOff className="w-3.5 h-3.5" />
+                      {blockedPhones.has(normalizeBDPhone(selectedLead.phone)) ? 'Unblock Phone' : 'Block Phone'}
+                    </button>
+                  </>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedLead(null)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-gray-700 bg-white border border-gray-200 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>
