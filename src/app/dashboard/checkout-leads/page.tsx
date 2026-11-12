@@ -53,6 +53,7 @@ export default function CheckoutLeadsPage() {
   const [limitReached, setLimitReached] = useState(false);
   
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'abandoned' | 'completed'>('all');
 
   // Stats
   const [stats, setStats] = useState<any>(null);
@@ -64,10 +65,11 @@ export default function CheckoutLeadsPage() {
   const [selectedLead, setSelectedLead] = useState<CheckoutLead | null>(null);
   const [blockedPhones, setBlockedPhones] = useState<Set<string>>(new Set());
   const [togglingPhone, setTogglingPhone] = useState<string | null>(null);
+  const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLeads();
-  }, [page, search]);
+  }, [page, search, statusFilter]);
 
   useEffect(() => {
     fetchStats();
@@ -114,6 +116,26 @@ export default function CheckoutLeadsPage() {
     }
   };
 
+  const handleToggleLeadStatus = async (lead: CheckoutLead) => {
+    const nextStatus = lead.status === 'completed' ? 'abandoned' : 'completed';
+    setUpdatingLeadId(lead._id);
+    try {
+      await api.patch(`/checkout-leads/${lead._id}/status`, { status: nextStatus });
+      setLeads((prev) =>
+        prev
+          .map((item) => (item._id === lead._id ? { ...item, status: nextStatus } : item))
+          .filter((item) => statusFilter === 'all' || item.status === statusFilter)
+      );
+      setSelectedLead((prev) => (prev && prev._id === lead._id ? { ...prev, status: nextStatus } : prev));
+      fetchStats();
+      toast.success(nextStatus === 'completed' ? 'Lead marked as recovered' : 'Lead moved back to abandoned');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to update lead status');
+    } finally {
+      setUpdatingLeadId(null);
+    }
+  };
+
   const fetchStats = async () => {
     try {
       setStatsLoading(true);
@@ -130,7 +152,7 @@ export default function CheckoutLeadsPage() {
     setLoading(true);
     try {
       const response = await api.get('/checkout-leads/my-leads', {
-        params: { page, limit, search }
+        params: { page, limit, search, status: statusFilter }
       });
       const newLeads = response.data.data?.data || [];
       const newTotalPages = response.data.data?.meta?.totalPages || 1;
@@ -225,10 +247,36 @@ export default function CheckoutLeadsPage() {
               type="text"
               placeholder="Search by customer name or phone..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               onKeyDown={(e) => e.key === 'Enter' && fetchLeads()}
               className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#5022C3] focus:ring-1 focus:ring-[#5022C3] w-full bg-white transition-all"
             />
+          </div>
+          <div className="flex items-center gap-1.5 bg-gray-100 p-1 rounded-xl w-full sm:w-auto justify-center">
+            {[
+              { key: 'all', label: 'All' },
+              { key: 'abandoned', label: 'Abandoned' },
+              { key: 'completed', label: 'Recovered' },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => {
+                  setStatusFilter(tab.key as 'all' | 'abandoned' | 'completed');
+                  setPage(1);
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  statusFilter === tab.key
+                    ? 'bg-white text-[#5022C3] shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -269,9 +317,9 @@ export default function CheckoutLeadsPage() {
                 <div className="flex justify-between items-start gap-2">
                   <div className="font-bold text-gray-900 text-sm line-clamp-1">{(lead.firstName || '') + ' ' + (lead.lastName || '')}</div>
                   <span className={`shrink-0 px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wider ${
-                    lead.status === 'recovered' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                    lead.status === 'completed' || lead.status === 'recovered' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-yellow-100 text-yellow-800 border-yellow-200'
                   }`}>
-                    {lead.status}
+                    {lead.status === 'completed' ? 'recovered' : lead.status}
                   </span>
                 </div>
                 <div>
@@ -314,20 +362,35 @@ export default function CheckoutLeadsPage() {
                       {new Date(lead.updatedAt).toLocaleDateString('en-GB')} {new Date(lead.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                     </div>
                   </div>
-                  {lead.phone && (
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
                     <button
-                      onClick={() => handleToggleBlockPhone(lead)}
-                      disabled={togglingPhone === normalizeBDPhone(lead.phone)}
+                      type="button"
+                      onClick={() => handleToggleLeadStatus(lead)}
+                      disabled={updatingLeadId === lead._id}
                       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
-                        blockedPhones.has(normalizeBDPhone(lead.phone))
-                          ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
-                          : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                        lead.status === 'completed'
+                          ? 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200'
+                          : 'bg-purple-50 text-[#5022C3] border-purple-200 hover:bg-purple-100'
                       }`}
                     >
-                      <PhoneOff className="w-3 h-3" />
-                      {blockedPhones.has(normalizeBDPhone(lead.phone)) ? 'Blocked' : 'Block'}
+                      <CheckCircle className="w-3 h-3" />
+                      {lead.status === 'completed' ? 'Recovered' : 'Mark Recovered'}
                     </button>
-                  )}
+                    {lead.phone && (
+                      <button
+                        onClick={() => handleToggleBlockPhone(lead)}
+                        disabled={togglingPhone === normalizeBDPhone(lead.phone)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
+                          blockedPhones.has(normalizeBDPhone(lead.phone))
+                            ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
+                            : 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                        }`}
+                      >
+                        <PhoneOff className="w-3 h-3" />
+                        {blockedPhones.has(normalizeBDPhone(lead.phone)) ? 'Blocked' : 'Block'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))
@@ -428,27 +491,44 @@ export default function CheckoutLeadsPage() {
                       <div className="text-xs text-gray-500">{new Date(lead.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800 border border-yellow-200 capitalize">
-                        {lead.status}
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border capitalize ${
+                        lead.status === 'completed' || lead.status === 'recovered'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                          : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                      }`}>
+                        {lead.status === 'completed' ? 'Recovered' : lead.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {lead.phone ? (
+                      <div className="inline-flex items-center justify-end gap-2">
                         <button
-                          onClick={() => handleToggleBlockPhone(lead)}
-                          disabled={togglingPhone === normalizeBDPhone(lead.phone)}
+                          type="button"
+                          onClick={() => handleToggleLeadStatus(lead)}
+                          disabled={updatingLeadId === lead._id}
                           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
-                            blockedPhones.has(normalizeBDPhone(lead.phone))
-                              ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
-                              : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                            lead.status === 'completed'
+                              ? 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200'
+                              : 'bg-purple-50 text-[#5022C3] border-purple-200 hover:bg-purple-100'
                           }`}
                         >
-                          <PhoneOff className="w-3.5 h-3.5" />
-                          {blockedPhones.has(normalizeBDPhone(lead.phone)) ? 'Blocked' : 'Block Phone'}
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          {lead.status === 'completed' ? 'Recovered' : 'Mark Recovered'}
                         </button>
-                      ) : (
-                        <span className="text-xs text-gray-400">—</span>
-                      )}
+                        {lead.phone && (
+                          <button
+                            onClick={() => handleToggleBlockPhone(lead)}
+                            disabled={togglingPhone === normalizeBDPhone(lead.phone)}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
+                              blockedPhones.has(normalizeBDPhone(lead.phone))
+                                ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
+                                : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                            }`}
+                          >
+                            <PhoneOff className="w-3.5 h-3.5" />
+                            {blockedPhones.has(normalizeBDPhone(lead.phone)) ? 'Blocked' : 'Block Phone'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -700,7 +780,20 @@ export default function CheckoutLeadsPage() {
 
             {/* Footer */}
             <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => handleToggleLeadStatus(selectedLead)}
+                  disabled={updatingLeadId === selectedLead._id}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
+                    selectedLead.status === 'completed'
+                      ? 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200'
+                      : 'bg-[#5022C3] text-white border-[#5022C3] hover:bg-[#401b9c]'
+                  }`}
+                >
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  {selectedLead.status === 'completed' ? 'Recovered (Undo)' : 'Mark as Recovered'}
+                </button>
                 {selectedLead.phone && (
                   <>
                     <a
