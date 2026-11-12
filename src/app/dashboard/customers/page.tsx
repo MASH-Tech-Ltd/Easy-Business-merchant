@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  ShoppingBag,
   Copy,
   PhoneOff,
   X,
@@ -217,27 +216,8 @@ export default function CustomersPage() {
           <Eye className="w-3.5 h-3.5" />
           View Details & Orders
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            setOpenMenuId(null);
-            router.push('/dashboard/manual-order');
-          }}
-          className="w-full px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-purple-50 hover:text-[#5022C3] flex items-center gap-2.5 transition-colors cursor-pointer"
-        >
-          <ShoppingBag className="w-3.5 h-3.5" />
-          Create Manual Order
-        </button>
         {customer.phone && (
           <>
-            <a
-              href={`tel:${customer.phone}`}
-              onClick={() => setOpenMenuId(null)}
-              className="w-full px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2.5 transition-colors"
-            >
-              <Phone className="w-3.5 h-3.5" />
-              Call Customer
-            </a>
             <button
               type="button"
               onClick={() => handleCopyPhone(customer.phone)}
@@ -665,40 +645,20 @@ export default function CustomersPage() {
             <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-wrap">
                 {selectedCustomer.phone && (
-                  <>
-                    <a
-                      href={`tel:${selectedCustomer.phone}`}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-sm"
-                    >
-                      <Phone className="w-3.5 h-3.5" />
-                      Call
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => handleToggleBlockPhone(selectedCustomer)}
-                      disabled={togglingPhone === normalizeBDPhone(selectedCustomer.phone)}
-                      className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
-                        blockedPhones.has(normalizeBDPhone(selectedCustomer.phone))
-                          ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
-                          : 'bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
-                      }`}
-                    >
-                      <PhoneOff className="w-3.5 h-3.5" />
-                      {blockedPhones.has(normalizeBDPhone(selectedCustomer.phone)) ? 'Unblock Phone' : 'Block Phone'}
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlockPhone(selectedCustomer)}
+                    disabled={togglingPhone === normalizeBDPhone(selectedCustomer.phone)}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
+                      blockedPhones.has(normalizeBDPhone(selectedCustomer.phone))
+                        ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                    }`}
+                  >
+                    <PhoneOff className="w-3.5 h-3.5" />
+                    {blockedPhones.has(normalizeBDPhone(selectedCustomer.phone)) ? 'Unblock Phone' : 'Block Phone'}
+                  </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedCustomer(null);
-                    router.push('/dashboard/manual-order');
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#5022C3] text-white hover:bg-[#401b9c] transition-colors cursor-pointer"
-                >
-                  <ShoppingBag className="w-3.5 h-3.5" />
-                  Manual Order
-                </button>
               </div>
               <button
                 type="button"

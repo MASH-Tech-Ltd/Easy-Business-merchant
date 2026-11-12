@@ -795,28 +795,19 @@ export default function CheckoutLeadsPage() {
                   {selectedLead.status === 'completed' ? 'Recovered (Undo)' : 'Mark as Recovered'}
                 </button>
                 {selectedLead.phone && (
-                  <>
-                    <a
-                      href={`tel:${selectedLead.phone}`}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-sm"
-                    >
-                      <Phone className="w-3.5 h-3.5" />
-                      Call Customer
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => handleToggleBlockPhone(selectedLead)}
-                      disabled={togglingPhone === normalizeBDPhone(selectedLead.phone)}
-                      className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
-                        blockedPhones.has(normalizeBDPhone(selectedLead.phone))
-                          ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
-                          : 'bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
-                      }`}
-                    >
-                      <PhoneOff className="w-3.5 h-3.5" />
-                      {blockedPhones.has(normalizeBDPhone(selectedLead.phone)) ? 'Unblock Phone' : 'Block Phone'}
-                    </button>
-                  </>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleBlockPhone(selectedLead)}
+                    disabled={togglingPhone === normalizeBDPhone(selectedLead.phone)}
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50 ${
+                      blockedPhones.has(normalizeBDPhone(selectedLead.phone))
+                        ? 'bg-red-100 text-red-700 border-red-200 hover:bg-red-200'
+                        : 'bg-white text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200'
+                    }`}
+                  >
+                    <PhoneOff className="w-3.5 h-3.5" />
+                    {blockedPhones.has(normalizeBDPhone(selectedLead.phone)) ? 'Unblock Phone' : 'Block Phone'}
+                  </button>
                 )}
               </div>
               <button
