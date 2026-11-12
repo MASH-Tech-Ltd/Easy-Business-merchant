@@ -87,22 +87,13 @@ async function getPublicPackages(): Promise<IPackage[]> {
     };
     try {
       const reqHeaders = await getNextHeaders();
-      const clientIp =
-        reqHeaders.get("cf-connecting-ip") ||
-        reqHeaders.get("x-forwarded-for") ||
-        reqHeaders.get("x-real-ip") ||
-        "";
+      const { extractClientIp } = await import("@/utils/clientIp");
+      const clientIp = extractClientIp(reqHeaders);
       const host =
         reqHeaders.get("host") || reqHeaders.get("x-forwarded-host") || "";
 
       if (clientIp) {
-        const firstIp = clientIp.includes(",")
-          ? clientIp.split(",")[0].trim()
-          : clientIp;
-        headersInit["x-tenant-client-ip"] = firstIp;
-        headersInit["cf-connecting-ip"] = firstIp;
-        headersInit["x-forwarded-for"] = clientIp;
-        headersInit["x-real-ip"] = firstIp;
+        headersInit["x-tenant-client-ip"] = clientIp;
       }
       if (host) headersInit["x-forwarded-host"] = host;
       const userAgent = reqHeaders.get("user-agent") || "";

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sanitizeAndSetForwardIp } from "@/utils/clientIp";
 
 const SESSION_SECONDS = 3 * 24 * 60 * 60; // 3 days
 
@@ -25,26 +26,8 @@ async function handleProxy(req: NextRequest) {
     const headers = new Headers(req.headers);
     headers.delete("host"); // Let fetch set the correct host header
 
-    // Extract real client IP from incoming request headers (Cloudflare / proxy headers)
-    const cfIp = req.headers.get("cf-connecting-ip");
-    const forwarded = req.headers.get("x-forwarded-for");
-    const realIp = req.headers.get("x-real-ip");
-
-    let clientIp: string | null = null;
-    if (cfIp) {
-      clientIp = cfIp.trim();
-    } else if (forwarded) {
-      const first = forwarded.split(",")[0]?.trim();
-      if (first && first !== "127.0.0.1" && first !== "::1") {
-        clientIp = first;
-      }
-    } else if (realIp) {
-      clientIp = realIp.trim();
-    }
-
-    if (clientIp && clientIp !== "127.0.0.1" && clientIp !== "::1") {
-      headers.set("x-tenant-client-ip", clientIp);
-    }
+    // Strip any client-supplied forwarding headers and set validated visitor IP
+    sanitizeAndSetForwardIp(headers, req.headers);
 
     // Forward incoming cookies from browser to backend.
     // - Strip super-admin cookies (shared parent domain).
