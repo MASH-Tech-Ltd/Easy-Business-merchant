@@ -7,6 +7,11 @@ import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
 import { useSocket } from '@/context/SocketContext';
 import PlanComparisonTable from '@/components/landing/PlanComparisonTable';
+import {
+  getPlatformTrackingContext,
+  trackPlatformBrowserAndServerEvent,
+  trackPlatformDeduplicatedBrowserEvent,
+} from '@/utils/platformTracking';
 
 interface Package {
   _id: string;
@@ -184,6 +189,18 @@ export default function SubscriptionPage() {
       globalPackagesCache = activePackages;
       setPackages(activePackages);
 
+      if (activePackages.length > 0) {
+        trackPlatformBrowserAndServerEvent(
+          'ViewContent',
+          {
+            content_name: 'Merchant Subscription Plans',
+            content_type: 'product_group',
+            currency: 'BDT',
+          },
+          'view_content_dashboard_subscription'
+        );
+      }
+
       if (storeRes?.data?.data?.referralDiscount) {
         setReferralDiscount(storeRes.data.data.referralDiscount);
       }
@@ -200,6 +217,24 @@ export default function SubscriptionPage() {
         globalExpiredSubscriptionCache = null;
         setSubscription(sub);
         setExpiredSubscription(null);
+
+        // Deduplicate browser Purchase event with server CAPI for verified active paid subscriptions
+        const paidAmt = Number(sub?.paidAmount || 0);
+        if (sub && sub.status === 'active' && !sub.isTrial && paidAmt > 0 && sub.endDate) {
+          const purchaseEventId = `purchase_sub_${sub._id}_${new Date(sub.endDate).getTime()}`;
+          trackPlatformDeduplicatedBrowserEvent(
+            'Purchase',
+            purchaseEventId,
+            {
+              content_name: sub.packageId?.name || 'Subscription Plan',
+              content_ids: sub.packageId?._id ? [sub.packageId._id] : [],
+              content_type: 'product',
+              value: paidAmt,
+              currency: 'BDT',
+            },
+            true
+          );
+        }
       }
       globalSubscriptionLoaded = true;
     } catch (error) {
@@ -231,10 +266,29 @@ export default function SubscriptionPage() {
     const finalAmount = confirmModal.finalPrice ?? confirmModal.price;
     const isRenewal = confirmModal.isRenewal;
     try {
-      await api.post('/subscriptions/request-package', {
+      const trackingCtx = getPlatformTrackingContext();
+      const res = await api.post('/subscriptions/request-package', {
         packageId: confirmModal._id,
         activationType,
+        ...trackingCtx,
       });
+
+      const trackingEvent = res.data?.data?.trackingEvent;
+      if (trackingEvent?.eventId) {
+        await trackPlatformDeduplicatedBrowserEvent(
+          'InitiateCheckout',
+          trackingEvent.eventId,
+          trackingEvent.customData || {
+            content_name: pkgName,
+            content_ids: [confirmModal._id],
+            content_type: 'product',
+            value: Number(finalAmount || 0),
+            currency: 'BDT',
+            num_items: 1,
+          }
+        );
+      }
+
       toast.success('Subscription requested! Redirecting to payment...');
       setConfirmModal(null);
       router.push(`/dashboard/subscription/payment?purpose=${isRenewal ? 'renewal' : 'package'}&title=${encodeURIComponent(pkgName)}&amount=${finalAmount}`);

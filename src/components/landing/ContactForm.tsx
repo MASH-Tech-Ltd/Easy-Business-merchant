@@ -4,6 +4,10 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { captureAttribution, triggerLeadConversionEvents } from "@/utils/utmTracker";
+import {
+  getPlatformTrackingContext,
+  trackPlatformDeduplicatedBrowserEvent,
+} from "@/utils/platformTracking";
 
 const isValidBDPhone = (phone: string): boolean => {
   if (!phone || !phone.trim()) return false;
@@ -73,9 +77,11 @@ function ContactFormContent() {
 
     try {
       const attribution = captureAttribution();
+      const trackingCtx = getPlatformTrackingContext();
       const payload = {
         ...formData,
         ...attribution,
+        ...trackingCtx,
       };
 
       const res = await fetch(`/api/contact-inquiries/create-inquiry`, {
@@ -92,7 +98,20 @@ function ContactFormContent() {
         throw new Error(data.message || "Failed to submit inquiry");
       }
 
-      // Fire Meta Pixel & Google Ads Lead conversion events
+      // Fire deduplicated Meta Pixel Contact event matching backend CAPI eventId
+      const contactEventId = data.trackingEvent?.eventId || (data.data?._id ? `contact_${data.data._id}` : "");
+      if (contactEventId) {
+        trackPlatformDeduplicatedBrowserEvent(
+          "Contact",
+          contactEventId,
+          data.trackingEvent?.customData || {
+            content_name: "Platform Contact Inquiry",
+            content_category: formData.topic,
+          }
+        );
+      }
+
+      // Fire Google Ads Lead conversion if configured (skip duplicate un-deduped fbq)
       triggerLeadConversionEvents({ topic: formData.topic });
 
       toast.success(

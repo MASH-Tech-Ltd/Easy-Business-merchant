@@ -5,6 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Gift, CheckCircle2, AlertCircle, Loader2, Sparkles, Check } from "lucide-react";
 import toast from "react-hot-toast";
+import {
+  getPlatformTrackingContext,
+  trackPlatformDeduplicatedBrowserEvent,
+} from "@/utils/platformTracking";
 
 function RegisterContent() {
   const router = useRouter();
@@ -172,11 +176,13 @@ function RegisterContent() {
     }
 
     try {
+      const trackingCtx = getPlatformTrackingContext();
       const payload: Record<string, any> = {
         name: name.trim(),
         storeName: storeName.trim(),
         email: email.trim(),
         password,
+        ...trackingCtx,
       };
 
       if (referralCode.trim()) {
@@ -207,6 +213,34 @@ function RegisterContent() {
       if (user) {
         localStorage.setItem("merchantUser", JSON.stringify(user));
         sessionStorage.setItem("merchantUser", JSON.stringify(user));
+      }
+
+      // Fire deduplicated CompleteRegistration & StartTrial browser events with exact server eventIds
+      const trackingEvents = data.data?.trackingEvents;
+      const trackPromises: Promise<void>[] = [];
+      if (trackingEvents?.completeRegistration?.eventId) {
+        trackPromises.push(
+          trackPlatformDeduplicatedBrowserEvent(
+            "CompleteRegistration",
+            trackingEvents.completeRegistration.eventId,
+            trackingEvents.completeRegistration.customData,
+            true
+          )
+        );
+      }
+      if (trackingEvents?.startTrial?.eventId) {
+        trackPromises.push(
+          trackPlatformDeduplicatedBrowserEvent(
+            "StartTrial",
+            trackingEvents.startTrial.eventId,
+            trackingEvents.startTrial.customData,
+            true
+          )
+        );
+      }
+      if (trackPromises.length > 0) {
+        await Promise.all(trackPromises);
+        await new Promise((resolve) => setTimeout(resolve, 250));
       }
 
       toast.success("Registration successful! Welcome to your dashboard.");

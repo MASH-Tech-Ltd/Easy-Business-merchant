@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { Check, X, ThumbsUp, Sparkles, ArrowDown } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSocket } from "@/context/SocketContext";
 import PlanComparisonTable from "./PlanComparisonTable";
+import { trackPlatformBrowserAndServerEvent } from "@/utils/platformTracking";
 
 export interface IPackage {
   _id: string;
@@ -290,6 +291,33 @@ export default function PricingSection({
   const showToggle = hasYearly && hasMonthly;
 
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
+  const sectionRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          trackPlatformBrowserAndServerEvent(
+            "ViewContent",
+            {
+              content_name: "MASH ECO Pricing Plans",
+              content_category: "SaaS Subscription",
+              currency: "BDT",
+            },
+            "view_content_landing_pricing"
+          );
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const visiblePackages = showToggle
     ? pkgList.filter((p) => p.billingCycle === billing)
@@ -309,7 +337,7 @@ export default function PricingSection({
   });
 
   return (
-    <section id="pricing" className="py-12 sm:py-16 lg:py-20 bg-white relative">
+    <section ref={sectionRef} id="pricing" className="py-12 sm:py-16 lg:py-20 bg-white relative">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[hsl(var(--accent-primary))]/5 via-white to-white" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,9 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
-import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { captureAttribution } from '@/utils/utmTracker';
+import {
+  getOrInitFbcCookie,
+  isEligiblePlatformPageViewRoute,
+  setPlatformTrackingConfig,
+  trackPlatformBrowserAndServerEvent,
+} from '@/utils/platformTracking';
 
 interface TrackingConfigState {
   metaPixelId?: string;
@@ -13,36 +19,73 @@ interface TrackingConfigState {
 
 export default function PlatformTrackingScripts() {
   const [tracking, setTracking] = useState<TrackingConfigState>({});
+  const [configReady, setConfigReady] = useState(false);
+  const pathname = usePathname() || '/';
+  const lastTrackedPathRef = useRef<string>('');
 
   useEffect(() => {
-    // 1. Immediately capture UTM & ad attribution (Facebook fbclid, Google gclid)
+    // 1. Capture UTM & click ID attribution (_fbc + utm params)
     captureAttribution();
+    getOrInitFbcCookie();
 
-    // 2. Fetch platform tracking config for central SaaS landing pages
+    // 2. Fetch public platform tracking config (Meta Pixel + CAPI status, GA4, GTM)
     const fetchPlatformTracking = async () => {
       try {
-        const res = await fetch(`/api/system/public-settings`);
-        if (!res.ok) return;
+        const res = await fetch('/api/tracking/platform/public', { cache: 'no-store' });
+        if (!res.ok) {
+          setPlatformTrackingConfig();
+          setConfigReady(true);
+          return;
+        }
         const json = await res.json();
         const data = json?.data;
-        if (!data) return;
+        if (!data) {
+          setPlatformTrackingConfig();
+          setConfigReady(true);
+          return;
+        }
+
+        const meta = data.metaPixel;
+        if (meta) {
+          setPlatformTrackingConfig(meta);
+        } else {
+          setPlatformTrackingConfig();
+        }
 
         setTracking({
-          metaPixelId: data.metaPixelId?.trim() || data.metaPixel?.pixelId?.trim() || undefined,
-          gaMeasurementId: data.gaMeasurementId?.trim() || data.googleAnalytics?.measurementId?.trim() || undefined,
-          gtmContainerId: data.gtmContainerId?.trim() || data.googleTagManager?.containerId?.trim() || undefined,
+          metaPixelId: meta?.enabled && meta?.pixelId ? meta.pixelId.trim() : undefined,
+          gaMeasurementId: data.googleAnalytics?.enabled && data.googleAnalytics?.measurementId
+            ? data.googleAnalytics.measurementId.trim()
+            : undefined,
+          gtmContainerId: data.googleTagManager?.enabled && data.googleTagManager?.containerId
+            ? data.googleTagManager.containerId.trim()
+            : undefined,
         });
       } catch {
-        // Silent catch for resilience
+        setPlatformTrackingConfig();
+      } finally {
+        setConfigReady(true);
       }
     };
 
     fetchPlatformTracking();
   }, []);
 
+  // Track deduplicated PageView (Browser Pixel + Server CAPI) across eligible platform routes
+  useEffect(() => {
+    if (!configReady) return;
+    if (!isEligiblePlatformPageViewRoute(pathname)) return;
+    if (lastTrackedPathRef.current === pathname) return;
+
+    lastTrackedPathRef.current = pathname;
+    trackPlatformBrowserAndServerEvent('PageView', {
+      page_path: pathname,
+    });
+  }, [configReady, pathname]);
+
   return (
     <>
-      {/* 1. Meta (Facebook) Pixel */}
+      {/* 1. Meta (Facebook) Pixel Base Initialization (PageView is dispatched with eventID deduplication above) */}
       {tracking.metaPixelId && (
         <Script
           id="fb-platform-pixel"
@@ -58,7 +101,6 @@ export default function PlatformTrackingScripts() {
               s.parentNode.insertBefore(t,s)}(window, document,'script',
               'https://connect.facebook.net/en_US/fbevents.js');
               fbq('init', '${tracking.metaPixelId}');
-              fbq('track', 'PageView');
             `,
           }}
         />
