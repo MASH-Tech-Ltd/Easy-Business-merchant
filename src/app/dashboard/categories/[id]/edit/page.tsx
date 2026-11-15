@@ -234,7 +234,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div id="field-image">
-              <Card title="Category Image">
+              <Card title="Category Image" subtitle="ক্যাটাগরির আকর্ষণীয় ও স্পষ্ট ছবি দিন (১:১ স্কয়ার রেশিও সবচেয়ে ভালো)">
                 <ImageUpload 
                   previewUrl={previewUrl}
                   onChange={handleImageChange}
