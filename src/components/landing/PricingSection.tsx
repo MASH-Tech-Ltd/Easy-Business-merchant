@@ -515,10 +515,13 @@ export default function PricingSection({
                       // Fix: Use exact word boundary so "10 Free" doesn't falsely match "0 free"
                       const isExcluded = /\b(not included|0 free)\b/i.test(feature);
                       const isInherited = /includes everything in/i.test(feature);
-                      const colonIdx = feature.indexOf(":");
+                      const cleanFeature = isExcluded
+                        ? feature.replace(/[:\-–]?\s*\(?not included\)?/gi, '').trim()
+                        : feature;
+                      const colonIdx = cleanFeature.indexOf(":");
                       const hasPrefix = colonIdx > 0 && colonIdx < 30;
-                      const prefix = hasPrefix ? feature.substring(0, colonIdx + 1) : "";
-                      const rest = hasPrefix ? feature.substring(colonIdx + 1) : feature;
+                      const prefix = hasPrefix ? cleanFeature.substring(0, colonIdx + 1) : "";
+                      const rest = hasPrefix ? cleanFeature.substring(colonIdx + 1) : cleanFeature;
 
                       return (
                         <div key={fIdx} className="flex items-start gap-2.5">

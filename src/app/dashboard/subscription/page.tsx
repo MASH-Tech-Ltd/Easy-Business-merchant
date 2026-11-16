@@ -589,7 +589,7 @@ export default function SubscriptionPage() {
           No {billingCycle} packages available at the moment.
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-7xl mx-auto px-4 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-7xl mx-auto px-4 items-stretch">
           {displayedPackages.sort((a,b) => {
             const order = ['basic', 'standard', 'premium'];
             const idxA = order.indexOf((a.name || '').toLowerCase().trim());
@@ -623,8 +623,8 @@ export default function SubscriptionPage() {
                 key={pkg._id} 
                 className={`relative bg-white rounded-3xl border transition-all duration-500 flex flex-col overflow-hidden group ${
                   isPopular 
-                    ? 'border-[#5022C3] ring-2 ring-[#5022C3] shadow-xl lg:-mt-4 z-10' 
-                    : 'border-gray-200 hover:border-gray-300 hover:shadow-lg shadow-md lg:mt-0'
+                    ? 'border-[#5022C3] ring-2 ring-[#5022C3] shadow-xl lg:-mt-4 lg:h-[calc(100%+1rem)] z-10' 
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-lg shadow-md lg:mt-0 h-full'
                 }`}
               >
                 {/* Background Gradient for Popular */}
@@ -752,7 +752,7 @@ export default function SubscriptionPage() {
                       );
                     })()}
                   </div>
-                  <div className="mb-2 space-y-1">
+                  <div className="mb-2 space-y-1 lg:min-h-[76px]">
                     {pkg.tagline && (
                       <p className="text-[13px] font-bold text-gray-900 leading-snug">
                         {pkg.tagline}
@@ -782,8 +782,11 @@ export default function SubscriptionPage() {
                         if (feature.startsWith('Key Features:')) return null;
                         
                         const isNested = feature.startsWith('- ') || feature.startsWith('* ');
-                        const cleanFeature = isNested ? feature.substring(2) : feature;
-                        const isExcluded = /\b(not included|0 free)\b/i.test(cleanFeature);
+                        const rawFeature = isNested ? feature.substring(2) : feature;
+                        const isExcluded = /\b(not included|0 free)\b/i.test(rawFeature);
+                        const cleanFeature = isExcluded
+                          ? rawFeature.replace(/[:\-–]?\s*\(?not included\)?/gi, '').trim()
+                          : rawFeature;
                         const colonIndex = cleanFeature.indexOf(':');
                         const hasBoldPrefix = colonIndex > 0 && colonIndex < 35;
                         
@@ -1017,7 +1020,7 @@ export default function SubscriptionPage() {
                         <div className="ml-3">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-gray-900">
-                              ⚡ Instant Upgrade
+                              Instant Upgrade
                             </span>
                             <span className="text-[10px] font-bold bg-purple-100 text-[#5022C3] px-2 py-0.5 rounded-full">
                               Recommended
@@ -1047,7 +1050,7 @@ export default function SubscriptionPage() {
                         />
                         <div className="ml-3">
                           <span className="text-sm font-bold text-gray-900">
-                            ⏳ After Current Plan Ends
+                            After Current Plan Ends
                           </span>
                           <p className="text-xs text-gray-500 mt-0.5">
                             Keep using your current plan until it expires, then automatically start this plan.
