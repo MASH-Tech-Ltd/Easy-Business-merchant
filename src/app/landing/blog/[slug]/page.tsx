@@ -3,6 +3,7 @@ import Footer from "@/components/landing/Footer";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
+import { getOptimizedImageUrl } from "@/utils/imageOptimizer";
 import {
   Clock,
   ArrowLeft,
@@ -347,8 +348,21 @@ export default async function BlogPostDetailPage({
     });
   };
 
-  // Convert markdown paragraphs and headings into HTML blocks
+  // Convert markdown paragraphs and headings into HTML blocks, or render rich HTML
   const renderFormattedContent = (content: string) => {
+    if (!content) return null;
+
+    // If content contains HTML markup (from rich text / notepad editor)
+    const hasHtmlTags = /<[a-z][\s\S]*>/i.test(content);
+    if (hasHtmlTags) {
+      return (
+        <div
+          className="article-rich-content text-slate-800 text-sm sm:text-base leading-relaxed space-y-4 [&>p]:mb-4 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:text-slate-900 [&>h1]:mt-8 [&>h1]:mb-3 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:text-slate-900 [&>h2]:mt-7 [&>h2]:mb-3 [&>h2]:border-b [&>h2]:border-slate-100 [&>h2]:pb-2 [&>h3]:text-lg [&>h3]:font-bold [&>h3]:text-slate-900 [&>h3]:mt-6 [&>h3]:mb-2 [&>ul]:list-disc [&>ul]:pl-6 [&>ul]:my-3 [&>ol]:list-decimal [&>ol]:pl-6 [&>ol]:my-3 [&_li]:mb-1.5 [&_a]:text-[#0284c7] [&_a]:underline hover:[&_a]:text-[#0369a1] [&_strong]:font-bold [&_strong]:text-slate-900"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      );
+    }
+
     const lines = content.split("\n");
     return lines.map((line, idx) => {
       const trimmed = line.trim();
@@ -482,7 +496,7 @@ export default async function BlogPostDetailPage({
           <div className="rounded-2xl overflow-hidden mb-8 shadow-xs border border-slate-200">
             {article.thumbnail ? (
               <img
-                src={article.thumbnail}
+                src={getOptimizedImageUrl(article.thumbnail, 250)}
                 alt={article.title}
                 className="w-full max-h-[360px] object-cover"
               />

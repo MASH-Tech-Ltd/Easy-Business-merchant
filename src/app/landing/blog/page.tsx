@@ -2,6 +2,7 @@ import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import Link from "next/link";
 import { Metadata } from "next";
+import { getOptimizedImageUrl } from "@/utils/imageOptimizer";
 import {
   Clock,
   ArrowRight,
@@ -405,27 +406,30 @@ export default async function BlogPage({
                   key={blog._id || idx}
                   className="group bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-2xs hover:shadow-lg hover:border-slate-300 transition-all duration-300 overflow-hidden flex flex-col h-full"
                 >
-                  {/* Card Cover Banner */}
+                  {/* Card Cover Banner - Full Bleed Edge to Edge */}
                   <Link href={`/landing/blog/${blog.slug}`} className="block relative overflow-hidden shrink-0">
-                    <div className="h-44 sm:h-48 w-full bg-gradient-to-br from-[#122846] via-[#0369a1] to-[#0284c7] relative flex items-center justify-center p-4 group-hover:scale-102 transition-transform duration-500">
+                    <div className="h-44 sm:h-48 w-full relative overflow-hidden bg-slate-900">
                       {blog.thumbnail ? (
                         <img
-                          src={blog.thumbnail}
+                          src={getOptimizedImageUrl(blog.thumbnail, 250)}
                           alt={blog.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          loading="lazy"
                         />
                       ) : (
-                        <div className="text-center text-white/95">
-                          <BookOpen className="w-8 h-8 sm:w-9 sm:h-9 mx-auto text-sky-200 mb-1.5 opacity-90" />
-                          <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-sky-100 font-semibold block">
-                            MASH ECO JOURNAL
-                          </span>
+                        <div className="w-full h-full bg-gradient-to-br from-[#122846] via-[#0369a1] to-[#0284c7] flex items-center justify-center p-4 group-hover:scale-102 transition-transform duration-500">
+                          <div className="text-center text-white/95">
+                            <BookOpen className="w-8 h-8 sm:w-9 sm:h-9 mx-auto text-sky-200 mb-1.5 opacity-90" />
+                            <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-widest text-sky-100 font-semibold block">
+                              MASH ECO JOURNAL
+                            </span>
+                          </div>
                         </div>
                       )}
 
                       {/* Featured Pill Badge */}
                       {blog.featured && (
-                        <div className="absolute top-2.5 right-2.5 bg-amber-400 text-slate-900 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow flex items-center gap-1">
+                        <div className="absolute top-2.5 right-2.5 bg-amber-400 text-slate-900 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 z-10">
                           <Sparkles className="w-2.5 h-2.5 fill-current" />
                           <span>FEATURED</span>
                         </div>
