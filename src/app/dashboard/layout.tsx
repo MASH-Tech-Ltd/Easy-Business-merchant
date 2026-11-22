@@ -2,7 +2,7 @@
 
 import { getOptimizedImageUrl } from '@/utils/imageOptimizer';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -50,6 +50,8 @@ import { Toaster, toast } from "react-hot-toast";
 import { api } from "@/utils/api";
 import { useSocket } from "@/context/SocketContext";
 import NotificationBell from "@/components/NotificationBell";
+import DemoVideoFloatingButton, { extractYouTubeId } from "@/components/DemoVideoFloatingButton";
+import { FaYoutube } from "react-icons/fa";
 
 const Badge = ({
   children,
@@ -244,8 +246,63 @@ export default function DashboardLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [referralPoints, setReferralPoints] = useState<number | null>(null);
-  const [sidebarMenu, setSidebarMenu] = useState<any[] | null>(null);
+  const [sidebarMenu, setSidebarMenu] = useState<any[] | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("publicSettings");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed.sidebarMenu)) return parsed.sidebarMenu;
+        }
+      } catch {}
+    }
+    return null;
+  });
+  const [demoVideos, setDemoVideos] = useState<any[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("publicSettings");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed.demoVideos)) return parsed.demoVideos;
+        }
+      } catch {}
+    }
+    return [];
+  });
+  const [demoVideosMasterEnabled, setDemoVideosMasterEnabled] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("publicSettings");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed.demoVideosMasterEnabled !== undefined) return Boolean(parsed.demoVideosMasterEnabled);
+        }
+      } catch {}
+    }
+    return true;
+  });
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+
+  // Active page demo video check for top navbar quick access
+  const currentDemoVideo = useMemo(() => {
+    if (!demoVideosMasterEnabled || !Array.isArray(demoVideos) || demoVideos.length === 0) {
+      return null;
+    }
+    let match = demoVideos.find((v) => v.path === pathname);
+    if (!match && pathname !== "/dashboard") {
+      match = demoVideos.find(
+        (v) => v.path !== "/dashboard" && (pathname === v.path || pathname.startsWith(v.path + "/"))
+      );
+    }
+    if (!match && pathname === "/dashboard") {
+      match = demoVideos.find((v) => v.path === "/dashboard");
+    }
+    if (!match || !match.isActive || !extractYouTubeId(match.youtubeUrl)) {
+      return null;
+    }
+    return match;
+  }, [demoVideos, demoVideosMasterEnabled, pathname]);
 
   const fetchReferralPoints = async () => {
     try {
@@ -278,6 +335,54 @@ export default function DashboardLayout({
     setIsSidebarOpen(false);
   }, [pathname]);
 
+  // Initial load of public settings (demo videos & sidebar status)
+  useEffect(() => {
+    const fetchPublicSettings = async () => {
+      try {
+        const res = await api.get("/system/public-settings");
+        if (res.data?.data) {
+          const fresh = res.data.data;
+          const cachedStr = typeof window !== "undefined" ? localStorage.getItem("publicSettings") : null;
+          if (typeof window !== "undefined") {
+            localStorage.setItem("publicSettings", JSON.stringify(fresh));
+          }
+
+          if (!cachedStr) {
+            if (fresh.sidebarMenu) setSidebarMenu(fresh.sidebarMenu);
+            if (fresh.demoVideos) setDemoVideos(fresh.demoVideos);
+            if (fresh.demoVideosMasterEnabled !== undefined) {
+              setDemoVideosMasterEnabled(fresh.demoVideosMasterEnabled);
+            }
+          } else {
+            try {
+              const cached = JSON.parse(cachedStr);
+              if (fresh.sidebarMenu && JSON.stringify(cached.sidebarMenu) !== JSON.stringify(fresh.sidebarMenu)) {
+                setSidebarMenu(fresh.sidebarMenu);
+              }
+              if (fresh.demoVideos && JSON.stringify(cached.demoVideos) !== JSON.stringify(fresh.demoVideos)) {
+                setDemoVideos(fresh.demoVideos);
+              }
+              if (fresh.demoVideosMasterEnabled !== undefined && cached.demoVideosMasterEnabled !== fresh.demoVideosMasterEnabled) {
+                setDemoVideosMasterEnabled(fresh.demoVideosMasterEnabled);
+              }
+            } catch {
+              if (fresh.sidebarMenu) setSidebarMenu(fresh.sidebarMenu);
+              if (fresh.demoVideos) setDemoVideos(fresh.demoVideos);
+              if (fresh.demoVideosMasterEnabled !== undefined) {
+                setDemoVideosMasterEnabled(fresh.demoVideosMasterEnabled);
+              }
+            }
+          }
+        }
+      } catch (err) {
+      } finally {
+        setIsSettingsLoaded(true);
+      }
+    };
+
+    fetchPublicSettings();
+  }, []);
+
   const { socket, isConnected: isSocketConnected } = useSocket();
 
   useEffect(() => {
@@ -293,30 +398,7 @@ export default function DashboardLayout({
       } catch (err) {}
     };
 
-    const fetchPublicSettings = async () => {
-      try {
-        const cachedSettings = localStorage.getItem("publicSettings");
-        if (cachedSettings) {
-          const data = JSON.parse(cachedSettings);
-          if (data.sidebarMenu) setSidebarMenu(data.sidebarMenu);
-          setIsSettingsLoaded(true);
-        }
-
-        const res = await api.get("/system/public-settings");
-        if (res.data?.data) {
-          localStorage.setItem("publicSettings", JSON.stringify(res.data.data));
-          if (res.data.data.sidebarMenu) {
-            setSidebarMenu(res.data.data.sidebarMenu);
-          }
-        }
-      } catch (err) {
-      } finally {
-        setIsSettingsLoaded(true);
-      }
-    };
-
     fetchTicketsCount();
-    fetchPublicSettings();
 
     const handleAccountStatus = async () => {
       try {
@@ -1184,6 +1266,21 @@ export default function DashboardLayout({
               </span>
             </Link>
 
+            {/* Top Navbar Demo Video Quick Button (Always available when page has active video) */}
+            {currentDemoVideo && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("openDemoVideo"));
+                }}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 border border-red-200/90 shadow-xs hover:shadow-sm transition-all text-xs font-bold shrink-0 cursor-pointer group"
+                title={`Watch ${currentDemoVideo.pageName} Demonstration Video`}
+              >
+                <FaYoutube className="w-4 h-4 text-red-600 group-hover:scale-110 transition-transform" />
+                <span className="hidden md:inline">Tutorial Video</span>
+              </button>
+            )}
+
             <NotificationBell userId={merchantUser?._id} />
             {merchantUser && (
               <div className="flex items-center gap-2 sm:gap-3">
@@ -1244,6 +1341,12 @@ export default function DashboardLayout({
         </header>
 
         <div className="flex-1 overflow-y-auto">{children}</div>
+
+        {/* Floating Page Demonstration Video Button (Conditionally Rendered Per-Page) */}
+        <DemoVideoFloatingButton
+          demoVideos={demoVideos}
+          masterEnabled={demoVideosMasterEnabled}
+        />
       </main>
 
       <Toaster position="top-right" />
