@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Palette,
@@ -24,9 +24,16 @@ import {
   Sparkles,
   ShoppingCart,
   Zap,
+  Star,
+  Heart,
   Eye,
+  EyeOff,
   ExternalLink,
   MessageCircle,
+  ChevronDown,
+  Check,
+  Search,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { api } from "../../../utils/api";
@@ -74,7 +81,260 @@ const availableThemes = [
     textColor: "#000000",
     accent: "#000000",
   },
+  {
+    id: "design-06",
+    name: "Design 06 (Boutique Elegance)",
+    color: "#ffffff",
+    textColor: "#0f172a",
+    accent: "#111827",
+  },
 ];
+
+const STORE_TITLE_FONTS = [
+  // ── Luxury, Editorial & Classic Serif (45 fonts) ──
+  { value: "Playfair Display", label: "Playfair Display", category: "Luxury Serif" },
+  { value: "Cinzel", label: "Cinzel", category: "Roman Serif" },
+  { value: "Cormorant Garamond", label: "Cormorant Garamond", category: "Classic Serif" },
+  { value: "Bodoni Moda", label: "Bodoni Moda", category: "Vogue Serif" },
+  { value: "Marcellus", label: "Marcellus", category: "Classic Serif" },
+  { value: "Prata", label: "Prata", category: "Elegant Serif" },
+  { value: "Italiana", label: "Italiana", category: "Fashion Serif" },
+  { value: "Merriweather", label: "Merriweather", category: "Book Serif" },
+  { value: "Libre Baskerville", label: "Libre Baskerville", category: "Heritage Serif" },
+  { value: "EB Garamond", label: "EB Garamond", category: "Royal Serif" },
+  { value: "Lora", label: "Lora", category: "Editorial Serif" },
+  { value: "Bitter", label: "Bitter", category: "Contemporary Serif" },
+  { value: "Spectral", label: "Spectral", category: "Crisp Serif" },
+  { value: "Frank Ruhl Libre", label: "Frank Ruhl Libre", category: "Classic Serif" },
+  { value: "Castoro", label: "Castoro", category: "Scholarly Serif" },
+  { value: "Bellefair", label: "Bellefair", category: "Haute Couture Serif" },
+  { value: "Cardo", label: "Cardo", category: "Historic Serif" },
+  { value: "Faustina", label: "Faustina", category: "Boutique Serif" },
+  { value: "Forum", label: "Forum", category: "Roman Antique" },
+  { value: "Alice", label: "Alice", category: "Whimsical Serif" },
+  { value: "Amiri", label: "Amiri", category: "Classical Arabic Serif" },
+  { value: "Bentham", label: "Bentham", category: "19th Century Serif" },
+  { value: "BioRhyme", label: "BioRhyme", category: "Expanded Serif" },
+  { value: "Rozha One", label: "Rozha One", category: "High-Contrast Serif" },
+  { value: "Rufina", label: "Rufina", category: "Vintage Bodoni Serif" },
+  { value: "Vidaloka", label: "Vidaloka", category: "Curled Didone Serif" },
+  { value: "Volkhov", label: "Volkhov", category: "Sturdy Serif" },
+  { value: "Yeseva One", label: "Yeseva One", category: "Complete Grace Serif" },
+  { value: "Gilda Display", label: "Gilda Display", category: "Editorial Glamour" },
+  { value: "DM Serif Display", label: "DM Serif Display", category: "High-End Display Serif" },
+  { value: "DM Serif Text", label: "DM Serif Text", category: "Editorial Text Serif" },
+  { value: "Newsreader", label: "Newsreader", category: "Literary Serif" },
+  { value: "Petrona", label: "Petrona", category: "Sharp Serif" },
+  { value: "Besley", label: "Besley", category: "Heritage Slab Serif" },
+  { value: "Suranna", label: "Suranna", category: "Fine Classic Serif" },
+  { value: "Trirong", label: "Trirong", category: "Modern Didone" },
+  { value: "Marcellus SC", label: "Marcellus SC", category: "Small Caps Roman" },
+  { value: "Cinzel Decorative", label: "Cinzel Decorative", category: "Royal Ornate Serif" },
+  { value: "Cormorant", label: "Cormorant", category: "Garamond Serif" },
+  { value: "Cormorant SC", label: "Cormorant SC", category: "Garamond Small Caps" },
+  { value: "Cormorant Infant", label: "Cormorant Infant", category: "Soft Serif" },
+  { value: "Cormorant Unicase", label: "Cormorant Unicase", category: "Artistic Serif" },
+  { value: "Arapey", label: "Arapey", category: "Bodoni Delicate Serif" },
+  { value: "Antic Didone", label: "Antic Didone", category: "Luxury Vogue Serif" },
+  { value: "Oranienbaum", label: "Oranienbaum", category: "Imperial Russian Serif" },
+
+  // ── Modern, Clean & Geometric Sans-Serif (65 fonts) ──
+  { value: "Montserrat", label: "Montserrat", category: "Modern Sans" },
+  { value: "Poppins", label: "Poppins", category: "Geometric Sans" },
+  { value: "Inter", label: "Inter", category: "Neutral Sans" },
+  { value: "Plus Jakarta Sans", label: "Plus Jakarta Sans", category: "Corporate Sans" },
+  { value: "Outfit", label: "Outfit", category: "Modern Tech" },
+  { value: "Manrope", label: "Manrope", category: "Minimalist Sans" },
+  { value: "DM Sans", label: "DM Sans", category: "Geometric Sans" },
+  { value: "Sora", label: "Sora", category: "Minimal Tech" },
+  { value: "Syne", label: "Syne", category: "Edgy Display" },
+  { value: "Space Grotesk", label: "Space Grotesk", category: "Cyber Sans" },
+  { value: "Roboto", label: "Roboto", category: "Standard Clean Sans" },
+  { value: "Open Sans", label: "Open Sans", category: "Neutral Sans" },
+  { value: "Lato", label: "Lato", category: "Warm Professional" },
+  { value: "Raleway", label: "Raleway", category: "Fashion Sans" },
+  { value: "Urbanist", label: "Urbanist", category: "Neo-Grotesque" },
+  { value: "Jost", label: "Jost", category: "Bauhaus Sans" },
+  { value: "Nunito", label: "Nunito", category: "Rounded Modern Sans" },
+  { value: "Nunito Sans", label: "Nunito Sans", category: "Modern Sharp Sans" },
+  { value: "Work Sans", label: "Work Sans", category: "Grotesque Sans" },
+  { value: "Rubik", label: "Rubik", category: "Slightly Rounded" },
+  { value: "Quicksand", label: "Quicksand", category: "Friendly Geometric" },
+  { value: "Cabin", label: "Cabin", category: "Humanist Sans" },
+  { value: "Heebo", label: "Heebo", category: "Crisp Modern Sans" },
+  { value: "Mulish", label: "Mulish", category: "Minimalist Sans" },
+  { value: "Barlow", label: "Barlow", category: "Clean Grotesk" },
+  { value: "Barlow Condensed", label: "Barlow Condensed", category: "Condensed Modern" },
+  { value: "Kanit", label: "Kanit", category: "Modern Thai-English" },
+  { value: "Karla", label: "Karla", category: "Quirky Grotesque" },
+  { value: "Fira Sans", label: "Fira Sans", category: "Technical Sans" },
+  { value: "PT Sans", label: "PT Sans", category: "Contemporary Sans" },
+  { value: "Overpass", label: "Overpass", category: "Highway Inspired" },
+  { value: "Lexend", label: "Lexend", category: "High Legibility" },
+  { value: "Lexend Deca", label: "Lexend Deca", category: "Expanded Clean Sans" },
+  { value: "Epilogue", label: "Epilogue", category: "Variable Geometric" },
+  { value: "Red Hat Display", label: "Red Hat Display", category: "Bold Display Sans" },
+  { value: "Red Hat Text", label: "Red Hat Text", category: "Legible Tech Sans" },
+  { value: "Figtree", label: "Figtree", category: "Friendly Clean Sans" },
+  { value: "Albert Sans", label: "Albert Sans", category: "Scandinavian Modern" },
+  { value: "Public Sans", label: "Public Sans", category: "Neutral Corporate" },
+  { value: "Georama", label: "Georama", category: "Neo-Grotesque Sans" },
+  { value: "Be Vietnam Pro", label: "Be Vietnam Pro", category: "Refined Geometric" },
+  { value: "Spline Sans", label: "Spline Sans", category: "UI Optimized Sans" },
+  { value: "Hanken Grotesk", label: "Hanken Grotesk", category: "Classic Grotesk" },
+  { value: "Archivo", label: "Archivo", category: "High-Performance Sans" },
+  { value: "Exo 2", label: "Exo 2", category: "Futuristic Tech" },
+  { value: "Questrial", label: "Questrial", category: "Circle Based Modern" },
+  { value: "Chivo", label: "Chivo", category: "Grotesque Punchy" },
+  { value: "Asap", label: "Asap", category: "Rounded Corner Sans" },
+  { value: "Oxygen", label: "Oxygen", category: "Linux Heritage Sans" },
+  { value: "Catamaran", label: "Catamaran", category: "Contemporary Sans" },
+  { value: "Signika", label: "Signika", category: "Wayfinding Signage" },
+  { value: "Noto Sans", label: "Noto Sans", category: "Universal Sans" },
+  { value: "Source Sans 3", label: "Source Sans 3", category: "Adobe Clean Sans" },
+  { value: "Titillium Web", label: "Titillium Web", category: "Industrial Tech Sans" },
+  { value: "Ubuntu", label: "Ubuntu", category: "Contemporary Humanist" },
+  { value: "Varela Round", label: "Varela Round", category: "Clean Soft Rounded" },
+  { value: "Alata", label: "Alata", category: "Greek Geometric Blend" },
+  { value: "Tenor Sans", label: "Tenor Sans", category: "Fashion Forward Sans" },
+  { value: "Syncopate", label: "Syncopate", category: "Wide Architecture Sans" },
+  { value: "Kumbh Sans", label: "Kumbh Sans", category: "Modern Geometric" },
+  { value: "Golos Text", label: "Golos Text", category: "Sleek Modern Sans" },
+  { value: "Onest", label: "Onest", category: "Accessible Modern" },
+  { value: "Radio Canada", label: "Radio Canada", category: "Clean Bilingual" },
+  { value: "Schibsted Grotesk", label: "Schibsted Grotesk", category: "Editorial Digital" },
+
+  // ── Signature, Calligraphy & Handwritten Script (45 fonts) ──
+  { value: "Great Vibes", label: "Great Vibes", category: "Signature Script" },
+  { value: "Dancing Script", label: "Dancing Script", category: "Casual Script" },
+  { value: "Alex Brush", label: "Alex Brush", category: "Calligraphy" },
+  { value: "Parisienne", label: "Parisienne", category: "French Cursive" },
+  { value: "Sacramento", label: "Sacramento", category: "Monoline Script" },
+  { value: "Pacifico", label: "Pacifico", category: "Surf Retro Script" },
+  { value: "Caveat", label: "Caveat", category: "Handwritten Playful" },
+  { value: "Satisfy", label: "Satisfy", category: "Smooth Brush Script" },
+  { value: "Allura", label: "Allura", category: "Fine Stylized Script" },
+  { value: "Tangerine", label: "Tangerine", category: "Tall Calligraphy" },
+  { value: "Yellowtail", label: "Yellowtail", category: "Flat Brush Script" },
+  { value: "Marck Script", label: "Marck Script", category: "Felt Pen Script" },
+  { value: "Kaushan Script", label: "Kaushan Script", category: "Textured Brush" },
+  { value: "Bad Script", label: "Bad Script", category: "Natural Handwriting" },
+  { value: "Cookie", label: "Cookie", category: "1950s Pin-up Script" },
+  { value: "Damion", label: "Damion", category: "Casual Mid-Century" },
+  { value: "Grand Hotel", label: "Grand Hotel", category: "Upright Script" },
+  { value: "Montez", label: "Montez", category: "Beauty Calligraphy" },
+  { value: "Pinyon Script", label: "Pinyon Script", category: "High Aristocratic" },
+  { value: "Rochester", label: "Rochester", category: "Victorian Formal" },
+  { value: "Rouge Script", label: "Rouge Script", category: "Flirty Cursive" },
+  { value: "Herr Von Muellerhoff", label: "Herr Von Muellerhoff", category: "Antique Ornate" },
+  { value: "Italianno", label: "Italianno", category: "Chic Italian Script" },
+  { value: "Lovers Quarrel", label: "Lovers Quarrel", category: "Embellished Romance" },
+  { value: "Meddon", label: "Meddon", category: "18th Century Law Script" },
+  { value: "Mrs Saint Delafield", label: "Mrs Saint Delafield", category: "Expressive Handwriting" },
+  { value: "Qwigley", label: "Qwigley", category: "Contemporary Calligraphy" },
+  { value: "Ruthie", label: "Ruthie", category: "Delicate Cursive" },
+  { value: "Seaweed Script", label: "Seaweed Script", category: "Boutique Signature" },
+  { value: "Stalemate", label: "Stalemate", category: "Vintage Brush Script" },
+  { value: "Reenie Beanie", label: "Reenie Beanie", category: "Ballpoint Pen" },
+  { value: "Gloria Hallelujah", label: "Gloria Hallelujah", category: "Casual Marker" },
+  { value: "Homemade Apple", label: "Homemade Apple", category: "Personal Cursive" },
+  { value: "Nothing You Could Do", label: "Nothing You Could Do", category: "Casual Scribble" },
+  { value: "Shadows Into Light", label: "Shadows Into Light", category: "Clean Handwriting" },
+  { value: "Indie Flower", label: "Indie Flower", category: "Bubbly Handwritten" },
+  { value: "Covered By Your Grace", label: "Covered By Your Grace", category: "Cute Handwriting" },
+  { value: "Permanent Marker", label: "Permanent Marker", category: "Thick Marker Pen" },
+  { value: "Rock Salt", label: "Rock Salt", category: "Felt Marker Signature" },
+  { value: "Architects Daughter", label: "Architects Daughter", category: "Architectural Drafting" },
+  { value: "Kristi", label: "Kristi", category: "Quick Felt-Tip" },
+  { value: "La Belle Aurore", label: "La Belle Aurore", category: "Organic Cursive" },
+  { value: "Dawning of a New Day", label: "Dawning of a New Day", category: "Boutique Flowing" },
+  { value: "Cedarville Cursive", label: "Cedarville Cursive", category: "School Teacher Script" },
+  { value: "Just Another Hand", label: "Just Another Hand", category: "Narrow Handwriting" },
+
+  // ── Display, Retro, Cyber & Creative (35 fonts) ──
+  { value: "Righteous", label: "Righteous", category: "Retro Display" },
+  { value: "Bungee", label: "Bungee", category: "Urban Signage" },
+  { value: "Bungee Shade", label: "Bungee Shade", category: "3D Shadow Display" },
+  { value: "Fredoka", label: "Fredoka", category: "Chunky Modern" },
+  { value: "Comfortaa", label: "Comfortaa", category: "Geometric Rounded" },
+  { value: "Audiowide", label: "Audiowide", category: "Futuristic Cyber" },
+  { value: "Orbitron", label: "Orbitron", category: "Sci-Fi Geometric" },
+  { value: "Russo One", label: "Russo One", category: "Heavy Block Impact" },
+  { value: "Press Start 2P", label: "Press Start 2P", category: "8-Bit Arcade Pixel" },
+  { value: "Monoton", label: "Monoton", category: "Neon Multi-Line" },
+  { value: "Megrim", label: "Megrim", category: "Abstract Line Art" },
+  { value: "Plaster", label: "Plaster", category: "Art Deco Stencil" },
+  { value: "Faster One", label: "Faster One", category: "Speed Line Racer" },
+  { value: "Shrikhand", label: "Shrikhand", category: "Thick Hand-Drawn" },
+  { value: "Abril Fatface", label: "Abril Fatface", category: "Victorian Poster" },
+  { value: "Alfa Slab One", label: "Alfa Slab One", category: "Heavy Weight Slab" },
+  { value: "Black Ops One", label: "Black Ops One", category: "Military Stencil" },
+  { value: "Boogaloo", label: "Boogaloo", category: "1960s Record Sleeve" },
+  { value: "Carter One", label: "Carter One", category: "Bold Casual Display" },
+  { value: "Chango", label: "Chango", category: "Woodcut Heavy" },
+  { value: "Creepster", label: "Creepster", category: "Monster Horror" },
+  { value: "Fugaz One", label: "Fugaz One", category: "Italic Dynamic" },
+  { value: "Graduate", label: "Graduate", category: "Varsity College" },
+  { value: "Kelly Slab", label: "Kelly Slab", category: "Square Stencil" },
+  { value: "Limelight", label: "Limelight", category: "1920s Hollywood Deco" },
+  { value: "Lobster", label: "Lobster", category: "Bold Retro Script" },
+  { value: "Lobster Two", label: "Lobster Two", category: "Refined Retro Script" },
+  { value: "Luckiest Guy", label: "Luckiest Guy", category: "Comic Bold Punch" },
+  { value: "Modak", label: "Modak", category: "Ultra Plump Bubble" },
+  { value: "Notable", label: "Notable", category: "Uppercase Monumental" },
+  { value: "Nova Square", label: "Nova Square", category: "Square Cyber" },
+  { value: "Passion One", label: "Passion One", category: "Condensed Punch" },
+  { value: "Paytone One", label: "Paytone One", category: "Casual Impact" },
+  { value: "Poetsen One", label: "Poetsen One", category: "Hand-Painted Sign" },
+  { value: "Rammetto One", label: "Rammetto One", category: "Modernist Slab" },
+
+  // ── Technical & Monospace (15 fonts) ──
+  { value: "JetBrains Mono", label: "JetBrains Mono", category: "Monospace" },
+  { value: "Fira Code", label: "Fira Code", category: "Code Monospace" },
+  { value: "Source Code Pro", label: "Source Code Pro", category: "Clean Monospace" },
+  { value: "Roboto Mono", label: "Roboto Mono", category: "Industrial Mono" },
+  { value: "Inconsolata", label: "Inconsolata", category: "Humanist Mono" },
+  { value: "Space Mono", label: "Space Mono", category: "Futuristic Mono" },
+  { value: "IBM Plex Mono", label: "IBM Plex Mono", category: "Corporate Mono" },
+  { value: "Ubuntu Mono", label: "Ubuntu Mono", category: "Linux Mono" },
+  { value: "Courier Prime", label: "Courier Prime", category: "Screenplay Typewriter" },
+  { value: "Cutive Mono", label: "Cutive Mono", category: "Vintage Typewriter" },
+  { value: "Anonymous Pro", label: "Anonymous Pro", category: "Classic Hacker Mono" },
+  { value: "Share Tech Mono", label: "Share Tech Mono", category: "Cyber Terminal" },
+  { value: "Overpass Mono", label: "Overpass Mono", category: "Signage Monospace" },
+  { value: "DM Mono", label: "DM Mono", category: "Geometric Monospace" },
+  { value: "Major Mono Display", label: "Major Mono Display", category: "Avant-Garde Mono" },
+
+  // ── Bengali & Multilingual (10 fonts) ──
+  { value: "Hind Siliguri", label: "Hind Siliguri", category: "Bengali Sans" },
+  { value: "Tiro Bangla", label: "Tiro Bangla", category: "Bengali Serif" },
+  { value: "Noto Serif Bengali", label: "Noto Serif Bengali", category: "Formal Bengali Serif" },
+  { value: "Noto Sans Bengali", label: "Noto Sans Bengali", category: "Clean Bengali Sans" },
+  { value: "Galada", label: "Galada", category: "Bengali Script" },
+  { value: "Mina", label: "Mina", category: "Geometric Bengali" },
+  { value: "Atma", label: "Atma", category: "Playful Bengali" },
+  { value: "Anek Bangla", label: "Anek Bangla", category: "Modern Variable Bengali" },
+  { value: "Baloo Da 2", label: "Baloo Da 2", category: "Friendly Bengali Rounded" },
+  { value: "Noto Sans", label: "Noto Sans", category: "Multilingual Global" },
+];
+
+// Preload flagship fonts for instantaneous first render
+const PRELOAD_FONTS = [
+  "Playfair Display", "Cinzel", "Cormorant Garamond", "Bodoni Moda", "Marcellus",
+  "Prata", "Italiana", "Merriweather", "Libre Baskerville", "EB Garamond",
+  "Montserrat", "Poppins", "Inter", "Plus Jakarta Sans", "Outfit", "Manrope",
+  "DM Sans", "Sora", "Syne", "Space Grotesk", "Raleway", "Urbanist", "Jost",
+  "Great Vibes", "Dancing Script", "Alex Brush", "Parisienne", "Sacramento",
+  "Righteous", "Bungee", "Fredoka", "Comfortaa", "Orbitron", "JetBrains Mono",
+  "Hind Siliguri", "Tiro Bangla"
+];
+
+const PRELOAD_GOOGLE_FONTS_URL =
+  "https://fonts.googleapis.com/css2?" +
+  PRELOAD_FONTS.map(
+    (f) => `family=${encodeURIComponent(f).replace(/%20/g, "+")}`
+  ).join("&") +
+  "&display=swap";
 
 // Global cache for instant UI rendering during client navigation
 let globalThemeCache: any = null;
@@ -101,6 +361,100 @@ function ThemesContent() {
   const [fontFamily, setFontFamily] = useState(
     globalThemeCache?.fontFamily || "Inter",
   );
+  const [storeTitleFont, setStoreTitleFont] = useState(
+    globalThemeCache?.storeTitleFont || "Playfair Display",
+  );
+  const [storeName, setStoreName] = useState(
+    globalThemeCache?.storeName || "ALI FASHION",
+  );
+  const [titleCasePreview, setTitleCasePreview] = useState<"uppercase" | "original">("uppercase");
+  const [fontPickerOpen, setFontPickerOpen] = useState(false);
+  const [fontPickerSearch, setFontPickerSearch] = useState("");
+  const [fontPickerTab, setFontPickerTab] = useState<"All" | "Serif" | "Sans" | "Script" | "Display" | "Mono" | "Bengali">("All");
+  const fontPickerRef = useRef<HTMLDivElement>(null);
+
+  const [headingFontPickerOpen, setHeadingFontPickerOpen] = useState(false);
+  const [headingFontSearch, setHeadingFontSearch] = useState("");
+  const [headingFontTab, setHeadingFontTab] = useState<"All" | "Serif" | "Sans" | "Script" | "Display" | "Mono" | "Bengali">("All");
+  const headingFontPickerRef = useRef<HTMLDivElement>(null);
+
+  const loadedFontsRef = useRef<Set<string>>(new Set(PRELOAD_FONTS));
+
+  const ensureFontLoaded = (fontName: string) => {
+    if (typeof document === "undefined" || !fontName) return;
+    if (loadedFontsRef.current.has(fontName)) return;
+    loadedFontsRef.current.add(fontName);
+
+    const fontId = `gfont-${fontName.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}`;
+    if (document.getElementById(fontId)) return;
+
+    const link = document.createElement("link");
+    link.id = fontId;
+    link.rel = "stylesheet";
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName).replace(/%20/g, "+")}&display=swap`;
+    document.head.appendChild(link);
+  };
+
+  useEffect(() => {
+    if (storeTitleFont) {
+      ensureFontLoaded(storeTitleFont);
+    }
+  }, [storeTitleFont]);
+
+  useEffect(() => {
+    if (fontFamily) {
+      ensureFontLoaded(fontFamily);
+    }
+  }, [fontFamily]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (fontPickerRef.current && !fontPickerRef.current.contains(e.target as Node)) {
+        setFontPickerOpen(false);
+      }
+      if (headingFontPickerRef.current && !headingFontPickerRef.current.contains(e.target as Node)) {
+        setHeadingFontPickerOpen(false);
+      }
+    };
+    if (fontPickerOpen || headingFontPickerOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [fontPickerOpen, headingFontPickerOpen]);
+
+  const filteredFonts = STORE_TITLE_FONTS.filter((f) => {
+    const matchesSearch =
+      f.value.toLowerCase().includes(fontPickerSearch.toLowerCase()) ||
+      f.label.toLowerCase().includes(fontPickerSearch.toLowerCase()) ||
+      f.category.toLowerCase().includes(fontPickerSearch.toLowerCase());
+    if (!matchesSearch) return false;
+    if (fontPickerTab === "All") return true;
+    if (fontPickerTab === "Serif") return f.category.toLowerCase().includes("serif");
+    if (fontPickerTab === "Sans") return f.category.toLowerCase().includes("sans");
+    if (fontPickerTab === "Script") return f.category.toLowerCase().includes("script") || f.category.toLowerCase().includes("cursive") || f.category.toLowerCase().includes("calligraphy") || f.category.toLowerCase().includes("hand");
+    if (fontPickerTab === "Display") return f.category.toLowerCase().includes("display") || f.category.toLowerCase().includes("retro") || f.category.toLowerCase().includes("stencil") || f.category.toLowerCase().includes("cyber");
+    if (fontPickerTab === "Mono") return f.category.toLowerCase().includes("mono");
+    if (fontPickerTab === "Bengali") return f.category.toLowerCase().includes("bengali");
+    return true;
+  });
+
+  const filteredHeadingFonts = STORE_TITLE_FONTS.filter((f) => {
+    const matchesSearch =
+      f.value.toLowerCase().includes(headingFontSearch.toLowerCase()) ||
+      f.label.toLowerCase().includes(headingFontSearch.toLowerCase()) ||
+      f.category.toLowerCase().includes(headingFontSearch.toLowerCase());
+    if (!matchesSearch) return false;
+    if (headingFontTab === "All") return true;
+    if (headingFontTab === "Serif") return f.category.toLowerCase().includes("serif");
+    if (headingFontTab === "Sans") return f.category.toLowerCase().includes("sans");
+    if (headingFontTab === "Script") return f.category.toLowerCase().includes("script") || f.category.toLowerCase().includes("cursive") || f.category.toLowerCase().includes("calligraphy") || f.category.toLowerCase().includes("hand");
+    if (headingFontTab === "Display") return f.category.toLowerCase().includes("display") || f.category.toLowerCase().includes("retro") || f.category.toLowerCase().includes("stencil") || f.category.toLowerCase().includes("cyber");
+    if (headingFontTab === "Mono") return f.category.toLowerCase().includes("mono");
+    if (headingFontTab === "Bengali") return f.category.toLowerCase().includes("bengali");
+    return true;
+  });
   const [language, setLanguage] = useState(globalThemeCache?.language || "en");
   const [currencySymbol, setCurrencySymbol] = useState(
     globalThemeCache?.currencySymbol || "৳",
@@ -136,6 +490,7 @@ function ThemesContent() {
     buttonLink: string;
     image: any;
     images?: any[];
+    showBannerContent?: boolean;
     showAnnouncement?: boolean;
     announcementText?: string;
     isSliding?: boolean;
@@ -150,6 +505,7 @@ function ThemesContent() {
       buttonLink: "",
       image: null,
       images: [],
+      showBannerContent: true,
       showAnnouncement: false,
       announcementText: "",
       isSliding: false,
@@ -319,6 +675,7 @@ function ThemesContent() {
           });
         }
         if (themeData.fontFamily) setFontFamily(themeData.fontFamily);
+        if (themeData.storeTitleFont) setStoreTitleFont(themeData.storeTitleFont);
         if (themeData.language) setLanguage(themeData.language);
         if (themeData.currencySymbol)
           setCurrencySymbol(themeData.currencySymbol);
@@ -331,19 +688,18 @@ function ThemesContent() {
         let contactPhone = themeData.footer?.contactInfo?.phone || "";
         let contactAddress = themeData.footer?.contactInfo?.address || "";
 
-        // If any contact info is empty, automatically pull from store profile
-        if (!contactEmail || !contactPhone || !contactAddress) {
-          try {
-            const storeRes = await api.get("/tenants/my-store");
-            const storeData = storeRes.data?.data;
-            if (storeData) {
-              if (!contactEmail) contactEmail = storeData.contactEmail || "";
-              if (!contactPhone) contactPhone = storeData.contactPhone || "";
-              if (!contactAddress)
-                contactAddress = storeData.contactAddress || "";
-            }
-          } catch (e) {}
-        }
+        // Fetch store profile to sync storeName for live preview & contact info if needed
+        try {
+          const storeRes = await api.get("/tenants/my-store");
+          const storeData = storeRes.data?.data;
+          if (storeData) {
+            if (storeData.name) setStoreName(storeData.name);
+            if (!contactEmail) contactEmail = storeData.contactEmail || "";
+            if (!contactPhone) contactPhone = storeData.contactPhone || "";
+            if (!contactAddress)
+              contactAddress = storeData.contactAddress || "";
+          }
+        } catch (e) {}
 
         const newFooter = {
           socialLinks: {
@@ -377,6 +733,7 @@ function ThemesContent() {
           images: Array.isArray(themeData.banner?.images)
             ? themeData.banner.images
             : [],
+          showBannerContent: themeData.banner?.showBannerContent !== false,
           showAnnouncement:
             themeData.banner?.showAnnouncement ??
             (themeData.banner?.announcementText ? true : false),
@@ -437,6 +794,8 @@ function ThemesContent() {
             buyNow: themeData.buttonColors?.buyNow || "",
           },
           fontFamily: themeData.fontFamily || "Inter",
+          storeTitleFont: themeData.storeTitleFont || "Playfair Display",
+          storeName: storeName || "ALI FASHION",
           language: themeData.language || "en",
           currencySymbol: themeData.currencySymbol || "৳",
           footer: newFooter,
@@ -584,6 +943,7 @@ function ThemesContent() {
           primaryColor,
           buttonColors,
           fontFamily,
+          storeTitleFont,
           language,
           currencySymbol,
           footer,
@@ -593,6 +953,7 @@ function ThemesContent() {
             description: banner.description,
             buttonText: banner.buttonText,
             buttonLink: banner.buttonLink,
+            showBannerContent: banner.showBannerContent !== false,
             imageSlots,
             existingImages: retainedExistingImages,
             showAnnouncement: banner.showAnnouncement || false,
@@ -969,91 +1330,328 @@ function ThemesContent() {
                     </p>
                   </div>
 
-                  <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100">
-                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 mb-3">
-                      <Type className="w-4 h-4 text-gray-500" /> Heading Font
-                    </label>
-                    <Select
-                      value={fontFamily}
-                      onChange={(e) => setFontFamily(e.target.value)}
-                      options={[
-                        {
-                          value: "Inter",
-                          label: "Inter (Modern Tech - Default)",
-                        },
-                        {
-                          value: "Plus Jakarta Sans",
-                          label: "Plus Jakarta Sans (Ultra Clean Corporate)",
-                        },
-                        {
-                          value: "Outfit",
-                          label: "Outfit (Sleek Modern Tech)",
-                        },
-                        {
-                          value: "Poppins",
-                          label: "Poppins (Geometric E-Commerce)",
-                        },
-                        {
-                          value: "Manrope",
-                          label: "Manrope (Modern & Minimalist)",
-                        },
-                        {
-                          value: "DM Sans",
-                          label: "DM Sans (Clean Geometric Sans)",
-                        },
-                        {
-                          value: "Sora",
-                          label: "Sora (Futuristic Minimal Tech)",
-                        },
-                        {
-                          value: "Syne",
-                          label: "Syne (Edgy & Creative Display)",
-                        },
-                        {
-                          value: "Space Grotesk",
-                          label: "Space Grotesk (Cyber & Gadgets)",
-                        },
-                        {
-                          value: "Roboto",
-                          label: "Roboto (Clean Standard Sans)",
-                        },
-                        {
-                          value: "Montserrat",
-                          label: "Montserrat (Bold High-Impact)",
-                        },
-                        { value: "Lato", label: "Lato (Warm & Professional)" },
-                        {
-                          value: "Open Sans",
-                          label: "Open Sans (Neutral & Readable)",
-                        },
-                        {
-                          value: "Playfair Display",
-                          label: "Playfair Display (Luxury High-End Serif)",
-                        },
-                        {
-                          value: "Cinzel",
-                          label: "Cinzel (Exclusive Premium Serif)",
-                        },
-                        {
-                          value: "Cormorant Garamond",
-                          label: "Cormorant Garamond (Editorial Luxury Serif)",
-                        },
-                        {
-                          value: "Merriweather",
-                          label: "Merriweather (Classic Book Serif)",
-                        },
-                        {
-                          value: "JetBrains Mono",
-                          label: "JetBrains Mono (Technical Monospace)",
-                        },
-                        {
-                          value: "Hind Siliguri",
-                          label: "Hind Siliguri (Bengali & English Dual)",
-                        },
-                      ]}
-                    />
+                  {/* Heading Font (Hidden per user request) */}
+                  <div className="hidden">
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 truncate">
+                        <Type className="w-4 h-4 text-[#5022C3] shrink-0" /> Heading Font
+                      </label>
+                      {/* Compact live text preview badge right beside label */}
+                      <span className="text-[11px] font-semibold text-gray-500 flex items-center gap-1.5 bg-white border border-gray-200/80 px-2 py-0.5 rounded-md shadow-2xs shrink-0">
+                        <span className="text-gray-400">Preview:</span>
+                        <span
+                          style={{ fontFamily: `'${fontFamily || "Inter"}', sans-serif` }}
+                          className="font-bold text-gray-900 truncate max-w-[110px] sm:max-w-[140px]"
+                        >
+                          New Arrivals
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* Custom Dropdown Trigger */}
+                    <div className="relative" ref={headingFontPickerRef}>
+                      <button
+                        type="button"
+                        onClick={() => setHeadingFontPickerOpen(!headingFontPickerOpen)}
+                        className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-lg text-sm transition-all focus:outline-none border cursor-pointer ${
+                          headingFontPickerOpen
+                            ? "bg-white border-[#5022C3] ring-2 ring-[#5022C3]/20 shadow-sm"
+                            : "bg-white/90 hover:bg-white border-gray-200 hover:border-gray-300 shadow-2xs"
+                        }`}
+                      >
+                        {/* Selected Font Name & Category */}
+                        <div className="flex items-center gap-2 truncate text-left">
+                          <span className="font-semibold text-gray-900 truncate">
+                            {fontFamily}
+                          </span>
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded shrink-0">
+                            {STORE_TITLE_FONTS.find((f) => f.value === fontFamily)?.category || "Sans"}
+                          </span>
+                        </div>
+
+                        {/* Live Text Preview right beside the select value */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span
+                            style={{ fontFamily: `'${fontFamily || "Inter"}', sans-serif` }}
+                            className="text-sm sm:text-base font-bold tracking-wide text-gray-900 px-2 py-0.5 bg-gray-50 border border-gray-200/90 rounded shadow-2xs max-w-[120px] sm:max-w-[160px] truncate"
+                          >
+                            New Arrivals
+                          </span>
+                          <ChevronDown
+                            className={`w-4 h-4 text-gray-500 transition-transform duration-200 shrink-0 ${
+                              headingFontPickerOpen ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
+                      </button>
+
+                      {/* Dropdown Menu Popover with Option Previews */}
+                      {headingFontPickerOpen && (
+                        <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-white border border-gray-200 rounded-xl shadow-2xl p-3 flex flex-col gap-2.5 animate-in fade-in-50 zoom-in-95 duration-150">
+                          {/* Search Input */}
+                          <div className="relative">
+                            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="text"
+                              value={headingFontSearch}
+                              onChange={(e) => setHeadingFontSearch(e.target.value)}
+                              placeholder={`Search ${STORE_TITLE_FONTS.length}+ heading fonts...`}
+                              className="w-full pl-9 pr-8 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5022C3]/20 focus:border-[#5022C3] text-gray-900 placeholder:text-gray-400"
+                              autoFocus
+                            />
+                            {headingFontSearch && (
+                              <button
+                                type="button"
+                                onClick={() => setHeadingFontSearch("")}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 rounded cursor-pointer"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Category Filter Tabs */}
+                          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] font-medium scrollbar-none">
+                            {(["All", "Serif", "Sans", "Script", "Display", "Mono", "Bengali"] as const).map((tab) => (
+                              <button
+                                type="button"
+                                key={tab}
+                                onClick={() => setHeadingFontTab(tab)}
+                                className={`px-2.5 py-1 rounded-md transition-colors shrink-0 cursor-pointer ${
+                                  headingFontTab === tab
+                                    ? "bg-[#5022C3] text-white font-semibold shadow-2xs"
+                                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                                }`}
+                              >
+                                {tab === "All" ? `All (${STORE_TITLE_FONTS.length})` : tab}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Options List with LIVE TEXT PREVIEWS on the right */}
+                          <div className="max-h-[300px] overflow-y-auto space-y-1 pr-1 divide-y divide-gray-50">
+                            {filteredHeadingFonts.length === 0 ? (
+                              <div className="py-6 text-center text-xs text-gray-400">
+                                No fonts found matching "{headingFontSearch}"
+                              </div>
+                            ) : (
+                              filteredHeadingFonts.map((font) => {
+                                const isSelected = fontFamily === font.value;
+                                ensureFontLoaded(font.value);
+                                return (
+                                  <button
+                                    type="button"
+                                    key={font.value}
+                                    onClick={() => {
+                                      setFontFamily(font.value);
+                                      setHeadingFontPickerOpen(false);
+                                      setHeadingFontSearch("");
+                                    }}
+                                    className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-left transition-all cursor-pointer group ${
+                                      isSelected
+                                        ? "bg-purple-50/80 border border-purple-200 text-purple-900"
+                                        : "hover:bg-gray-50 border border-transparent text-gray-800"
+                                    }`}
+                                  >
+                                    {/* Left: Font Name + category label */}
+                                    <div className="min-w-0 pr-2">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-semibold text-xs sm:text-sm truncate">
+                                          {font.label}
+                                        </span>
+                                        {isSelected && (
+                                          <Check className="w-3.5 h-3.5 text-[#5022C3] shrink-0" />
+                                        )}
+                                      </div>
+                                      <span className="text-[10px] text-gray-400 font-medium">
+                                        {font.category}
+                                      </span>
+                                    </div>
+
+                                    {/* Right: Real-time text preview in that exact font */}
+                                    <div className="shrink-0 text-right">
+                                      <span
+                                        style={{ fontFamily: `'${font.value}', sans-serif` }}
+                                        className="text-base sm:text-lg font-bold tracking-wider text-gray-900 group-hover:text-black truncate max-w-[130px] sm:max-w-[200px] block"
+                                      >
+                                        Featured Collection
+                                      </span>
+                                    </div>
+                                  </button>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
                     <p className="text-xs text-gray-500 mt-3 font-medium">
-                      Select the font used for titles and headers.
+                      Select the font used for headings and titles across sections.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-100 relative">
+                    {/* Preload flagship Google Web Fonts */}
+                    <link rel="stylesheet" href={PRELOAD_GOOGLE_FONTS_URL} />
+
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <label className="flex items-center gap-2 text-sm font-bold text-gray-700 truncate">
+                        <Sparkles className="w-4 h-4 text-[#5022C3] shrink-0" /> Store Title / Brand Font
+                      </label>
+                      {/* Compact live text preview badge right beside label */}
+                      <span className="text-[11px] font-semibold text-gray-500 flex items-center gap-1.5 bg-white border border-gray-200/80 px-2 py-0.5 rounded-md shadow-2xs shrink-0">
+                        <span className="text-gray-400">Preview:</span>
+                        <span
+                          style={{ fontFamily: `'${storeTitleFont || "Playfair Display"}', serif` }}
+                          className="font-bold text-gray-900 truncate max-w-[110px] sm:max-w-[140px]"
+                        >
+                          {storeName || "ALI FASHION"}
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* Custom Dropdown Trigger */}
+                    <div className="relative" ref={fontPickerRef}>
+                      <button
+                        type="button"
+                        onClick={() => setFontPickerOpen(!fontPickerOpen)}
+                        className={`w-full flex items-center justify-between gap-2 px-3.5 py-2.5 rounded-lg text-sm transition-all focus:outline-none border cursor-pointer ${
+                          fontPickerOpen
+                            ? "bg-white border-[#5022C3] ring-2 ring-[#5022C3]/20 shadow-sm"
+                            : "bg-white/90 hover:bg-white border-gray-200 hover:border-gray-300 shadow-2xs"
+                        }`}
+                      >
+                        {/* Selected Font Name & Category */}
+                        <div className="flex items-center gap-2 truncate text-left">
+                          <span className="font-semibold text-gray-900 truncate">
+                            {storeTitleFont}
+                          </span>
+                          <span className="text-[10px] font-medium px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded shrink-0">
+                            {STORE_TITLE_FONTS.find((f) => f.value === storeTitleFont)?.category || "Serif"}
+                          </span>
+                        </div>
+
+                        {/* Live Text Preview right beside the select value */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span
+                            style={{ fontFamily: `'${storeTitleFont || "Playfair Display"}', serif` }}
+                            className="text-sm sm:text-base font-bold tracking-wide text-gray-900 px-2 py-0.5 bg-gray-50 border border-gray-200/90 rounded shadow-2xs max-w-[120px] sm:max-w-[160px] truncate"
+                          >
+                            {storeName || "NOt Load"}
+                          </span>
+                          <ChevronDown
+                            className={`w-4 h-4 text-gray-500 transition-transform duration-200 shrink-0 ${
+                              fontPickerOpen ? "rotate-180" : ""
+                            }`}
+                          />
+                        </div>
+                      </button>
+
+                      {/* Dropdown Menu Popover with Option Previews */}
+                      {fontPickerOpen && (
+                        <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-white border border-gray-200 rounded-xl shadow-2xl p-3 flex flex-col gap-2.5 animate-in fade-in-50 zoom-in-95 duration-150">
+                          {/* Search Input */}
+                          <div className="relative">
+                            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input
+                              type="text"
+                              value={fontPickerSearch}
+                              onChange={(e) => setFontPickerSearch(e.target.value)}
+                              placeholder={`Search ${STORE_TITLE_FONTS.length}+ luxury, sans, script, mono & bengali fonts...`}
+                              className="w-full pl-9 pr-8 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5022C3]/20 focus:border-[#5022C3] text-gray-900 placeholder:text-gray-400"
+                              autoFocus
+                            />
+                            {fontPickerSearch && (
+                              <button
+                                type="button"
+                                onClick={() => setFontPickerSearch("")}
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 rounded cursor-pointer"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Category Filter Tabs */}
+                          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] font-medium scrollbar-none">
+                            {(["All", "Serif", "Sans", "Script", "Display", "Mono", "Bengali"] as const).map((tab) => (
+                              <button
+                                type="button"
+                                key={tab}
+                                onClick={() => setFontPickerTab(tab)}
+                                className={`px-2.5 py-1 rounded-md transition-colors shrink-0 cursor-pointer ${
+                                  fontPickerTab === tab
+                                    ? "bg-[#5022C3] text-white font-semibold shadow-2xs"
+                                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                                }`}
+                              >
+                                {tab === "All" ? `All (${STORE_TITLE_FONTS.length})` : tab}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Options List with LIVE TEXT PREVIEWS on the right */}
+                          <div className="max-h-[300px] overflow-y-auto space-y-1 pr-1 divide-y divide-gray-50">
+                            {filteredFonts.length === 0 ? (
+                              <div className="py-6 text-center text-xs text-gray-400">
+                                No fonts found matching "{fontPickerSearch}"
+                              </div>
+                            ) : (
+                              filteredFonts.map((font) => {
+                                const isSelected = storeTitleFont === font.value;
+                                // On-demand dynamic font loading as items are rendered
+                                ensureFontLoaded(font.value);
+                                return (
+                                  <button
+                                    type="button"
+                                    key={font.value}
+                                    onClick={() => {
+                                      setStoreTitleFont(font.value);
+                                      setFontPickerOpen(false);
+                                      setFontPickerSearch("");
+                                    }}
+                                    className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-left transition-all cursor-pointer group ${
+                                      isSelected
+                                        ? "bg-purple-50/80 border border-purple-200 text-purple-900"
+                                        : "hover:bg-gray-50 border border-transparent text-gray-800"
+                                    }`}
+                                  >
+                                    {/* Left: Font Name + category label */}
+                                    <div className="min-w-0 pr-2">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="font-semibold text-xs sm:text-sm truncate">
+                                          {font.label}
+                                        </span>
+                                        {isSelected && (
+                                          <Check className="w-3.5 h-3.5 text-[#5022C3] shrink-0" />
+                                        )}
+                                      </div>
+                                      <span className="text-[10px] text-gray-400 font-medium">
+                                        {font.category}
+                                      </span>
+                                    </div>
+
+                                    {/* Right: Real-time text preview in that exact font (WHERE USER'S RED BOX IS!) */}
+                                    <div className="shrink-0 text-right">
+                                      <span
+                                        style={{ fontFamily: `'${font.value}', serif` }}
+                                        className="text-base sm:text-lg font-bold tracking-wider text-gray-900 group-hover:text-black truncate max-w-[130px] sm:max-w-[200px] block"
+                                      >
+                                        {storeName || "ALI FASHION"}
+                                      </span>
+                                    </div>
+                                  </button>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-gray-500 mt-3 font-medium">
+                      Select font specifically for your storefront logo / brand name text in header & footer.
                     </p>
                   </div>
 
@@ -1089,150 +1687,173 @@ function ThemesContent() {
                     </p>
                   </div>
 
-                  {/* Instant Color & Button Live Preview Box */}
+                  {/* Instant Color & Button Live Preview Box - Product Card Size */}
                   <div className="lg:col-span-2 pt-6 border-t border-gray-100">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                       <div>
                         <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-[#5022C3]" />{" "}
-                          Instant Color & Button Live Preview
+                          <Sparkles className="w-4 h-4 text-[#5022C3]" />
+                          Instant Color & Button Live Storefront Preview
                         </h3>
                         <p className="text-xs text-gray-500">
-                          Real-time preview of how your custom colors and
-                          buttons will appear on your storefront.
+                          Real-time preview of how your custom colors and action buttons appear on storefront product cards.
                         </p>
+                      </div>
+                      <div className="flex items-center gap-2 self-start sm:self-auto">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          Live Real Preview
+                        </span>
                       </div>
                     </div>
 
-                    <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-200/80 flex flex-col md:flex-row items-center justify-between gap-6 shadow-inner">
-                      {/* Inject Google Font dynamically for real-time preview */}
-                      <link
-                        rel="stylesheet"
-                        href={`https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily || "Inter").replace(/%20/g, "+")}&display=swap`}
-                      />
-                      {/* Demo Card */}
-                      <div
-                        style={{
-                          fontFamily: `'${fontFamily || "Inter"}', sans-serif`,
-                        }}
-                        className="w-full max-w-sm bg-white rounded-2xl border border-gray-200 p-4 shadow-md space-y-3"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span
-                            style={{
-                              backgroundColor: primaryColor || "#5022C3",
-                            }}
-                            className="text-[11px] font-bold text-white px-2.5 py-0.5 rounded-full uppercase tracking-wider"
-                          >
-                            PROMO OFFER
-                          </span>
-                          <span className="text-xs font-mono text-gray-400">
-                            SKU-9941
+                    {/* Compact Product Card Mockup Container (Product Card Size) */}
+                    <div className="w-full max-w-sm bg-white rounded-2xl border border-gray-200/90 shadow-md p-4 sm:p-5 flex flex-col gap-3.5">
+                      {/* Product Image & Badges */}
+                      <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-gray-50 border border-gray-100 flex items-center justify-center group">
+                        <img
+                          src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&auto=format&fit=crop&q=80"
+                          alt="Premium Studio Wireless Headphones"
+                          className="w-full h-full object-contain p-3 transition-transform duration-300 group-hover:scale-105"
+                        />
+                        {/* Floating Discount Badge with primaryColor */}
+                        <span
+                          style={{
+                            backgroundColor: primaryColor || "#5022C3",
+                            color: "#ffffff",
+                          }}
+                          className="absolute top-2.5 left-2.5 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md shadow-sm tracking-wider"
+                        >
+                          -20% OFF
+                        </span>
+
+                        {/* Floating Wishlist Heart */}
+                        <button
+                          type="button"
+                          className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/90 backdrop-blur-xs border border-gray-200/80 flex items-center justify-center text-gray-400 hover:text-rose-500 shadow-2xs transition-colors"
+                        >
+                          <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
+                        </button>
+                      </div>
+
+                      {/* Product Details */}
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                          <span>AUDIO & GADGETS</span>
+                          <span>•</span>
+                          <span className="text-emerald-600 font-bold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> In Stock
                           </span>
                         </div>
 
-                        <div className="space-y-1">
-                          <h4
-                            style={{
-                              fontFamily: `'${fontFamily || "Inter"}', sans-serif`,
-                            }}
-                            className="font-bold text-gray-900 text-sm truncate"
-                          >
-                            Wireless Noise-Canceling Headphones
-                          </h4>
-                          <div className="flex items-center gap-2">
-                            <span
-                              style={{ color: primaryColor || "#5022C3" }}
-                              className="text-lg font-extrabold"
-                            >
-                              {currencySymbol || "৳"} 12,500
-                            </span>
-                            <span className="text-xs text-gray-400 line-through">
-                              {currencySymbol || "৳"} 15,000
-                            </span>
+                        {/* Product Title */}
+                        <h4 className="text-sm sm:text-base font-bold text-gray-900 leading-snug line-clamp-2">
+                          Wireless Active Noise-Cancelling Headphones Pro
+                        </h4>
+
+                        {/* Rating Stars */}
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-0.5">
+                          <div className="flex items-center text-amber-400">
+                            <Star className="w-3 h-3 fill-current" />
+                            <Star className="w-3 h-3 fill-current" />
+                            <Star className="w-3 h-3 fill-current" />
+                            <Star className="w-3 h-3 fill-current" />
+                            <Star className="w-3 h-3 fill-current" />
                           </div>
-                        </div>
-
-                        {/* Demo Action Buttons */}
-                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
-                          <button
-                            type="button"
-                            style={{
-                              borderColor:
-                                buttonColors.addToCart ||
-                                primaryColor ||
-                                "#5022C3",
-                              color:
-                                buttonColors.addToCart ||
-                                primaryColor ||
-                                "#5022C3",
-                              backgroundColor: "transparent",
-                            }}
-                            className="flex items-center justify-center gap-1.5 py-2 px-3 border-2 rounded-xl text-xs font-bold transition-all shadow-sm"
-                          >
-                            <ShoppingCart className="w-3.5 h-3.5" />
-                            <span>Add to Cart</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            style={{
-                              backgroundColor:
-                                buttonColors.buyNow ||
-                                primaryColor ||
-                                "#ef4444",
-                              color: "#ffffff",
-                            }}
-                            className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all shadow-sm text-white"
-                          >
-                            <Zap className="w-3.5 h-3.5" />
-                            <span>Buy Now</span>
-                          </button>
+                          <span className="font-bold text-gray-800 text-[11px]">4.9</span>
+                          <span className="text-gray-400 text-[10px]">(142)</span>
                         </div>
                       </div>
 
-                      {/* Summary Swatches */}
-                      <div className="flex flex-col gap-3 w-full md:w-auto shrink-0 bg-white p-4 rounded-xl border border-gray-200">
-                        <div className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                          Color Palette Swatches
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-4 h-4 rounded-full border border-gray-300"
-                            style={{
-                              backgroundColor: primaryColor || "#5022C3",
-                            }}
-                          />
-                          <span className="text-xs font-mono text-gray-600">
-                            Primary: {primaryColor || "#5022C3"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-4 h-4 rounded-full border border-gray-300"
-                            style={{
-                              backgroundColor:
-                                buttonColors.addToCart ||
-                                primaryColor ||
-                                "#5022C3",
-                            }}
-                          />
-                          <span className="text-xs font-mono text-gray-600">
-                            Add to Cart:{" "}
-                            {buttonColors.addToCart ||
+                      {/* Price display with primaryColor */}
+                      <div className="flex items-baseline gap-2 pt-0.5">
+                        <span
+                          style={{ color: primaryColor || "#5022C3" }}
+                          className="text-xl sm:text-2xl font-black tracking-tight"
+                        >
+                          {currencySymbol || "৳"} 12,500
+                        </span>
+                        <span className="text-xs sm:text-sm text-gray-400 line-through">
+                          {currencySymbol || "৳"} 15,600
+                        </span>
+                        <span
+                          style={{
+                            backgroundColor: `${primaryColor || "#5022C3"}15`,
+                            color: primaryColor || "#5022C3",
+                          }}
+                          className="text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-auto"
+                        >
+                          SAVE {currencySymbol || "৳"} 3,100
+                        </span>
+                      </div>
+
+                      {/* Action Buttons: Add to Cart & Buy Now */}
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        {/* Add to Cart Button */}
+                        <button
+                          type="button"
+                          style={{
+                            borderColor:
+                              buttonColors.addToCart ||
                               primaryColor ||
-                              "#5022C3"}
+                              "#111827",
+                            backgroundColor:
+                              buttonColors.addToCart ||
+                              primaryColor ||
+                              "#111827",
+                            color: "#ffffff",
+                          }}
+                          className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold shadow-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer text-white"
+                        >
+                          <ShoppingCart className="w-3.5 h-3.5" />
+                          <span>Add to Cart</span>
+                        </button>
+
+                        {/* Buy Now Button */}
+                        <button
+                          type="button"
+                          style={{
+                            backgroundColor:
+                              buttonColors.buyNow ||
+                              "#ef4444",
+                            color: "#ffffff",
+                          }}
+                          className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold shadow-sm hover:opacity-90 active:scale-[0.98] transition-all cursor-pointer text-white"
+                        >
+                          <Zap className="w-3.5 h-3.5" />
+                          <span>Buy Now</span>
+                        </button>
+                      </div>
+
+                      {/* Color Palette Swatches Mini Strip */}
+                      <div className="flex items-center justify-between pt-2.5 border-t border-gray-100 text-[11px] text-gray-500">
+                        <span className="font-semibold text-gray-600">Palette:</span>
+                        <div className="flex items-center gap-2.5">
+                          <span className="flex items-center gap-1 text-[10px]">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full inline-block shadow-2xs border border-black/10"
+                              style={{ backgroundColor: primaryColor || "#5022C3" }}
+                            />
+                            Primary
                           </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-4 h-4 rounded-full border border-gray-300"
-                            style={{
-                              backgroundColor: buttonColors.buyNow || "#ef4444",
-                            }}
-                          />
-                          <span className="text-xs font-mono text-gray-600">
-                            Buy Now: {buttonColors.buyNow || "#ef4444"}
+                          <span className="flex items-center gap-1 text-[10px]">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full inline-block shadow-2xs border border-black/10"
+                              style={{
+                                backgroundColor:
+                                  buttonColors.addToCart || primaryColor || "#111827",
+                              }}
+                            />
+                            Cart
+                          </span>
+                          <span className="flex items-center gap-1 text-[10px]">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full inline-block shadow-2xs border border-black/10"
+                              style={{
+                                backgroundColor: buttonColors.buyNow || "#ef4444",
+                              }}
+                            />
+                            Buy
                           </span>
                         </div>
                       </div>
@@ -1561,86 +2182,195 @@ function ThemesContent() {
                   </div>
 
                   <div className="space-y-6">
-                    <h4 className="font-bold text-gray-800 border-b border-gray-100 pb-2">
-                      Banner Content
-                    </h4>
-                    <div className="space-y-5">
-                      <Input
-                        label="Title"
-                        type="text"
-                        error={bannerErrors.title}
-                        value={banner.title}
-                        onChange={(e) =>
-                          setBanner((prev) => ({
-                            ...prev,
-                            title: e.target.value,
-                          }))
-                        }
-                        placeholder="e.g. Summer Sale 2026"
-                      />
-                      <Input
-                        label="Subtitle"
-                        type="text"
-                        error={bannerErrors.subtitle}
-                        value={banner.subtitle}
-                        onChange={(e) =>
-                          setBanner((prev) => ({
-                            ...prev,
-                            subtitle: e.target.value,
-                          }))
-                        }
-                        placeholder="e.g. Up to 50% off on all electronics"
-                      />
-                      <div className="space-y-1">
-                        <label className="block text-sm font-semibold text-gray-700">
-                          Description
-                        </label>
-                        <textarea
-                          value={banner.description}
-                          onChange={(e) =>
-                            setBanner((prev) => ({
-                              ...prev,
-                              description: e.target.value,
-                            }))
-                          }
-                          placeholder="e.g. Discover premium products curated for every lifestyle and budget."
-                          className={`w-full min-h-[100px] px-4 py-3 rounded-xl border ${bannerErrors.description ? "border-red-300 bg-red-50/30" : "border-gray-200"} focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all resize-none text-sm shadow-sm`}
-                        />
-                        {bannerErrors.description && (
-                          <p className="mt-1 text-xs text-red-500">
-                            {bannerErrors.description}
-                          </p>
-                        )}
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                      <div>
+                        <h4 className="font-bold text-gray-800 flex items-center gap-2">
+                          Banner Content
+                          {banner.showBannerContent === false ? (
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                              Hidden on Storefront
+                            </span>
+                          ) : (
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              Visible
+                            </span>
+                          )}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Toggle whether banner overlay title, description, and buttons appear over your banner images.
+                        </p>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <Input
-                          label="Button Text"
-                          type="text"
-                          error={bannerErrors.buttonText}
-                          value={banner.buttonText}
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={banner.showBannerContent !== false}
                           onChange={(e) =>
                             setBanner((prev) => ({
                               ...prev,
-                              buttonText: e.target.value,
+                              showBannerContent: e.target.checked,
                             }))
                           }
-                          placeholder="e.g. Shop Now"
+                          className="sr-only peer"
                         />
-                        <Input
-                          label="Button Link"
-                          type="text"
-                          error={bannerErrors.buttonLink}
-                          value={banner.buttonLink}
-                          onChange={(e) =>
-                            setBanner((prev) => ({
-                              ...prev,
-                              buttonLink: e.target.value,
-                            }))
-                          }
-                          placeholder="e.g. /categories"
-                        />
-                      </div>
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                      </label>
                     </div>
+
+                    {banner.showBannerContent === false ? (
+                      <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <EyeOff className="w-4 h-4 shrink-0 text-amber-600" />
+                          <span>
+                            <strong>Banner text content is hidden.</strong> Your storefront will showcase clean, full-bleed banner images without any text or dark shading.
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setBanner((prev) => ({ ...prev, showBannerContent: true }))
+                          }
+                          className="text-indigo-600 hover:text-indigo-700 font-semibold underline shrink-0 text-left sm:text-right"
+                        >
+                          Enable Content
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-5">
+                        <Input
+                          label="Title"
+                          type="text"
+                          error={bannerErrors.title}
+                          value={banner.title}
+                          onChange={(e) =>
+                            setBanner((prev) => ({
+                              ...prev,
+                              title: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Summer Sale 2026"
+                        />
+                        <Input
+                          label="Subtitle"
+                          type="text"
+                          error={bannerErrors.subtitle}
+                          value={banner.subtitle}
+                          onChange={(e) =>
+                            setBanner((prev) => ({
+                              ...prev,
+                              subtitle: e.target.value,
+                            }))
+                          }
+                          placeholder="e.g. Up to 50% off on all electronics"
+                        />
+                        <div className="space-y-1">
+                          <label className="block text-sm font-semibold text-gray-700">
+                            Description
+                          </label>
+                          <textarea
+                            value={banner.description}
+                            onChange={(e) =>
+                              setBanner((prev) => ({
+                                ...prev,
+                                description: e.target.value,
+                              }))
+                            }
+                            placeholder="e.g. Discover premium products curated for every lifestyle and budget."
+                            className={`w-full min-h-[100px] px-4 py-3 rounded-xl border ${bannerErrors.description ? "border-red-300 bg-red-50/30" : "border-gray-200"} focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all resize-none text-sm shadow-sm`}
+                          />
+                          {bannerErrors.description && (
+                            <p className="mt-1 text-xs text-red-500">
+                              {bannerErrors.description}
+                            </p>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <label className="block text-sm font-semibold text-gray-700">
+                                Button Text
+                              </label>
+                              <select
+                                aria-label="Button Text Quick Presets"
+                                className="text-xs border border-gray-200 rounded-md px-2 py-0.5 bg-gray-50 hover:bg-gray-100 text-gray-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    setBanner((prev) => ({
+                                      ...prev,
+                                      buttonText: e.target.value,
+                                    }));
+                                  }
+                                }}
+                                defaultValue=""
+                              >
+                                <option value="" disabled>Choose Preset...</option>
+                                <option value="Shop Now">Shop Now</option>
+                                <option value="Order Now">Order Now</option>
+                                <option value="Explore More">Explore More</option>
+                                <option value="View Collection">View Collection</option>
+                                <option value="Buy Now">Buy Now</option>
+                                <option value="Get Offer">Get Offer</option>
+                                <option value="Discover">Discover</option>
+                                <option value="শপ করুন">শপ করুন</option>
+                                <option value="অর্ডার করুন">অর্ডার করুন</option>
+                                <option value="এখনই কিনুন">এখনই কিনুন</option>
+                                <option value="অফার দেখুন">অফার দেখুন</option>
+                              </select>
+                            </div>
+                            <Input
+                              type="text"
+                              error={bannerErrors.buttonText}
+                              value={banner.buttonText}
+                              onChange={(e) =>
+                                setBanner((prev) => ({
+                                  ...prev,
+                                  buttonText: e.target.value,
+                                }))
+                              }
+                              placeholder="e.g. Shop Now or custom text"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <label className="block text-sm font-semibold text-gray-700">
+                                Button Link
+                              </label>
+                              <select
+                                aria-label="Button Link Quick Presets"
+                                className="text-xs border border-gray-200 rounded-md px-2 py-0.5 bg-gray-50 hover:bg-gray-100 text-gray-600 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    setBanner((prev) => ({
+                                      ...prev,
+                                      buttonLink: e.target.value,
+                                    }));
+                                  }
+                                }}
+                                defaultValue=""
+                              >
+                                <option value="" disabled>Choose Preset...</option>
+                                <option value="/products">All Products (/products)</option>
+                                <option value="/categories">Categories (/categories)</option>
+                                <option value="/track-order">Track Order (/track-order)</option>
+                                <option value="/">Home (/)</option>
+                              </select>
+                            </div>
+                            <Input
+                              type="text"
+                              error={bannerErrors.buttonLink}
+                              value={banner.buttonLink}
+                              onChange={(e) =>
+                                setBanner((prev) => ({
+                                  ...prev,
+                                  buttonLink: e.target.value,
+                                }))
+                              }
+                              placeholder="e.g. /products, /categories or full URL"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
