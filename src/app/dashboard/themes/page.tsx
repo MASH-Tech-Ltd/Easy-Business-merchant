@@ -362,7 +362,7 @@ function ThemesContent() {
     globalThemeCache?.fontFamily || "Inter",
   );
   const [storeTitleFont, setStoreTitleFont] = useState(
-    globalThemeCache?.storeTitleFont || "Playfair Display",
+    globalThemeCache?.storeTitleFont || "Inter",
   );
   const [storeName, setStoreName] = useState(
     globalThemeCache?.storeName || "ALI FASHION",
@@ -794,7 +794,7 @@ function ThemesContent() {
             buyNow: themeData.buttonColors?.buyNow || "",
           },
           fontFamily: themeData.fontFamily || "Inter",
-          storeTitleFont: themeData.storeTitleFont || "Playfair Display",
+          storeTitleFont: themeData.storeTitleFont || "Inter",
           storeName: storeName || "ALI FASHION",
           language: themeData.language || "en",
           currencySymbol: themeData.currencySymbol || "৳",
@@ -1503,7 +1503,7 @@ function ThemesContent() {
                       <span className="text-[11px] font-semibold text-gray-500 flex items-center gap-1.5 bg-white border border-gray-200/80 px-2 py-0.5 rounded-md shadow-2xs shrink-0">
                         <span className="text-gray-400">Preview:</span>
                         <span
-                          style={{ fontFamily: `'${storeTitleFont || "Playfair Display"}', serif` }}
+                          style={{ fontFamily: `'${storeTitleFont || "Inter"}', sans-serif` }}
                           className="font-bold text-gray-900 truncate max-w-[110px] sm:max-w-[140px]"
                         >
                           {storeName || "ALI FASHION"}
@@ -1535,7 +1535,7 @@ function ThemesContent() {
                         {/* Live Text Preview right beside the select value */}
                         <div className="flex items-center gap-2 shrink-0">
                           <span
-                            style={{ fontFamily: `'${storeTitleFont || "Playfair Display"}', serif` }}
+                            style={{ fontFamily: `'${storeTitleFont || "Inter"}', sans-serif` }}
                             className="text-sm sm:text-base font-bold tracking-wide text-gray-900 px-2 py-0.5 bg-gray-50 border border-gray-200/90 rounded shadow-2xs max-w-[120px] sm:max-w-[160px] truncate"
                           >
                             {storeName || "NOt Load"}
