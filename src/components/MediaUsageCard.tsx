@@ -51,8 +51,9 @@ export default function MediaUsageCard() {
     api
       .get('/media/usage/me')
       .then((res) => {
-        if (mounted && res?.data) {
-          setData(res.data);
+        const payload = res?.data?.data ?? res?.data;
+        if (mounted && payload?.storage) {
+          setData(payload);
         }
       })
       .catch(() => {
@@ -66,7 +67,7 @@ export default function MediaUsageCard() {
     };
   }, []);
 
-  if (loading || !data) return null;
+  if (loading || !data || !data.storage) return null;
 
   const quota = data.quota;
   const barColor =
