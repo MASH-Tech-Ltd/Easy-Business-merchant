@@ -16,6 +16,19 @@ interface MediaUsageData {
     usedPercent: number;
     isLimitReached: boolean;
   };
+  writes?: {
+    uploadCount: number;
+    deleteCount: number;
+    totalOperations: number;
+    r2WriteObjects: number;
+    uploadBytes: number;
+  };
+  reads?: {
+    totalRequests: number | null;
+    totalBytes: number | null;
+    source: 'none' | 'cloudflare_graphql';
+    updatedAt: string | null;
+  };
   storage: {
     r2: { imageCount: number; mainBytes: number; totalBytes: number };
     cloudinaryTracked: { imageCount: number; mainBytes: number; totalBytes: number };
@@ -149,28 +162,35 @@ export default function MediaUsageCard() {
         <div className="rounded-xl bg-gray-50 border border-gray-100 p-3.5">
           <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mb-1">
             <UploadCloud className="w-4 h-4 text-blue-600" />
-            <span>Monthly Uploads</span>
+            <span>Total Writes (Month)</span>
           </div>
-          <div className="text-lg font-bold text-gray-900">{data.monthly.uploadCount}</div>
+          <div className="text-lg font-bold text-gray-900">
+            {(data.writes?.totalOperations ?? data.monthly.uploadCount).toLocaleString()}
+          </div>
           <div className="text-[11px] text-gray-500 mt-0.5">
-            {formatBytes(data.monthly.uploadBytes)} uploaded
+            {data.writes?.uploadCount ?? data.monthly.uploadCount} uploads &bull;{' '}
+            {data.writes?.deleteCount ?? data.monthly.deleteCount} deletes
           </div>
         </div>
 
         <div className="rounded-xl bg-gray-50 border border-gray-100 p-3.5">
           <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mb-1">
             <Activity className="w-4 h-4 text-amber-600" />
-            <span>Monthly Bandwidth</span>
+            <span>Total Reads (Month)</span>
           </div>
           <div className="text-lg font-bold text-gray-900">
-            {data.monthly.deliveryBytes !== null
-              ? formatBytes(data.monthly.deliveryBytes)
-              : 'Not measured'}
+            {data.reads?.totalRequests !== null && data.reads?.totalRequests !== undefined
+              ? data.reads.totalRequests.toLocaleString()
+              : data.monthly.deliveryRequests !== null
+                ? data.monthly.deliveryRequests.toLocaleString()
+                : 'Not synced'}
           </div>
           <div className="text-[11px] text-gray-500 mt-0.5">
-            {data.monthly.deliveryRequests !== null
-              ? `${data.monthly.deliveryRequests.toLocaleString()} requests`
-              : 'CDN metering inactive'}
+            {data.reads?.totalBytes !== null && data.reads?.totalBytes !== undefined
+              ? `${formatBytes(data.reads.totalBytes)} delivered`
+              : data.monthly.deliveryBytes !== null
+                ? `${formatBytes(data.monthly.deliveryBytes)} delivered`
+                : 'Needs CF Analytics sync'}
           </div>
         </div>
       </div>
