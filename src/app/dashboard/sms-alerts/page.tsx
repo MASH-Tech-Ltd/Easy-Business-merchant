@@ -9,8 +9,10 @@ import {
   RefreshCw,
   ShoppingBag,
   Send,
-  Sparkles,
+  AlertTriangle,
   ArrowUpRight,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { api } from '@/utils/api';
 
@@ -30,7 +32,6 @@ interface MerchantSmsStats {
   totalFailed: number;
   orderOfflineSent: number;
   orderConfirmationSent: number;
-  adminManualSent: number;
   addonQuota: {
     hasAddon: boolean;
     addonName: string | null;
@@ -39,16 +40,25 @@ interface MerchantSmsStats {
     remaining: number;
   };
   recentLogs: SmsLogItem[];
+  meta?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export default function SmsAlertsPage() {
   const [stats, setStats] = useState<MerchantSmsStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
-  const fetchStats = async () => {
+  const fetchStats = async (targetPage: number = page) => {
     setLoading(true);
     try {
-      const res = await api.get('/notifications/sms/my-stats');
+      const res = await api.get('/notifications/sms/my-stats', {
+        params: { page: targetPage, limit: 15 },
+      });
       setStats(res.data?.data || null);
     } catch {
       setStats(null);
@@ -58,17 +68,18 @@ export default function SmsAlertsPage() {
   };
 
   useEffect(() => {
-    fetchStats();
-  }, []);
+    fetchStats(page);
+  }, [page]);
 
   const quota = stats?.addonQuota;
   const pct =
     quota && quota.limit > 0
       ? Math.min(100, Math.round((quota.used / quota.limit) * 100))
       : 0;
+  const meta = stats?.meta || { page: 1, limit: 15, total: 0, totalPages: 1 };
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
+    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -78,13 +89,13 @@ export default function SmsAlertsPage() {
           <div>
             <h1 className="text-xl font-bold text-gray-900">SMS Alerts &amp; Usage</h1>
             <p className="text-xs text-gray-500">
-              Track your SMS add-on quota, offline new-order alerts, and customer confirmation messages.
+              Track your SMS add-on quota, new-order alerts, and customer confirmation messages.
             </p>
           </div>
         </div>
         <button
           type="button"
-          onClick={fetchStats}
+          onClick={() => fetchStats(page)}
           className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 cursor-pointer"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -135,7 +146,7 @@ export default function SmsAlertsPage() {
         ) : (
           <p className="text-xs text-gray-500">
             Activate the <strong>New Order SMS Alert</strong> add-on (200 SMS / 120 BDT) to receive
-            offline order alerts and send English order confirmation SMS directly to customers.
+            new-order SMS alerts and send English order confirmation SMS directly to customers.
           </p>
         )}
       </div>
@@ -154,7 +165,7 @@ export default function SmsAlertsPage() {
 
         <div className="bg-white rounded-2xl border border-gray-200 p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-indigo-600">Offline Order Alerts</p>
+            <p className="text-xs font-medium text-indigo-600">New Order Alerts</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">{stats?.orderOfflineSent || 0}</p>
           </div>
           <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -176,11 +187,11 @@ export default function SmsAlertsPage() {
 
         <div className="bg-white rounded-2xl border border-gray-200 p-4 flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-blue-600">Platform Notices</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{stats?.adminManualSent || 0}</p>
+            <p className="text-xs font-medium text-rose-600">Failed</p>
+            <p className="text-2xl font-bold text-gray-900 mt-1">{stats?.totalFailed || 0}</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-            <Sparkles className="w-4 h-4" />
+          <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+            <AlertTriangle className="w-4 h-4" />
           </div>
         </div>
       </div>
@@ -190,7 +201,7 @@ export default function SmsAlertsPage() {
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <h3 className="text-sm font-bold text-gray-900">SMS Delivery History</h3>
           <span className="text-xs text-gray-500">
-            Showing {stats?.recentLogs?.length || 0} recent messages
+            Total {meta.total} message{meta.total === 1 ? '' : 's'}
           </span>
         </div>
 
@@ -216,7 +227,7 @@ export default function SmsAlertsPage() {
               ) : !stats?.recentLogs?.length ? (
                 <tr>
                   <td colSpan={6} className="py-10 text-center text-gray-400">
-                    No SMS notifications have been sent yet.
+                    No order SMS notifications have been sent yet.
                   </td>
                 </tr>
               ) : (
@@ -238,10 +249,8 @@ export default function SmsAlertsPage() {
                     </td>
                     <td className="py-3 px-4 font-semibold text-gray-700">
                       {log.triggerType === 'new_order_offline'
-                        ? 'Offline New Order'
-                        : log.triggerType === 'order_confirmation'
-                          ? 'Order Confirmation'
-                          : 'Platform Notice'}
+                        ? 'New Order Alert'
+                        : 'Order Confirmation'}
                     </td>
                     <td className="py-3 px-4 font-mono text-gray-600">
                       {log.orderId ? `#${String(log.orderId).slice(-6).toUpperCase()}` : '—'}
@@ -257,6 +266,35 @@ export default function SmsAlertsPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {meta.totalPages > 1 && (
+          <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/50 text-xs text-gray-600">
+            <span>
+              Page {meta.page} of {meta.totalPages}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={page <= 1 || loading}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 cursor-pointer"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Prev</span>
+              </button>
+              <button
+                type="button"
+                disabled={page >= meta.totalPages || loading}
+                onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 cursor-pointer"
+              >
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
