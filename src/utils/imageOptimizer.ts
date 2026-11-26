@@ -53,6 +53,15 @@ function stripCloudinaryTransforms(rawRest: string): string {
   return rest;
 }
 
+function mapR2VariantUrl(trimmed: string, width: number): string | null {
+  const match = trimmed.match(/^(https?:\/\/media\.masheco\.com\/.+?)(?:_w\d+)?\.webp(?:\?.*)?$/i);
+  if (!match || !match[1]) return null;
+  const base = match[1];
+  if (width <= 120) return `${base}_w100.webp`;
+  if (width <= 450) return `${base}_w400.webp`;
+  return `${base}.webp`;
+}
+
 export function getOptimizedImageUrl(
   url?: string | null,
   presetOrWidth: ImagePreset | number = 'merchant-product',
@@ -66,6 +75,10 @@ export function getOptimizedImageUrl(
     typeof presetOrWidth === 'number'
       ? presetOrWidth
       : IMAGE_WIDTHS[presetOrWidth] || 80;
+
+  // Cloudflare R2 URL (pre-generated WebP variants)
+  const r2Url = mapR2VariantUrl(trimmed, width);
+  if (r2Url) return r2Url;
 
   const height = explicitHeight ?? (width <= 100 ? width : undefined);
   const transform = height

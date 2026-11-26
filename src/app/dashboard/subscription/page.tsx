@@ -7,6 +7,7 @@ import { api } from '@/utils/api';
 import toast from 'react-hot-toast';
 import { useSocket } from '@/context/SocketContext';
 import PlanComparisonTable from '@/components/landing/PlanComparisonTable';
+import MediaUsageCard from '@/components/MediaUsageCard';
 import {
   getPlatformTrackingContext,
   trackPlatformBrowserAndServerEvent,
@@ -1106,6 +1107,9 @@ export default function SubscriptionPage() {
           </div>
         </div>
       )}
+      <div className="mt-8">
+        <MediaUsageCard />
+      </div>
     </div>
   );
 }
