@@ -45,6 +45,7 @@ import {
   Activity,
   Eye,
   ClipboardPlus,
+  MessageSquare,
 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import { api } from "@/utils/api";
@@ -715,6 +716,11 @@ export default function DashboardLayout({
               : undefined,
           badgeType: "COUNT",
         },
+        {
+          name: "SMS Alerts",
+          path: "/dashboard/sms-alerts",
+          icon: MessageSquare,
+        },
       ],
     },
     {
@@ -1165,6 +1171,8 @@ export default function DashboardLayout({
                                         : pathname ===
                                             "/dashboard/notifications"
                                           ? "Notifications"
+                                          : pathname === "/dashboard/sms-alerts"
+                                            ? "SMS Alerts"
                                           : pathname ===
                                               "/dashboard/payment-methods"
                                             ? "Payment Methods"
@@ -1220,6 +1228,8 @@ export default function DashboardLayout({
                                           : pathname ===
                                               "/dashboard/notifications"
                                             ? "Stay updated with your store's activity (auto-clears after 30 days)"
+                                            : pathname === "/dashboard/sms-alerts"
+                                              ? "Track your SMS add-on quota and order notification history"
                                             : pathname ===
                                                 "/dashboard/payment-methods"
                                               ? "Configure mobile banking and manual payment options for your customers"

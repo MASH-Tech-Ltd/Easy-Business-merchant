@@ -22,6 +22,7 @@ import {
   RefreshCw,
   CheckCircle2,
   ClipboardPlus,
+  MessageSquare,
 } from "lucide-react";
 import { api } from "@/utils/api";
 import { toast } from "react-hot-toast";
@@ -92,6 +93,14 @@ export default function OrdersPage() {
   const [deleteOrder, setDeleteOrder] = useState<Order | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmingOrderId, setConfirmingOrderId] = useState<string | null>(null);
+  const [smsAddonQuota, setSmsAddonQuota] = useState<{
+    hasAddon: boolean;
+    limit: number;
+    used: number;
+    remaining: number;
+  } | null>(null);
+  const [sendingSmsOrderId, setSendingSmsOrderId] = useState<string | null>(null);
+  const [sentSmsOrderIds, setSentSmsOrderIds] = useState<Record<string, boolean>>({});
   const [checkingFraud, setCheckingFraud] = useState<string | null>(null);
   const [fraudErrorModal, setFraudErrorModal] = useState<{
     show: boolean;
@@ -226,6 +235,53 @@ export default function OrdersPage() {
       );
     } finally {
       setConfirmingOrderId(null);
+    }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    api
+      .get("/notifications/sms/my-stats")
+      .then((res) => {
+        const stats = res.data?.data;
+        if (mounted && stats?.addonQuota) {
+          setSmsAddonQuota(stats.addonQuota);
+        }
+        if (mounted && Array.isArray(stats?.recentLogs)) {
+          const map: Record<string, boolean> = {};
+          for (const log of stats.recentLogs) {
+            if (log.triggerType === "order_confirmation" && log.status === "sent" && log.orderId) {
+              map[String(log.orderId)] = true;
+            }
+          }
+          setSentSmsOrderIds(map);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleSendOrderSms = async (order: Order) => {
+    setSendingSmsOrderId(order._id);
+    try {
+      await api.post(`/notifications/sms/send-order-confirmation/${order._id}`);
+      toast.success("Confirmation SMS sent to customer!");
+      setSentSmsOrderIds((prev) => ({ ...prev, [order._id]: true }));
+      setSmsAddonQuota((prev) =>
+        prev
+          ? {
+              ...prev,
+              used: prev.used + 1,
+              remaining: Math.max(0, prev.remaining - 1),
+            }
+          : prev,
+      );
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to send confirmation SMS");
+    } finally {
+      setSendingSmsOrderId(null);
     }
   };
 
@@ -726,6 +782,35 @@ export default function OrdersPage() {
                             )}
                           </button>
                         )}
+                        {smsAddonQuota?.hasAddon &&
+                          order.status === "confirmed" && (
+                            <button
+                              onClick={() => handleSendOrderSms(order)}
+                              disabled={
+                                sendingSmsOrderId === order._id ||
+                                smsAddonQuota.remaining <= 0
+                              }
+                              className={`px-2.5 h-8 flex items-center gap-1 rounded-xl text-[11px] font-bold border transition-colors disabled:opacity-50 cursor-pointer ${
+                                sentSmsOrderIds[order._id]
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-200"
+                              }`}
+                              title={
+                                smsAddonQuota.remaining <= 0
+                                  ? "SMS quota reached"
+                                  : "Send English Confirmation SMS to Customer"
+                              }
+                            >
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              <span>
+                                {sendingSmsOrderId === order._id
+                                  ? "Sending..."
+                                  : sentSmsOrderIds[order._id]
+                                    ? "SMS Sent"
+                                    : "Send SMS"}
+                              </span>
+                            </button>
+                          )}
                         <button
                           onClick={() => handleFraudCheck(order._id)}
                           disabled={checkingFraud === order._id}
