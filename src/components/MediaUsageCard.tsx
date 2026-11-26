@@ -7,6 +7,15 @@ import { api } from '@/utils/api';
 interface MediaUsageData {
   month: string;
   activeProvider: 'cloudinary' | 'r2';
+  quota?: {
+    baseLimitBytes: number;
+    addonLimitBytes: number;
+    totalLimitBytes: number;
+    usedBytes: number;
+    remainingBytes: number;
+    usedPercent: number;
+    isLimitReached: boolean;
+  };
   storage: {
     r2: { imageCount: number; mainBytes: number; totalBytes: number };
     cloudinaryTracked: { imageCount: number; mainBytes: number; totalBytes: number };
@@ -59,6 +68,14 @@ export default function MediaUsageCard() {
 
   if (loading || !data) return null;
 
+  const quota = data.quota;
+  const barColor =
+    quota && quota.isLimitReached
+      ? 'bg-red-500'
+      : quota && quota.usedPercent >= 85
+        ? 'bg-amber-500'
+        : 'bg-indigo-600';
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-xs">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
@@ -69,7 +86,39 @@ export default function MediaUsageCard() {
             <span className="font-semibold uppercase text-gray-700">{data.activeProvider}</span>
           </p>
         </div>
+        {quota && quota.totalLimitBytes > 0 && (
+          <span
+            className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+              quota.isLimitReached
+                ? 'bg-red-50 text-red-700 border border-red-200'
+                : 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+            }`}
+          >
+            {formatBytes(quota.usedBytes)} / {formatBytes(quota.totalLimitBytes)} ({quota.usedPercent}%)
+          </span>
+        )}
       </div>
+
+      {quota && quota.totalLimitBytes > 0 && (
+        <div className="mb-4">
+          <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${barColor}`}
+              style={{ width: `${Math.min(100, Math.max(1, quota.usedPercent))}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-[11px] text-gray-500 mt-1.5">
+            <span>
+              {quota.isLimitReached
+                ? 'Storage limit reached — delete unused images or purchase a storage add-on.'
+                : `${formatBytes(quota.remainingBytes)} remaining`}
+            </span>
+            {quota.addonLimitBytes > 0 && (
+              <span>Includes +{formatBytes(quota.addonLimitBytes)} add-on</span>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="rounded-xl bg-gray-50 border border-gray-100 p-3.5">
