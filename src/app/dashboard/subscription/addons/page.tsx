@@ -373,6 +373,13 @@ export default function AddonsPage() {
     };
   };
 
+  const getPlanTierRank = (addon: any): number => {
+    const plans: string[] = Array.isArray(addon?.applicablePlans) ? addon.applicablePlans : [];
+    if (plans.includes('basic') || plans.length === 0) return 0;
+    if (plans.includes('standard')) return 1;
+    return 2;
+  };
+
   const displayedAddons = addons.filter((addon) => {
     if (activeTab === 'basic') {
       return addon.applicablePlans?.includes('basic');
@@ -388,6 +395,12 @@ export default function AddonsPage() {
       return p && p.status === 'active';
     }
     return true;
+  }).sort((a, b) => {
+    const rankDiff = getPlanTierRank(a) - getPlanTierRank(b);
+    if (rankDiff !== 0) return rankDiff;
+    const priceDiff = (Number(a.price) || 0) - (Number(b.price) || 0);
+    if (priceDiff !== 0) return priceDiff;
+    return String(a.name || '').localeCompare(String(b.name || ''));
   });
 
   if (loading) {
