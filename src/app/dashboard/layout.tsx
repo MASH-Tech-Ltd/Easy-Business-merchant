@@ -780,6 +780,7 @@ export default function DashboardLayout({
           icon: CreditCard,
           subItems: [
             { name: "My Plan", path: "/dashboard/subscription" },
+            { name: "Resource Usage", path: "/dashboard/resources" },
             { name: "Add-ons", path: "/dashboard/subscription/addons" },
             {
               name: "Payment History",

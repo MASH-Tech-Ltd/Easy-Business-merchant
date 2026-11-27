@@ -33,6 +33,7 @@ import {
 import { useSocket } from '@/context/SocketContext';
 import { billingCacheStore } from '@/utils/billingCache';
 import { MFSLogo } from '@/components/MFSLogo';
+import ResourceAddonsSection from '@/components/ResourceAddonsSection';
 
 export default function AddonsPage() {
   const router = useRouter();
@@ -998,6 +999,8 @@ export default function AddonsPage() {
           </div>
         </div>
       )}
+
+      <ResourceAddonsSection platformAccounts={platformAccounts} />
     </div>
   );
 }

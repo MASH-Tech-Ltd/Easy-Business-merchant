@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { HardDrive, Image as ImageIcon, UploadCloud, Activity } from 'lucide-react';
 import { api } from '@/utils/api';
 
@@ -193,6 +194,11 @@ export default function MediaUsageCard() {
                 : 'Needs CF Analytics sync'}
           </div>
         </div>
+      </div>
+      <div className="mt-3 pt-3 border-t border-gray-100 flex justify-end">
+        <Link href="/dashboard/resources" className="text-xs font-semibold text-indigo-600 hover:underline">
+          View Full Resource &amp; Bandwidth Usage &rarr;
+        </Link>
       </div>
     </div>
   );
