@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/utils/api';
 import { toast } from 'react-hot-toast';
+import { getClientCache, setClientCache } from '@/utils/clientCache';
 
 interface BlockedPhoneRecord {
   _id: string;
@@ -24,12 +25,13 @@ interface BlockedPhoneRecord {
 }
 
 export default function BlockedPhonesPage() {
-  const [records, setRecords] = useState<BlockedPhoneRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cachedInitial = getClientCache<any>('merchant:blocked-phones:1:');
+  const [records, setRecords] = useState<BlockedPhoneRecord[]>(cachedInitial?.records || []);
+  const [loading, setLoading] = useState(!cachedInitial);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [totalPages, setTotalPages] = useState(cachedInitial?.totalPages || 1);
+  const [totalRecords, setTotalRecords] = useState(cachedInitial?.totalRecords || 0);
 
   // Add Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,17 +46,30 @@ export default function BlockedPhonesPage() {
   }, [page, search]);
 
   const fetchBlockedPhones = async () => {
-    setLoading(true);
+    const cacheKey = `merchant:blocked-phones:${page}:${search}`;
+    const cached = getClientCache<any>(cacheKey);
+    if (cached) {
+      setRecords(cached.records);
+      setTotalPages(cached.totalPages);
+      setTotalRecords(cached.totalRecords);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     try {
       const res = await api.get('/blocked-phones', {
         params: { page, limit: 15, search },
       });
       const payload = res.data?.data;
-      setRecords(payload?.data || []);
-      setTotalPages(payload?.meta?.totalPages || 1);
-      setTotalRecords(payload?.meta?.total || 0);
+      const nextRecords = payload?.data || [];
+      const nextPages = payload?.meta?.totalPages || 1;
+      const nextTotal = payload?.meta?.total || 0;
+      setRecords(nextRecords);
+      setTotalPages(nextPages);
+      setTotalRecords(nextTotal);
+      setClientCache(cacheKey, { records: nextRecords, totalPages: nextPages, totalRecords: nextTotal });
     } catch {
-      toast.error('Failed to load blocked phone numbers');
+      if (!cached) toast.error('Failed to load blocked phone numbers');
     } finally {
       setLoading(false);
     }

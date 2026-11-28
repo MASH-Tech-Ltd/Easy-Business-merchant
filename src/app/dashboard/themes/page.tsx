@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
   Palette,
   CheckCircle2,
@@ -341,6 +341,8 @@ let globalThemeCache: any = null;
 
 function ThemesContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const tabParam = searchParams.get("tab");
   const policyParam = searchParams.get("policy");
   const highlightParam = searchParams.get("highlight");
@@ -549,7 +551,16 @@ function ThemesContent() {
 
   const [loading, setLoading] = useState(!globalThemeCache);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState("template");
+  const VALID_THEME_TABS = ["template", "customization", "banner", "footer", "shipping", "chat"];
+  const [activeTab, setActiveTabState] = useState(
+    tabParam && VALID_THEME_TABS.includes(tabParam) ? tabParam : "template"
+  );
+  const setActiveTab = (nextTab: string) => {
+    setActiveTabState(nextTab);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", nextTab);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
   const [activePolicyTab, setActivePolicyTab] = useState<string>("aboutUs");
 
   // Shipping zones state

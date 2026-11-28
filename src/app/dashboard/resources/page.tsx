@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { api } from '@/utils/api';
+import { getClientCache, setClientCache } from '@/utils/clientCache';
 
 const KB = 1024;
 const MB = 1024 * KB;
@@ -33,18 +34,22 @@ function barColor(pct: number): string {
 }
 
 export default function ResourceUsagePage() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const cachedData = getClientCache<any>('merchant:resources:overview');
+  const [data, setData] = useState<any>(cachedData);
+  const [loading, setLoading] = useState(!cachedData);
   const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
-    setLoading(true);
+    const cached = getClientCache<any>('merchant:resources:overview');
+    if (!cached) setLoading(true);
     setError(null);
     try {
       const res = await api.get('/resources/me/overview');
-      setData(res.data?.data || null);
+      const fresh = res.data?.data || null;
+      setData(fresh);
+      if (fresh) setClientCache('merchant:resources:overview', fresh);
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to load resource usage');
+      if (!cached) setError(err?.response?.data?.message || 'Failed to load resource usage');
     } finally {
       setLoading(false);
     }

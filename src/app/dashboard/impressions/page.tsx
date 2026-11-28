@@ -30,6 +30,7 @@ import {
 } from 'recharts';
 import Link from 'next/link';
 import { api } from '@/utils/api';
+import { getClientCache, setClientCache } from '@/utils/clientCache';
 import { getMerchantProductThumbnailUrl } from '@/utils/imageOptimizer';
 import { toast } from 'react-hot-toast';
 
@@ -74,24 +75,27 @@ export default function ImpressionsPage() {
   const [selectedRange, setSelectedRange] = useState('30days');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [loading, setLoading] = useState(true);
+  const initialOverview = getClientCache<any>('merchant:impressions:overview:30days');
+  const [loading, setLoading] = useState(!initialOverview);
 
   // Overview stats
-  const [stats, setStats] = useState({
-    totalImpressions: 0,
-    totalClicks: 0,
-    ctr: 0,
-    totalVisits: 0,
-    uniqueVisitors: 0,
-    totalProducts: 0,
-  });
+  const [stats, setStats] = useState(
+    initialOverview?.stats || {
+      totalImpressions: 0,
+      totalClicks: 0,
+      ctr: 0,
+      totalVisits: 0,
+      uniqueVisitors: 0,
+      totalProducts: 0,
+    }
+  );
 
   // Timeline chart data
-  const [timelineData, setTimelineData] = useState<any[]>([]);
+  const [timelineData, setTimelineData] = useState<any[]>(initialOverview?.timelineData || []);
 
   // Top products
-  const [topImpressions, setTopImpressions] = useState<any[]>([]);
-  const [topClicks, setTopClicks] = useState<any[]>([]);
+  const [topImpressions, setTopImpressions] = useState<any[]>(initialOverview?.topImpressions || []);
+  const [topClicks, setTopClicks] = useState<any[]>(initialOverview?.topClicks || []);
 
   // Products Table state
   const [products, setProducts] = useState<any[]>([]);
@@ -110,7 +114,17 @@ export default function ImpressionsPage() {
 
   // Fetch overview, timeline & top products
   const fetchOverviewData = useCallback(async () => {
-    setLoading(true);
+    const cacheKey = `merchant:impressions:overview:${selectedRange}:${startDate}:${endDate}`;
+    const cached = getClientCache<any>(cacheKey);
+    if (cached) {
+      setStats(cached.stats);
+      setTimelineData(cached.timelineData);
+      setTopImpressions(cached.topImpressions);
+      setTopClicks(cached.topClicks);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     try {
       const params: any = { range: selectedRange };
       if (selectedRange === 'custom' && startDate && endDate) {
@@ -124,9 +138,15 @@ export default function ImpressionsPage() {
         api.get('/analytics/merchant/top-products', { params: { ...params, limit: 10 } }),
       ]);
 
+      let nextStats = cached?.stats || stats;
+      let nextTimeline = cached?.timelineData || timelineData;
+      let nextTopImp = cached?.topImpressions || topImpressions;
+      let nextTopClk = cached?.topClicks || topClicks;
+
       if (overviewRes.status === 'fulfilled' && overviewRes.value.data?.data) {
         const oData = overviewRes.value.data.data;
-        setStats(oData.overview || oData);
+        nextStats = oData.overview || oData;
+        setStats(nextStats);
       }
       if (timelineRes.status === 'fulfilled' && timelineRes.value.data?.data) {
         const tData = timelineRes.value.data.data;
@@ -135,16 +155,25 @@ export default function ImpressionsPage() {
           : Array.isArray(tData.timeline)
             ? tData.timeline
             : [];
+        nextTimeline = arrayData;
         setTimelineData(arrayData);
       }
       if (topRes.status === 'fulfilled' && topRes.value.data?.data) {
         const tpData = topRes.value.data.data;
-        setTopImpressions(tpData.topByImpressions || tpData.topImpressed || []);
-        setTopClicks(tpData.topByClicks || tpData.topClicked || []);
+        nextTopImp = tpData.topByImpressions || tpData.topImpressed || [];
+        nextTopClk = tpData.topByClicks || tpData.topClicked || [];
+        setTopImpressions(nextTopImp);
+        setTopClicks(nextTopClk);
       }
+      setClientCache(cacheKey, {
+        stats: nextStats,
+        timelineData: nextTimeline,
+        topImpressions: nextTopImp,
+        topClicks: nextTopClk,
+      });
     } catch (err) {
       console.error('Failed to load impressions telemetry:', err);
-      toast.error('Failed to load impression statistics');
+      if (!cached) toast.error('Failed to load impression statistics');
     } finally {
       setLoading(false);
     }

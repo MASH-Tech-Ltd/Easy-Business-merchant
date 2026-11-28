@@ -1,7 +1,7 @@
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
-import PricingSection, { IPackage, FALLBACK_PACKAGES } from "@/components/landing/PricingSection";
+import PricingSection, { IPackage } from "@/components/landing/PricingSection";
 import AffiliatePromoSection from "@/components/landing/AffiliatePromoSection";
 import FAQSection from "@/components/landing/FAQSection";
 import Footer from "@/components/landing/Footer";
@@ -135,7 +135,7 @@ async function getPublicPackages(): Promise<IPackage[]> {
 
 export default async function LandingPage() {
   const backendPackages = await getPublicPackages();
-  const packages = backendPackages && backendPackages.length > 0 ? backendPackages : FALLBACK_PACKAGES;
+  const packages = Array.isArray(backendPackages) ? backendPackages : [];
 
   const jsonLd = {
     "@context": "https://schema.org",

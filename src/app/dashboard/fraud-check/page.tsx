@@ -4,20 +4,23 @@ import { useState, useEffect } from 'react';
 import { api } from '@/utils/api';
 import { ShieldCheck, ShieldAlert, Shield, Search, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { getClientCache, setClientCache } from '@/utils/clientCache';
 
 export default function FraudCheckHistory() {
-  const [checks, setChecks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cached = getClientCache<any[]>('merchant:fraud-checks');
+  const [checks, setChecks] = useState(cached || []);
+  const [loading, setLoading] = useState(!cached);
 
   const fetchChecks = async () => {
-    setLoading(true);
+    if (!getClientCache('merchant:fraud-checks')) setLoading(true);
     try {
       const res = await api.get('/fraud/merchant');
       if (res.data?.success) {
         setChecks(res.data.data);
+        setClientCache('merchant:fraud-checks', res.data.data);
       }
     } catch (error) {
-      toast.error('Failed to load fraud checks');
+      if (!getClientCache('merchant:fraud-checks')) toast.error('Failed to load fraud checks');
     } finally {
       setLoading(false);
     }

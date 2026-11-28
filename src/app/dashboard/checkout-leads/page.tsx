@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Users, ChevronLeft, ChevronRight, ShieldCheck, ShoppingCart, CheckCircle, TrendingUp, PhoneOff, Package, Eye, X, Phone, Mail, MapPin, Copy, Clock } from 'lucide-react';
 import { api } from '@/utils/api';
+import { getClientCache, setClientCache } from '@/utils/clientCache';
 import { toast } from 'react-hot-toast';
 
 interface CheckoutLeadItem {
@@ -42,22 +43,24 @@ const normalizeBDPhone = (phone: string): string => {
 
 export default function CheckoutLeadsPage() {
   const router = useRouter();
-  const [leads, setLeads] = useState<CheckoutLead[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cachedLeads = getClientCache<any>('merchant:checkout-leads:1::all');
+  const cachedStats = getClientCache<any>('merchant:checkout-leads:stats');
+  const [leads, setLeads] = useState<CheckoutLead[]>(cachedLeads?.leads || []);
+  const [loading, setLoading] = useState(!cachedLeads);
   
   // Pagination
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalRecords, setTotalRecords] = useState(0);
-  const [limitReached, setLimitReached] = useState(false);
+  const [totalPages, setTotalPages] = useState(cachedLeads?.totalPages || 1);
+  const [totalRecords, setTotalRecords] = useState(cachedLeads?.totalRecords || 0);
+  const [limitReached, setLimitReached] = useState(cachedLeads?.limitReached || false);
   
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'abandoned' | 'completed'>('all');
 
   // Stats
-  const [stats, setStats] = useState<any>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
+  const [stats, setStats] = useState<any>(cachedStats);
+  const [statsLoading, setStatsLoading] = useState(!cachedStats);
   const [timeframe, setTimeframe] = useState('allTime');
 
   // Modals & Phone Blocklist
@@ -138,9 +141,11 @@ export default function CheckoutLeadsPage() {
 
   const fetchStats = async () => {
     try {
-      setStatsLoading(true);
+      const cached = getClientCache<any>('merchant:checkout-leads:stats');
+      if (!cached) setStatsLoading(true);
       const response = await api.get('/checkout-leads/stats');
       setStats(response.data.data);
+      setClientCache('merchant:checkout-leads:stats', response.data.data);
     } catch (error) {
       console.error('Failed to fetch stats', error);
     } finally {
@@ -149,7 +154,17 @@ export default function CheckoutLeadsPage() {
   };
 
   const fetchLeads = async () => {
-    setLoading(true);
+    const cacheKey = `merchant:checkout-leads:${page}:${search}:${statusFilter}`;
+    const cached = getClientCache<any>(cacheKey);
+    if (cached) {
+      setLeads(cached.leads);
+      setTotalPages(cached.totalPages);
+      setTotalRecords(cached.totalRecords);
+      setLimitReached(cached.limitReached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     try {
       const response = await api.get('/checkout-leads/my-leads', {
         params: { page, limit, search, status: statusFilter }
@@ -163,6 +178,12 @@ export default function CheckoutLeadsPage() {
       setTotalPages(newTotalPages);
       setTotalRecords(newTotalRecords);
       setLimitReached(newLimitReached);
+      setClientCache(`merchant:checkout-leads:${page}:${search}:${statusFilter}`, {
+        leads: newLeads,
+        totalPages: newTotalPages,
+        totalRecords: newTotalRecords,
+        limitReached: newLimitReached,
+      });
     } catch (error: any) {
       if (error.response?.status === 403 || error.response?.status === 402) {
         setFraudErrorModal({
